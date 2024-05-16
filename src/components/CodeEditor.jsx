@@ -15,6 +15,15 @@ const CodeEditor = () => {
   const onMount = (editor) => {
     editorRef.current = editor;
     editor.focus();
+
+    // Disable copy (Ctrl+C) and paste (Ctrl+V)
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyC, () => {
+      console.log("Copy operation is disabled.");
+    });
+
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyV, () => {
+      console.log("Paste operation is disabled.");
+    });
   };
 
   const onSelect = (language) => {
@@ -87,7 +96,6 @@ const CodeEditor = () => {
           </Text>
         </VStack>
         <Box flex={1}>
-          {/* Code editor and output */}
           <VStack spacing={4} align="stretch">
             <HStack>
               <LanguageSelector language={language} onSelect={onSelect} />
