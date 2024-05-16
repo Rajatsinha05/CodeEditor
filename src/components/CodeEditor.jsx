@@ -16,6 +16,9 @@ const CodeEditor = () => {
   const [mediaRecorder, setMediaRecorder] = useState(null);
   const [recordedChunks, setRecordedChunks] = useState([]);
   const [isRecording, setIsRecording] = useState(false);
+  const [inactiveTime, setInactiveTime] = useState(0);
+  const [intervalId, setIntervalId] = useState(null);
+  const [isCameraActive, setIsCameraActive] = useState(true);
 
   useEffect(() => {
     const openCamera = async () => {
@@ -27,6 +30,7 @@ const CodeEditor = () => {
         setMediaRecorder(recorder);
       } catch (err) {
         console.error("Error accessing the camera: ", err);
+        setIsCameraActive(false);
       }
     };
 
@@ -39,6 +43,27 @@ const CodeEditor = () => {
       }
     };
   }, []);
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        const id = setInterval(() => {
+          setInactiveTime(prev => prev + 1);
+        }, 1000);
+        setIntervalId(id);
+      } else {
+        clearInterval(intervalId);
+        setIntervalId(null);
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      clearInterval(intervalId);
+    };
+  }, [intervalId]);
 
   const handleDataAvailable = (event) => {
     if (event.data.size > 0) {
@@ -56,7 +81,9 @@ const CodeEditor = () => {
     if (videoRef.current && videoRef.current.srcObject) {
       const tracks = videoRef.current.srcObject.getTracks();
       tracks.forEach(track => track.stop());
+      videoRef.current.srcObject = null;  // Remove the stream from the video element
     }
+    setIsCameraActive(false);
   };
 
   const onMount = (editor, monaco) => {
@@ -132,7 +159,10 @@ const CodeEditor = () => {
 
   return (
     <Box p={4} position="relative">
-      {!isRecording && (
+      {!isCameraActive && (
+        <Text color="red.500" mb={4}>Please Turn your Camera .</Text>
+      )}
+      {!isRecording && isCameraActive && (
         <Draggable>
           <Box position="absolute" top="20px" right="20px" bg="gray.800" borderRadius="md" p={1}>
             <video ref={videoRef} autoPlay style={{ width: "150px", borderRadius: "8px" }} />
@@ -204,9 +234,10 @@ const CodeEditor = () => {
         </Box>
       </HStack>
       <HStack spacing={4} mt={4}>
-        <Button onClick={startRecording} isDisabled={isRecording} colorScheme="green">Start Recording</Button>
+        <Button onClick={startRecording} isDisabled={isRecording || !isCameraActive} colorScheme="green">Start Recording</Button>
         <Button onClick={stopCameraAccess} colorScheme="red">Stop Camera Access</Button>
       </HStack>
+      <Text mt={4}>Inactive Time: {inactiveTime} seconds</Text>
     </Box>
   );
 };
