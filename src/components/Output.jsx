@@ -1,5 +1,21 @@
 import React, { useState } from "react";
-import { Box, Button, Text, Input, useToast } from "@chakra-ui/react";
+import {
+  Box,
+  Button,
+  Text,
+  Input,
+  useToast,
+  Drawer,
+  DrawerOverlay,
+  DrawerContent,
+  DrawerHeader,
+  DrawerBody,
+  DrawerFooter,
+  DrawerCloseButton,
+  List,
+  ListItem,
+  Spinner,
+} from "@chakra-ui/react";
 import { executeCode } from "../api";
 
 const Output = ({ editorRef, language }) => {
@@ -8,6 +24,8 @@ const Output = ({ editorRef, language }) => {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
+  const [testResults, setTestResults] = useState([]);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false); // State to control drawer visibility
 
   const handleInputChange = (e) => {
     setInput(e.target.value);
@@ -23,7 +41,7 @@ const Output = ({ editorRef, language }) => {
   const runCode = async () => {
     const sourceCode = editorRef.current.getValue();
     if (!sourceCode) return;
-
+    
     try {
       setIsLoading(true);
       const result = await executeCode(language, sourceCode, input);
@@ -45,6 +63,10 @@ const Output = ({ editorRef, language }) => {
 
   const clearOutput = () => {
     setOutput(null);
+  };
+
+  const toggleDrawer = () => {
+    setIsDrawerOpen(!isDrawerOpen);
   };
 
   return (
@@ -83,13 +105,36 @@ const Output = ({ editorRef, language }) => {
       >
         Run Code
       </Button>
-      <Button
-        variant="outline"
-        colorScheme="red"
-        onClick={clearOutput}
-      >
-        Clear Output
+      <Button variant="outline" colorScheme="red" onClick={toggleDrawer}>
+        Submit
       </Button>
+      {/* Drawer Component */}
+      <Drawer placement="right" onClose={toggleDrawer} isOpen={isDrawerOpen}>
+        <DrawerOverlay />
+        <DrawerContent>
+          <DrawerCloseButton />
+          <DrawerHeader>Test Cases Result</DrawerHeader>
+          <DrawerBody>
+            {isLoading ? (
+              <Spinner />
+            ) : (
+              <List spacing={3}>
+                {testResults.map((test, index) => (
+                  <ListItem
+                    key={index}
+                    color={test.passed ? "green.500" : "red.500"}
+                  >
+                    {test.description} -{" "}
+                    {test.passed ? "Passed" : "Failed"} (Expected:{" "}
+                    {test.expected}, Got: {test.actual})
+                  </ListItem>
+                ))}
+              </List>
+            )}
+          </DrawerBody>
+         
+        </DrawerContent>
+      </Drawer>
     </Box>
   );
 };
