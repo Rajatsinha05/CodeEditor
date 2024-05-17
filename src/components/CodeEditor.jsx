@@ -42,7 +42,7 @@ const CodeEditor = () => {
         });
         videoRef.current.srcObject = stream;
         const recorder = new MediaRecorder(stream);
-        recorder.ondataavailable = handleDataAvailable;
+        // recorder.ondataavailable = handleDataAvailable;
         setMediaRecorder(recorder);
 
         // Load the face detection model
