@@ -16,6 +16,7 @@ import { CODE_SNIPPETS } from "../constants";
 import Output from "./Output";
 import * as faceapi from "face-api.js";
 
+
 const CodeEditor = () => {
   const editorRef = useRef();
   const [value, setValue] = useState(CODE_SNIPPETS["javascript"]);
@@ -32,6 +33,7 @@ const CodeEditor = () => {
   const [tabChangeCount, setTabChangeCount] = useState(0);
   const [isScreenBlurred, setIsScreenBlurred] = useState(false);
   const toast = useToast();
+  const [isFaceDetected, setIsFaceDetected] = useState(true);
 
   useEffect(() => {
     const openCamera = async () => {
@@ -45,7 +47,8 @@ const CodeEditor = () => {
         setMediaRecorder(recorder);
 
         // Load the face detection model
-   
+        await faceapi.nets.tinyFaceDetector.loadFromUri("/models");
+
         setIsCameraActive(true);
       } catch (err) {
         console.error("Error accessing the camera: ", err);
@@ -99,7 +102,9 @@ const CodeEditor = () => {
         event.key === "PrintScreen" ||
         (event.ctrlKey && event.shiftKey && event.key === "S") ||
         (event.metaKey && event.shiftKey && event.key === "S") ||
-        (event.metaKey && event.shiftKey && (event.key === "3" || event.key === "4"))
+        (event.metaKey &&
+          event.shiftKey &&
+          (event.key === "3" || event.key === "4"))
       ) {
         setIsScreenBlurred(true);
         toast({
@@ -216,9 +221,6 @@ const CodeEditor = () => {
     });
   };
 
-
-
-
   const handleThemeChange = (e) => {
     setTheme(e.target.value);
   };
@@ -226,6 +228,44 @@ const CodeEditor = () => {
   const handleFontSizeChange = (e) => {
     setFontSize(parseInt(e.target.value));
   };
+
+  useEffect(() => {
+    const detectFace = async () => {
+      try {
+        const video = videoRef.current;
+        if (video) {
+          const detections = await faceapi.detectAllFaces(
+            video,
+            new faceapi.TinyFaceDetectorOptions()
+          );
+          setIsFaceDetected(detections.length > 0);
+          if (!detections.length) {
+            toast({
+              title: "No Face Detected",
+              description: "Please make sure your face is visible in the video.",
+              status: "warning",
+              duration: 3000,
+              isClosable: true,
+            });
+          }
+        }
+      } catch (error) {
+        console.error("Error detecting face:", error);
+        setIsFaceDetected(false); // Set face detection status to false on error
+        toast({
+          title: "Error",
+          description: "Failed to detect face.",
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        });
+      }
+    };
+  
+    const id = setInterval(detectFace, 1000);
+    return () => clearInterval(id);
+  }, [toast]);
+  
 
   const videoBoxSize = useBreakpointValue({ base: "80px", md: "150px" });
   const isMobile = useBreakpointValue({ base: true, md: false });
