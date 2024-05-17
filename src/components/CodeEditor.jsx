@@ -25,7 +25,6 @@ const CodeEditor = () => {
   const [fontSize, setFontSize] = useState(14);
   const videoRef = useRef();
   const [mediaRecorder, setMediaRecorder] = useState(null);
-  const [recordedChunks, setRecordedChunks] = useState([]);
   const [isRecording, setIsRecording] = useState(false);
   const [inactiveTime, setInactiveTime] = useState(0);
   const [intervalId, setIntervalId] = useState(null);
@@ -125,18 +124,7 @@ const CodeEditor = () => {
     };
   }, [toast]);
 
-  const handleDataAvailable = (event) => {
-    if (event.data.size > 0) {
-      setRecordedChunks((prev) => [...prev, event.data]);
-    }
-  };
-
-  const startRecording = () => {
-    setRecordedChunks([]);
-    mediaRecorder.start();
-    setIsRecording(true);
-  };
-
+ 
   const stopCameraAccess = () => {
     if (videoRef.current && videoRef.current.srcObject) {
       const tracks = videoRef.current.srcObject.getTracks();
@@ -295,7 +283,7 @@ const CodeEditor = () => {
           Please Turn your Camera.
         </Text>
       )}
-      {!isRecording && isCameraActive && (
+      { isCameraActive && (
         <Draggable>
           <Box
             position="absolute"
@@ -379,7 +367,7 @@ const CodeEditor = () => {
       </HStack>
       <HStack spacing={4} mt={4} flexWrap="wrap">
         <Button
-          onClick={startRecording}
+        
           isDisabled={isRecording || !isCameraActive}
           colorScheme="green"
         >
