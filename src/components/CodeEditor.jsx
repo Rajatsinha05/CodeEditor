@@ -7,12 +7,14 @@ import {
   Select,
   Text,
   useToast,
+  useBreakpointValue,
 } from "@chakra-ui/react";
 import { Editor } from "@monaco-editor/react";
 import Draggable from "react-draggable";
 import LanguageSelector from "./LanguageSelector";
 import { CODE_SNIPPETS } from "../constants";
 import Output from "./Output";
+import * as faceapi from "face-api.js";
 
 const CodeEditor = () => {
   const editorRef = useRef();
@@ -28,7 +30,8 @@ const CodeEditor = () => {
   const [intervalId, setIntervalId] = useState(null);
   const [isCameraActive, setIsCameraActive] = useState(true);
   const [tabChangeCount, setTabChangeCount] = useState(0);
-  const toast = useToast(); // Toast hook for displaying messages
+  const [isScreenBlurred, setIsScreenBlurred] = useState(false);
+  const toast = useToast();
 
   useEffect(() => {
     const openCamera = async () => {
@@ -40,6 +43,10 @@ const CodeEditor = () => {
         const recorder = new MediaRecorder(stream);
         recorder.ondataavailable = handleDataAvailable;
         setMediaRecorder(recorder);
+
+        // Load the face detection model
+   
+        setIsCameraActive(true);
       } catch (err) {
         console.error("Error accessing the camera: ", err);
         setIsCameraActive(false);
@@ -85,6 +92,33 @@ const CodeEditor = () => {
       clearInterval(intervalId);
     };
   }, [intervalId]);
+
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (
+        event.key === "PrintScreen" ||
+        (event.ctrlKey && event.shiftKey && event.key === "S") ||
+        (event.metaKey && event.shiftKey && event.key === "S") ||
+        (event.metaKey && event.shiftKey && (event.key === "3" || event.key === "4"))
+      ) {
+        setIsScreenBlurred(true);
+        toast({
+          title: "Screenshot Attempt Detected",
+          description: "Screenshots are not allowed.",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+        event.preventDefault();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [toast]);
 
   const handleDataAvailable = (event) => {
     if (event.data.size > 0) {
@@ -134,7 +168,6 @@ const CodeEditor = () => {
         title: "Paste Disabled",
         description: "Pasting is disabled in the editor.",
         status: "warning",
-        theme: "dark",
         duration: 3000,
         isClosable: true,
       });
@@ -183,6 +216,9 @@ const CodeEditor = () => {
     });
   };
 
+
+
+
   const handleThemeChange = (e) => {
     setTheme(e.target.value);
   };
@@ -191,11 +227,32 @@ const CodeEditor = () => {
     setFontSize(parseInt(e.target.value));
   };
 
+  const videoBoxSize = useBreakpointValue({ base: "80px", md: "150px" });
+  const isMobile = useBreakpointValue({ base: true, md: false });
+
   return (
     <Box p={4} position="relative">
+      {isScreenBlurred && (
+        <Box
+          position="absolute"
+          top="0"
+          left="0"
+          width="100%"
+          height="100%"
+          backgroundColor="rgba(255, 255, 255, 0.8)"
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+          zIndex="10"
+        >
+          <Text fontSize="2xl" color="red.500">
+            Screenshot Attempt Detected
+          </Text>
+        </Box>
+      )}
       {!isCameraActive && (
         <Text color="red.500" mb={4}>
-          Please Turn your Camera .
+          Please Turn your Camera.
         </Text>
       )}
       {!isRecording && isCameraActive && (
@@ -211,12 +268,12 @@ const CodeEditor = () => {
             <video
               ref={videoRef}
               autoPlay
-              style={{ width: "150px", borderRadius: "8px" }}
+              style={{ width: videoBoxSize, borderRadius: "8px" }}
             />
           </Box>
         </Draggable>
       )}
-      <HStack spacing={8}>
+      <HStack spacing={8} flexDirection={isMobile ? "column" : "row"}>
         <VStack align="stretch" justifyContent="flex-start" flex={1}>
           <Text textAlign="left">
             **DSA Question:** Find the missing number in an array containing
@@ -225,9 +282,9 @@ const CodeEditor = () => {
             7, 8] Output: 5
           </Text>
         </VStack>
-        <Box flex={1}>
+        <Box flex={1} width={isMobile ? "100%" : "auto"}>
           <VStack spacing={4} align="stretch">
-            <HStack>
+            <HStack flexWrap="wrap">
               <LanguageSelector language={language} onSelect={onSelect} />
               <CustomSelect
                 value={theme}
@@ -250,7 +307,7 @@ const CodeEditor = () => {
                 width="120px"
               />
             </HStack>
-            <Box bg="gray.800" borderRadius="md" p={4}>
+            <Box bg="gray.800" borderRadius="md" p={4} position="relative">
               <Editor
                 options={{
                   minimap: { enabled: false },
@@ -280,7 +337,7 @@ const CodeEditor = () => {
           </VStack>
         </Box>
       </HStack>
-      <HStack spacing={4} mt={4}>
+      <HStack spacing={4} mt={4} flexWrap="wrap">
         <Button
           onClick={startRecording}
           isDisabled={isRecording || !isCameraActive}
@@ -293,8 +350,7 @@ const CodeEditor = () => {
         </Button>
       </HStack>
       <Text mt={4}>Inactive Time: {inactiveTime} seconds</Text>
-      <Text mt={4}>Tab Changes: {tabChangeCount}</Text>{" "}
-      {/* Display tab change count */}
+      <Text mt={4}>Tab Changes: {tabChangeCount}</Text>
     </Box>
   );
 };
