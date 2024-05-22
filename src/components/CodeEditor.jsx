@@ -14,8 +14,6 @@ import Draggable from "react-draggable";
 import LanguageSelector from "./LanguageSelector";
 import { CODE_SNIPPETS } from "../constants";
 import Output from "./Output";
-import * as faceapi from "face-api.js";
-
 
 const CodeEditor = () => {
   const editorRef = useRef();
@@ -25,6 +23,7 @@ const CodeEditor = () => {
   const [fontSize, setFontSize] = useState(14);
   const videoRef = useRef();
   const [mediaRecorder, setMediaRecorder] = useState(null);
+  const [recordedChunks, setRecordedChunks] = useState([]);
   const [isRecording, setIsRecording] = useState(false);
   const [inactiveTime, setInactiveTime] = useState(0);
   const [intervalId, setIntervalId] = useState(null);
@@ -32,7 +31,6 @@ const CodeEditor = () => {
   const [tabChangeCount, setTabChangeCount] = useState(0);
   const [isScreenBlurred, setIsScreenBlurred] = useState(false);
   const toast = useToast();
-  const [isFaceDetected, setIsFaceDetected] = useState(true);
 
   useEffect(() => {
     const openCamera = async () => {
@@ -42,11 +40,10 @@ const CodeEditor = () => {
         });
         videoRef.current.srcObject = stream;
         const recorder = new MediaRecorder(stream);
-        // recorder.ondataavailable = handleDataAvailable;
+        recorder.ondataavailable = handleDataAvailable;
         setMediaRecorder(recorder);
 
         // Load the face detection model
-        await faceapi.nets.tinyFaceDetector.loadFromUri("/models");
 
         setIsCameraActive(true);
       } catch (err) {
@@ -61,9 +58,7 @@ const CodeEditor = () => {
         });
       }
     };
-
     openCamera();
-
     return () => {
       if (videoRef.current && videoRef.current.srcObject) {
         const tracks = videoRef.current.srcObject.getTracks();
@@ -94,7 +89,6 @@ const CodeEditor = () => {
       clearInterval(intervalId);
     };
   }, [intervalId]);
-
   useEffect(() => {
     const handleKeyDown = (event) => {
       if (
@@ -113,6 +107,7 @@ const CodeEditor = () => {
           duration: 3000,
           isClosable: true,
         });
+
         event.preventDefault();
       }
     };
@@ -124,7 +119,18 @@ const CodeEditor = () => {
     };
   }, [toast]);
 
- 
+  const handleDataAvailable = (event) => {
+    if (event.data.size > 0) {
+      setRecordedChunks((prev) => [...prev, event.data]);
+    }
+  };
+
+  const startRecording = () => {
+    setRecordedChunks([]);
+    mediaRecorder.start();
+    setIsRecording(true);
+  };
+
   const stopCameraAccess = () => {
     if (videoRef.current && videoRef.current.srcObject) {
       const tracks = videoRef.current.srcObject.getTracks();
@@ -217,44 +223,6 @@ const CodeEditor = () => {
     setFontSize(parseInt(e.target.value));
   };
 
-  useEffect(() => {
-    const detectFace = async () => {
-      try {
-        const video = videoRef.current;
-        if (video) {
-          const detections = await faceapi.detectAllFaces(
-            video,
-            new faceapi.TinyFaceDetectorOptions()
-          );
-          setIsFaceDetected(detections.length > 0);
-          if (!detections.length) {
-            toast({
-              title: "No Face Detected",
-              description: "Please make sure your face is visible in the video.",
-              status: "warning",
-              duration: 3000,
-              isClosable: true,
-            });
-          }
-        }
-      } catch (error) {
-        console.error("Error detecting face:", error);
-        setIsFaceDetected(false); // Set face detection status to false on error
-        toast({
-          title: "Error",
-          description: "Failed to detect face.",
-          status: "error",
-          duration: 5000,
-          isClosable: true,
-        });
-      }
-    };
-  
-    const id = setInterval(detectFace, 1000);
-    return () => clearInterval(id);
-  }, [toast]);
-  
-
   const videoBoxSize = useBreakpointValue({ base: "80px", md: "150px" });
   const isMobile = useBreakpointValue({ base: true, md: false });
 
@@ -283,7 +251,7 @@ const CodeEditor = () => {
           Please Turn your Camera.
         </Text>
       )}
-      { isCameraActive && (
+      {!isRecording && isCameraActive && (
         <Draggable>
           <Box
             position="absolute"
@@ -301,6 +269,7 @@ const CodeEditor = () => {
           </Box>
         </Draggable>
       )}
+
       <HStack spacing={8} flexDirection={isMobile ? "column" : "row"}>
         <VStack align="stretch" justifyContent="flex-start" flex={1}>
           <Text textAlign="left">
@@ -367,7 +336,7 @@ const CodeEditor = () => {
       </HStack>
       <HStack spacing={4} mt={4} flexWrap="wrap">
         <Button
-        
+          onClick={startRecording}
           isDisabled={isRecording || !isCameraActive}
           colorScheme="green"
         >
