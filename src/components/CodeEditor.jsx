@@ -15,7 +15,151 @@ import LanguageSelector from "./LanguageSelector";
 import { CODE_SNIPPETS } from "../constants";
 import Output from "./Output";
 
-const CodeEditor = () => {
+const CodeEditor = ({ problemId }) => {
+  const questions = [
+    {
+      topic: "Variables",
+      title: "Print Number",
+      difficulty: "Low",
+      description: "Create a variable called `num` of integer type.",
+      input: "No input is required.",
+      output: "Print the value stored in the variable `num`.",
+      testCases: [
+        { input: 5, expectedOutput: 5 },
+        { input: 10, expectedOutput: 10 },
+        { input: 20, expectedOutput: 20 },
+        { input: -20, expectedOutput: -20 },
+        { input: 100, expectedOutput: 100 },
+      ],
+    },
+    {
+      topic: "Variables",
+      title: "Print string variable",
+      difficulty: "Low",
+      description: "Create a variable called `str` of string type.",
+      input: "Take input",
+      output: "Print the value stored in the variable `str`.",
+      testCases: [
+        { input: "helloword", expectedOutput: "helloword" },
+        { input: "helloword", expectedOutput: "helloword" },
+        { input: "Education", expectedOutput: "Education" },
+        { input: "Education", expectedOutput: "Education" },
+        { input: "redandwhite", expectedOutput: "redandwhite" },
+        { input: "redandwhite", expectedOutput: "redandwhite" },
+      ],
+    },
+    {
+      topic: "Variables",
+      title: "Printing Two Variables on Separate Lines",
+      difficulty: "Low",
+      description: "Create two variables called `str1` and `str2`.",
+      input: "Take input",
+      output:
+        "Print the values stored in the variables `str1` and `str2`, each on a separate line.",
+      testCases: [
+        { input: "Test Case", expectedOutput: "Test Case" },
+        { input: "Test Case", expectedOutput: "Test Case" },
+        { input: "C++ Programming", expectedOutput: "C++ Programming" },
+        { input: "C++ Programming", expectedOutput: "C++ Programming" },
+        { input: "One Two", expectedOutput: "One Two" },
+        { input: "One Two", expectedOutput: "One Two" },
+        { input: "Hello world!", expectedOutput: "Hello world!" },
+        { input: "Hello world!", expectedOutput: "Hello world!" },
+        { input: "c c++", expectedOutput: "c c++" },
+        { input: "c c++", expectedOutput: "c c++" },
+      ],
+    },
+    {
+      topic: "Operator",
+      title: "Calculate",
+      difficulty: "Low",
+      description:
+        "You are required to perform a series of operations on a number and then print the updated value.",
+      input: "Take input stored in the variable `number`.",
+      output:
+        "Print the updated value of the variable `number` after performing the operations.",
+      testCases: [
+        { input: 4, expectedOutput: 9 },
+        { input: 10, expectedOutput: 27 },
+        { input: 20, expectedOutput: 147 },
+        { input: 100, expectedOutput: 147 },
+        { input: 150, expectedOutput: 447 },
+      ],
+
+      inputData:"5 4 10 20 100 150"
+    },
+    {
+      topic: "Operator",
+      title: "Multiply by 50",
+      difficulty: "Low",
+      description:
+        "Create a variable named `number`, you are required to multiply it by 50 and print the result obtained.",
+      input: "Take input value store in the variable `number`.",
+      output:
+        "Print the result obtained after multiplying the value stored in the variable `number` by 50.",
+      testCases: [
+        { input: 4, expectedOutput: 200 },
+        { input: 3, expectedOutput: 150 },
+        { input: 1, expectedOutput: 50 },
+        { input: 0, expectedOutput: 0 },
+        { input: -2, expectedOutput: -100 },
+      ],
+    },
+    {
+      topic: "Operator",
+      title: "Square and Sum",
+      difficulty: "Low",
+      description:
+        "You have to take three numbers stored in variables with the names `one`, `two`, and `three`. Your task is to find the square of each of these numbers and calculate the sum of their square values.",
+      input: "Take input",
+      output: "Print the sum of the square values of the three numbers.",
+      testCases: [
+        { input: "1 2 3", expectedOutput: 14 },
+        { input: "0 5 10", expectedOutput: 125 },
+        { input: "-3 -2 -1", expectedOutput: 14 },
+        { input: "4 7 9", expectedOutput: 146 },
+        { input: "6 8 12", expectedOutput: 244 },
+      ],
+    },
+    {
+      topic: "Condition",
+      title: "Arithmetic Operations on Two Numbers",
+      difficulty: "Low",
+      description:
+        "You are required to take three inputs: `num1`, `num2`, and `query`. Based on the value of `query`, perform arithmetic operations.",
+      input: "Three integers separated by space: `num1`, `num2`, and `query`.",
+      output: "Print the result of the corresponding operation.",
+      testCases: [
+        { input: "10 5 1", expectedOutput: "15" },
+        { input: "10 5 2", expectedOutput: "5" },
+        { input: "10 5 3", expectedOutput: "2" },
+        { input: "10 5 4", expectedOutput: "50" },
+        { input: "10 5 5", expectedOutput: "0" },
+        { input: "10 3 3", expectedOutput: "3" },
+      ],
+    },
+    {
+      topic: "Condition",
+      title: "Find your friend",
+      difficulty: "Low",
+      description:
+        "You have built your own social networking website with unique rules for making friends based on age.",
+      input: "Take input age of a person stored in the variable `N`.",
+      output:
+        "Print the distance within which people can make friends based on the rules mentioned above.",
+      testCases: [
+        { input: 15, expectedOutput: "5 Kms" },
+        { input: 10, expectedOutput: "1 Kms" },
+        { input: 25, expectedOutput: "10 Kms" },
+        { input: 35, expectedOutput: "You can have friends from anywhere" },
+        { input: 8, expectedOutput: "1 Kms" },
+      ],
+    },
+  ];
+  
+  
+  console.log(questionsWithInputData);
+  
   const editorRef = useRef();
   const [value, setValue] = useState(CODE_SNIPPETS["javascript"]);
   const [language, setLanguage] = useState("javascript");
@@ -271,12 +415,12 @@ const CodeEditor = () => {
       )}
 
       <HStack spacing={8} flexDirection={isMobile ? "column" : "row"}>
-        <VStack align="stretch" justifyContent="flex-start" flex={1}>
-          <Text textAlign="left">
-            **DSA Question:** Find the missing number in an array containing
-            integers from 1 to n. One number is missing from the array. Write a
-            function to find the missing number. Example: Input: [1, 2, 4, 6, 3,
-            7, 8] Output: 5
+      <VStack align="stretch" justifyContent="flex-start" flex={1}>
+          <Text fontSize="2xl" fontWeight="bold">
+            {questions[problemId - 1].title}
+          </Text>
+          <Text fontSize="lg" color="gray.600">
+            {questions[problemId - 1].description}
           </Text>
         </VStack>
         <Box flex={1} width={isMobile ? "100%" : "auto"}>

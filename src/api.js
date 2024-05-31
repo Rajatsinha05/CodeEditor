@@ -6,7 +6,10 @@ const API = axios.create({
 });
 
 export const executeCode = async (language, code, inputData) => {
+
+
   console.log({language,code,inputData});
+  console.log('language,code,inputData: ', language,code,inputData);
   console.log(JSON.stringify(code));
   try {
     const response = await API.post("/submit",  {language,code,inputData});
