@@ -22,7 +22,7 @@ const CodeEditor = ({ problemId }) => {
       title: "Print Number",
       difficulty: "Low",
       description: "Create a variable called `num` of integer type.",
-      input: "No input is required.",
+      input: "input is required.",
       output: "Print the value stored in the variable `num`.",
       testCases: [
         { input: 5, expectedOutput: 5 },
@@ -31,6 +31,8 @@ const CodeEditor = ({ problemId }) => {
         { input: -20, expectedOutput: -20 },
         { input: 100, expectedOutput: 100 },
       ],
+      inputData:"5 5 10 20 -20 100",
+      expectedOutput:[5,10,20,-20,100]
     },
     {
       topic: "Variables",
@@ -158,7 +160,7 @@ const CodeEditor = ({ problemId }) => {
   ];
   
   
-  console.log(questionsWithInputData);
+  
   
   const editorRef = useRef();
   const [value, setValue] = useState(CODE_SNIPPETS["javascript"]);
@@ -421,6 +423,15 @@ const CodeEditor = ({ problemId }) => {
           </Text>
           <Text fontSize="lg" color="gray.600">
             {questions[problemId - 1].description}
+            
+          </Text>
+          <Text fontSize="lg" color="gray.600">
+            {questions[problemId - 1].input}
+            
+          </Text>
+          <Text fontSize="lg" color="gray.600">
+            {questions[problemId - 1].output}
+            
           </Text>
         </VStack>
         <Box flex={1} width={isMobile ? "100%" : "auto"}>
@@ -473,7 +484,7 @@ const CodeEditor = ({ problemId }) => {
               />
             </Box>
             <Box>
-              <Output editorRef={editorRef} language={language} />
+              <Output editorRef={editorRef} language={language} inputData={questions[problemId-1].inputData} expectedOutput={questions[problemId-1].expectedOutput} />
             </Box>
           </VStack>
         </Box>
