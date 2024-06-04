@@ -13,6 +13,9 @@ const Navbar = ({ isLoggedIn }) => {
         <li className="nav-item">
           <NavLink to="/problems" className="nav-link" activeClassName="active">Problems</NavLink>
         </li>
+        <li className="nav-item">
+            <NavLink to="/addQuestion" className="nav-link" activeClassName="active">AddQuestions</NavLink>
+          </li>
         {isLoggedIn ? (
           <li className="nav-item">
             <NavLink to="/profile" className="nav-link" activeClassName="active">Profile</NavLink>

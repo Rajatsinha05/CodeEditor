@@ -14,6 +14,8 @@ import Draggable from "react-draggable";
 import LanguageSelector from "./LanguageSelector";
 import { CODE_SNIPPETS } from "../constants";
 import Output from "./Output";
+import ContestCreation from "./ContestCreation";
+import TestResultsDrawer from "./TestResultsDrawer";
 
 const CodeEditor = ({ problemId }) => {
   const questions = [
@@ -158,10 +160,6 @@ const CodeEditor = ({ problemId }) => {
       ],
     },
   ];
-  
-  
-  
-  
   const editorRef = useRef();
   const [value, setValue] = useState(CODE_SNIPPETS["javascript"]);
   const [language, setLanguage] = useState("javascript");
@@ -177,6 +175,21 @@ const CodeEditor = ({ problemId }) => {
   const [tabChangeCount, setTabChangeCount] = useState(0);
   const [isScreenBlurred, setIsScreenBlurred] = useState(false);
   const toast = useToast();
+  const [contests, setContests] = useState([]);
+  const [inputData, setInputData] = useState('');
+  const [expectedOutput, setExpectedOutput] = useState([]);
+  const [testResults, setTestResults] = useState([]);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const addContest = (contest) => {
+    setContests((prevContests) => [...prevContests, contest]);
+  };
+
+  const toggleDrawer = () => {
+    setIsDrawerOpen(!isDrawerOpen);
+  };
+
 
   useEffect(() => {
     const openCamera = async () => {
@@ -374,6 +387,7 @@ const CodeEditor = ({ problemId }) => {
 
   return (
     <Box p={4} position="relative">
+        <ContestCreation addContest={addContest} />
       {isScreenBlurred && (
         <Box
           position="absolute"
@@ -484,7 +498,19 @@ const CodeEditor = ({ problemId }) => {
               />
             </Box>
             <Box>
-              <Output editorRef={editorRef} language={language} inputData={questions[problemId-1].inputData} expectedOutput={questions[problemId-1].expectedOutput} />
+            <Output
+          editorRef={editorRef}
+          language={language}
+          inputData={inputData}
+          expectedOutput={expectedOutput}
+          contests={contests}
+        />
+        <TestResultsDrawer
+          isLoading={isLoading}
+          isDrawerOpen={isDrawerOpen}
+          toggleDrawer={toggleDrawer}
+          testResults={testResults}
+        />
             </Box>
           </VStack>
         </Box>
