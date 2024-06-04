@@ -18,6 +18,8 @@ import ContestCreation from "./ContestCreation";
 import TestResultsDrawer from "./TestResultsDrawer";
 import { useDispatch, useSelector } from "react-redux";
 import { getQuestionById } from "../redux/apiSlice";
+import CustomSelect from "./CustomSelect";
+import CameraDisplay from "./CameraDisplay";
 
 const CodeEditor = ({ problemId }) => {
   const editorRef = useRef();
@@ -25,10 +27,7 @@ const CodeEditor = ({ problemId }) => {
   const [language, setLanguage] = useState("javascript");
   const [theme, setTheme] = useState("vs-dark");
   const [fontSize, setFontSize] = useState(14);
-  const videoRef = useRef();
-  const [mediaRecorder, setMediaRecorder] = useState(null);
-  const [recordedChunks, setRecordedChunks] = useState([]);
-  const [isRecording, setIsRecording] = useState(false);
+
   const [inactiveTime, setInactiveTime] = useState(0);
   const [intervalId, setIntervalId] = useState(null);
   const [isCameraActive, setIsCameraActive] = useState(true);
@@ -36,8 +35,6 @@ const CodeEditor = ({ problemId }) => {
   const [isScreenBlurred, setIsScreenBlurred] = useState(false);
   const toast = useToast();
   const [contests, setContests] = useState([]);
-  const [inputData, setInputData] = useState("");
-  const [expectedOutput, setExpectedOutput] = useState([]);
   const [testResults, setTestResults] = useState([]);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -55,42 +52,6 @@ const CodeEditor = ({ problemId }) => {
     dispatch(getQuestionById(problemId));
   }, []);
   let { data } = useSelector((store) => store);
-  console.log("data: ", data);
-
-  useEffect(() => {
-    const openCamera = async () => {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: true,
-        });
-        videoRef.current.srcObject = stream;
-        const recorder = new MediaRecorder(stream);
-        recorder.ondataavailable = handleDataAvailable;
-        setMediaRecorder(recorder);
-
-        // Load the face detection model
-
-        setIsCameraActive(true);
-      } catch (err) {
-        console.error("Error accessing the camera: ", err);
-        setIsCameraActive(false);
-        toast({
-          title: "Error",
-          description: "Failed to access the camera.",
-          status: "error",
-          duration: 5000,
-          isClosable: true,
-        });
-      }
-    };
-    openCamera();
-    return () => {
-      if (videoRef.current && videoRef.current.srcObject) {
-        const tracks = videoRef.current.srcObject.getTracks();
-        tracks.forEach((track) => track.stop());
-      }
-    };
-  }, [toast]);
 
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -143,34 +104,6 @@ const CodeEditor = ({ problemId }) => {
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [toast]);
-
-  const handleDataAvailable = (event) => {
-    if (event.data.size > 0) {
-      setRecordedChunks((prev) => [...prev, event.data]);
-    }
-  };
-
-  const startRecording = () => {
-    setRecordedChunks([]);
-    mediaRecorder.start();
-    setIsRecording(true);
-  };
-
-  const stopCameraAccess = () => {
-    if (videoRef.current && videoRef.current.srcObject) {
-      const tracks = videoRef.current.srcObject.getTracks();
-      tracks.forEach((track) => track.stop());
-      videoRef.current.srcObject = null;
-    }
-    setIsCameraActive(false);
-    toast({
-      title: "Camera Stopped",
-      description: "Camera access has been stopped.",
-      status: "success",
-      duration: 5000,
-      isClosable: true,
-    });
-  };
 
   const onMount = (editor, monaco) => {
     editorRef.current = editor;
@@ -254,6 +187,7 @@ const CodeEditor = ({ problemId }) => {
   return (
     <Box p={4} position="relative">
       <ContestCreation addContest={addContest} />
+      <CameraDisplay videoBoxSize={videoBoxSize} />
       {isScreenBlurred && (
         <Box
           position="absolute"
@@ -271,29 +205,6 @@ const CodeEditor = ({ problemId }) => {
             Screenshot Attempt Detected
           </Text>
         </Box>
-      )}
-      {!isCameraActive && (
-        <Text color="red.500" mb={4}>
-          Please Turn your Camera.
-        </Text>
-      )}
-      {!isRecording && isCameraActive && (
-        <Draggable>
-          <Box
-            position="absolute"
-            top="20px"
-            right="20px"
-            bg="gray.800"
-            borderRadius="md"
-            p={1}
-          >
-            <video
-              ref={videoRef}
-              autoPlay
-              style={{ width: videoBoxSize, borderRadius: "8px" }}
-            />
-          </Box>
-        </Draggable>
       )}
 
       <HStack spacing={8} flexDirection={isMobile ? "column" : "row"}>
@@ -337,9 +248,9 @@ const CodeEditor = ({ problemId }) => {
               />
             </HStack>
             <Box bg="gray.800" borderRadius="md" p={4} position="relative">
-              <Editor
+            <Editor
                 options={{
-                  minimap: { enabled: false },
+                  minimap: { enabled: true },
                   fontSize: fontSize,
                   wordWrap: "on",
                   suggest: {
@@ -349,6 +260,7 @@ const CodeEditor = ({ problemId }) => {
                   },
                 }}
                 height="50vh"
+                width="100%"
                 theme={theme}
                 language={language}
                 defaultValue={CODE_SNIPPETS[language]}
@@ -364,8 +276,8 @@ const CodeEditor = ({ problemId }) => {
               <Output
                 editorRef={editorRef}
                 language={language}
-                inputData={inputData}
-                expectedOutput={expectedOutput}
+                inputData={data.question.input}
+                expectedOutput={data.question.expectedOutput}
                 contests={contests}
               />
               <TestResultsDrawer
@@ -378,33 +290,10 @@ const CodeEditor = ({ problemId }) => {
           </VStack>
         </Box>
       </HStack>
-      <HStack spacing={4} mt={4} flexWrap="wrap">
-        <Button
-          onClick={startRecording}
-          isDisabled={isRecording || !isCameraActive}
-          colorScheme="green"
-        >
-          Start Recording
-        </Button>
-        <Button onClick={stopCameraAccess} colorScheme="red">
-          Stop Camera Access
-        </Button>
-      </HStack>
+
       <Text mt={4}>Inactive Time: {inactiveTime} seconds</Text>
       <Text mt={4}>Tab Changes: {tabChangeCount}</Text>
     </Box>
-  );
-};
-
-const CustomSelect = ({ value, onChange, options, ...rest }) => {
-  return (
-    <Select value={value} onChange={onChange} {...rest}>
-      {options.map((option) => (
-        <option key={option.value} value={option.value}>
-          {option.label}
-        </option>
-      ))}
-    </Select>
   );
 };
 
