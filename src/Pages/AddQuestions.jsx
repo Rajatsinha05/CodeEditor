@@ -1,8 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Box, Button, FormControl, FormLabel, Input, Select, Textarea, useToast, IconButton } from '@chakra-ui/react';
 import { CloseIcon } from '@chakra-ui/icons';
+import { useDispatch } from 'react-redux';
+import { postQuestion } from '../redux/apiSlice';
 
 const AddQuestions = () => {
+  let dispatch=useDispatch()
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -98,7 +101,7 @@ const AddQuestions = () => {
 
     // Submit form data to backend or handle as needed
     console.log({ formData, examples });
-
+dispatch(postQuestion({...formData, examples}))
     // Reset form fields after successful submission
     setFormData({
       title: '',

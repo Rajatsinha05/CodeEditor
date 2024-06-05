@@ -8,8 +8,11 @@ import {
   Text,
   useToast,
   useBreakpointValue,
+  useColorMode,
 } from "@chakra-ui/react";
 import { Editor } from "@monaco-editor/react";
+import * as monaco from "monaco-editor";
+
 import Draggable from "react-draggable";
 import LanguageSelector from "./LanguageSelector";
 import { CODE_SNIPPETS } from "../constants";
@@ -20,8 +23,11 @@ import { useDispatch, useSelector } from "react-redux";
 import { getQuestionById } from "../redux/apiSlice";
 import CustomSelect from "./CustomSelect";
 import CameraDisplay from "./CameraDisplay";
+import CodeSuggestions from "./CodeSuggestions";
 
 const CodeEditor = ({ problemId }) => {
+
+
   const editorRef = useRef();
   const [value, setValue] = useState(CODE_SNIPPETS["javascript"]);
   const [language, setLanguage] = useState("javascript");
@@ -46,6 +52,12 @@ const CodeEditor = ({ problemId }) => {
   const toggleDrawer = () => {
     setIsDrawerOpen(!isDrawerOpen);
   };
+
+  const { colorMode, toggleColorMode } = useColorMode();
+
+  useEffect(() => {
+    setTheme(colorMode === "dark" ? "vs-dark" : "vs-light");
+  }, [colorMode]);
 
   let dispatch = useDispatch();
   useEffect(() => {
@@ -136,43 +148,6 @@ const CodeEditor = ({ problemId }) => {
     setValue(CODE_SNIPPETS[language]);
   };
 
-  const onSuggestions = (monaco, language) => {
-    monaco.languages.registerCompletionItemProvider(language, {
-      provideCompletionItems: () => {
-        let suggestions = [];
-        switch (language) {
-          case "javascript":
-            suggestions = [
-              {
-                label: "console.log",
-                kind: monaco.languages.CompletionItemKind.Function,
-                insertText: "console.log('${1:}')",
-                insertTextRules:
-                  monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-                documentation: "Log to console",
-              },
-            ];
-            break;
-          case "python":
-            suggestions = [
-              {
-                label: "print",
-                kind: monaco.languages.CompletionItemKind.Function,
-                insertText: "print('${1:}')",
-                insertTextRules:
-                  monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-                documentation: "Print to console",
-              },
-            ];
-            break;
-          default:
-            suggestions = [];
-        }
-        return { suggestions };
-      },
-    });
-  };
-
   const handleThemeChange = (e) => {
     setTheme(e.target.value);
   };
@@ -246,9 +221,10 @@ const CodeEditor = ({ problemId }) => {
                 ]}
                 width="120px"
               />
+             
             </HStack>
             <Box bg="gray.800" borderRadius="md" p={4} position="relative">
-            <Editor
+              <Editor
                 options={{
                   minimap: { enabled: true },
                   fontSize: fontSize,
@@ -266,11 +242,11 @@ const CodeEditor = ({ problemId }) => {
                 defaultValue={CODE_SNIPPETS[language]}
                 onMount={(editor, monaco) => {
                   onMount(editor, monaco);
-                  onSuggestions(monaco, language);
                 }}
                 value={value}
                 onChange={(value) => setValue(value)}
               />
+              <CodeSuggestions monaco={monaco} language={language} />
             </Box>
             <Box>
               <Output
