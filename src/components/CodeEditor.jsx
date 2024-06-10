@@ -252,8 +252,8 @@ const CodeEditor = ({ problemId }) => {
               <Output
                 editorRef={editorRef}
                 language={language}
-                inputData={data.question.input}
-                expectedOutput={data.question.expectedOutput}
+                inputData={data?.question?.input}
+                expectedOutput={data?.question?.expectedOutput}
                 contests={contests}
               />
               <TestResultsDrawer

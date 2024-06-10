@@ -210,14 +210,8 @@ const Navbar = ({ isLoggedIn }) => {
                 </NavLink>
               ) : (
                 <>
-                  <NavLink
-                    to="/login"
-                    className="nav-link"
-                    activeClassName="active"
-                    onClick={handleDrawerClose}
-                  >
-                    Login
-                  </NavLink>
+                 
+                 <Login isOpen={!isLogin} />
                   <NavLink
                     to="/signup"
                     className="nav-link"

@@ -18,7 +18,7 @@ const CameraDisplay = ({ videoBoxSize }) => {
 
         setIsCameraActive(true);
       } catch (err) {
-        console.error("Error accessing the camera: ", err);
+        
         setIsCameraActive(false);
         toast({
           title: "Error",

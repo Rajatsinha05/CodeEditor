@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+// Login.js
+import React, { useState } from "react";
 import {
   Button,
   FormControl,
@@ -14,10 +15,12 @@ import {
   ModalBody,
   ModalFooter,
   useToast,
-  Center,
 } from "@chakra-ui/react";
+import { useDispatch } from "react-redux";
+import { login } from "../redux/apiSlice";
 
-const Login = () => {
+const Login = ({ isOpen }) => {
+  const dispatch = useDispatch();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -29,7 +32,7 @@ const Login = () => {
   });
 
   const toast = useToast();
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const { onOpen, onClose } = useDisclosure();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -69,10 +72,8 @@ const Login = () => {
       return;
     }
 
-    // Perform login logic (e.g., send data to backend)
-    console.log("Login successful:", formData);
+    dispatch(login(formData));
 
-    // Show success toast
     toast({
       title: "Login Successful",
       description: `Welcome back, ${formData.email.split("@")[0]}!`,
@@ -91,54 +92,48 @@ const Login = () => {
     onClose();
   };
 
-  useEffect(()=>{
-    onOpen()
-  },[])
   return (
-    <>
-     {!isOpen ? <Button onClick={onOpen} >Login</Button> :null}
-      <Modal isOpen={isOpen} onClose={onClose} size="md">
-        <ModalOverlay />
-        <ModalContent borderRadius="xl">
-          <ModalHeader textAlign="center">Login</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            <form onSubmit={handleSubmit}>
-              <FormControl mb={4} isInvalid={!!errors.email}>
-                <FormLabel>Email</FormLabel>
-                <Input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  placeholder="Enter your email"
-                />
-                <FormErrorMessage>{errors.email}</FormErrorMessage>
-              </FormControl>
-              <FormControl mb={4} isInvalid={!!errors.password}>
-                <FormLabel>Password</FormLabel>
-                <Input
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  placeholder="Enter your password"
-                />
-                <FormErrorMessage>{errors.password}</FormErrorMessage>
-              </FormControl>
-              <Button type="submit" colorScheme="blue" w="100%">
-                Login
-              </Button>
-            </form>
-          </ModalBody>
-          <ModalFooter justifyContent="center">
-            <Button variant="ghost" onClick={onClose}>
-              Cancel
+    <Modal isOpen={isOpen} onClose={onClose} size="md">
+      <ModalOverlay />
+      <ModalContent borderRadius="xl">
+        <ModalHeader textAlign="center">Login</ModalHeader>
+        <ModalCloseButton />
+        <ModalBody>
+          <form onSubmit={handleSubmit}>
+            <FormControl mb={4} isInvalid={!!errors.email}>
+              <FormLabel>Email</FormLabel>
+              <Input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="Enter your email"
+              />
+              <FormErrorMessage>{errors.email}</FormErrorMessage>
+            </FormControl>
+            <FormControl mb={4} isInvalid={!!errors.password}>
+              <FormLabel>Password</FormLabel>
+              <Input
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                placeholder="Enter your password"
+              />
+              <FormErrorMessage>{errors.password}</FormErrorMessage>
+            </FormControl>
+            <Button type="submit" colorScheme="blue" w="100%">
+              Login
             </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
-    </>
+          </form>
+        </ModalBody>
+        <ModalFooter justifyContent="center">
+          <Button variant="ghost" onClick={onClose}>
+            Cancel
+          </Button>
+        </ModalFooter>
+      </ModalContent>
+    </Modal>
   );
 };
 

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Button,
@@ -21,7 +21,7 @@ import {
 } from "@chakra-ui/react";
 import { CheckCircleIcon, WarningIcon } from "@chakra-ui/icons";
 import { executeCode } from "../api";
-
+import Cookie from "js-cookie";
 const Output = ({ editorRef, language, inputData, expectedOutput }) => {
   const toast = useToast();
   const [output, setOutput] = useState(null);
@@ -30,6 +30,11 @@ const Output = ({ editorRef, language, inputData, expectedOutput }) => {
   const [isError, setIsError] = useState(false);
   const [testResults, setTestResults] = useState([]);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
+  const [token, setToken] = useState("");
+  useEffect(() => {
+    setToken(Cookie.get("token"));
+  }, []);
 
   const handleInputChange = (e) => {
     setInput(e.target.value);
@@ -48,12 +53,12 @@ const Output = ({ editorRef, language, inputData, expectedOutput }) => {
 
     try {
       setIsLoading(true);
-      const result = await executeCode(language, sourceCode, input);
-      console.log("result", result);
+      const result = await executeCode(language, sourceCode, input, token);
+      
       setOutput(result.output.split("\n").filter((line) => line.trim() !== ""));
       result.stderr ? setIsError(true) : setIsError(false);
     } catch (error) {
-      console.log(error);
+      
       toast({
         title: "An error occurred.",
         description: error.message || "Unable to run code",
@@ -72,8 +77,10 @@ const Output = ({ editorRef, language, inputData, expectedOutput }) => {
     try {
       setIsLoading(true);
       const result = await executeCode(language, sourceCode, inputData);
-      console.log("result", result);
-      const resultOutput = result.output.split("\n").filter((line) => line.trim() !== "");
+      
+      const resultOutput = result.output
+        .split("\n")
+        .filter((line) => line.trim() !== "");
       setOutput(resultOutput);
 
       const results = resultOutput.map((output, index) => ({
@@ -85,7 +92,7 @@ const Output = ({ editorRef, language, inputData, expectedOutput }) => {
 
       result.stderr ? setIsError(true) : setIsError(false);
     } catch (error) {
-      console.log(error);
+      
       toast({
         title: "An error occurred.",
         description: error.message || "Unable to run code",
@@ -95,7 +102,7 @@ const Output = ({ editorRef, language, inputData, expectedOutput }) => {
     } finally {
       setIsLoading(false);
       setIsDrawerOpen(true);
-      console.log("testResults", testResults);
+      
     }
   };
 
@@ -121,11 +128,9 @@ const Output = ({ editorRef, language, inputData, expectedOutput }) => {
         borderRadius="md"
         borderColor={isError ? "red.500" : "gray.700"}
       >
-        {output ? (
-          output.map((line, i) => <Text key={i}>{line}</Text>)
-        ) : (
-          'Click "Run Code" to see the output here'
-        )}
+        {output
+          ? output.map((line, i) => <Text key={i}>{line}</Text>)
+          : 'Click "Run Code" to see the output here'}
       </Box>
       <Input
         placeholder="Enter input here..."
@@ -152,7 +157,12 @@ const Output = ({ editorRef, language, inputData, expectedOutput }) => {
         </Button>
       </HStack>
       {/* Drawer Component */}
-      <Drawer placement="right" onClose={toggleDrawer} isOpen={isDrawerOpen} size="md">
+      <Drawer
+        placement="right"
+        onClose={toggleDrawer}
+        isOpen={isDrawerOpen}
+        size="md"
+      >
         <DrawerOverlay />
         <DrawerContent bg="gray.900" color="gray.100">
           <DrawerCloseButton />

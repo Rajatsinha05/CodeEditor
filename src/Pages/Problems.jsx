@@ -1,16 +1,26 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Box, Text, List, ListItem, Flex } from "@chakra-ui/react";
+import { Box, Text, List, ListItem, Flex, Spinner } from "@chakra-ui/react";
 import { fetchQuestions } from "../redux/apiSlice";
 import { useDispatch, useSelector } from "react-redux";
 
 const Problems = () => {
-  let dispatch = useDispatch();
+  const dispatch = useDispatch();
+  const [loading, setLoading] = useState(true);
+  
   useEffect(() => {
-    dispatch(fetchQuestions());
-  }, []);
-  let {data}=useSelector(store=>store)
-  console.log('data: ', data);
+    dispatch(fetchQuestions())
+  }, [dispatch]);
+
+  const { data } = useSelector(store => store);
+  let {user}=data;
+  if (data.loading) {
+    return (
+      <Box p={4}>
+        <Spinner size="xl" />
+      </Box>
+    );
+  }
 
   return (
     <Box p={4}>
