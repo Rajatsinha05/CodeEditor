@@ -6,7 +6,6 @@ import {
   FormErrorMessage,
   FormLabel,
   Input,
-  useDisclosure,
   Modal,
   ModalOverlay,
   ModalContent,
@@ -16,10 +15,10 @@ import {
   ModalFooter,
   useToast,
 } from "@chakra-ui/react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { login } from "../redux/apiSlice";
 
-const Login = ({ isOpen }) => {
+const Login = ({ isOpen, onClose }) => {
   const dispatch = useDispatch();
   const [formData, setFormData] = useState({
     email: "",
@@ -32,7 +31,6 @@ const Login = ({ isOpen }) => {
   });
 
   const toast = useToast();
-  const { onOpen, onClose } = useDisclosure();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -47,6 +45,9 @@ const Login = ({ isOpen }) => {
       [name]: "",
     }));
   };
+
+  let { isLogin, user } = useSelector((store) => store.data);
+  console.log("isLogin, user : ", isLogin, user);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -74,13 +75,23 @@ const Login = ({ isOpen }) => {
 
     dispatch(login(formData));
 
-    toast({
-      title: "Login Successful",
-      description: `Welcome back, ${formData.email.split("@")[0]}!`,
-      status: "success",
-      duration: 3000,
-      isClosable: true,
-    });
+    if (isLogin) {
+      toast({
+        title: "Login Successful",
+        description: `Welcome back, ${formData.email.split("@")[0]}!`,
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+    } else {
+      toast({
+        title: "Login failed",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+        position:"top-center"
+      });
+    }
 
     // Clear form fields after successful login
     setFormData({

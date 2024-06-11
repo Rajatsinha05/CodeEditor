@@ -1,26 +1,36 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Box, Button, FormControl, FormLabel, Input, Select, Textarea, useToast, IconButton } from '@chakra-ui/react';
-import { CloseIcon } from '@chakra-ui/icons';
-import { useDispatch } from 'react-redux';
-import { postQuestion } from '../redux/apiSlice';
+import React, { useState, useRef, useEffect } from "react";
+import {
+  Box,
+  Button,
+  FormControl,
+  FormLabel,
+  Input,
+  Select,
+  Textarea,
+  useToast,
+  IconButton,
+} from "@chakra-ui/react";
+import { CloseIcon } from "@chakra-ui/icons";
+import { useDispatch } from "react-redux";
+import { postQuestion } from "../redux/apiSlice";
 
 const AddQuestions = () => {
-  let dispatch=useDispatch()
+  let dispatch = useDispatch();
   const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    difficultLevel: '',
-    constraintValue: '',
-    input: '',
-    expectedOutput: '',
-    userId: '',
+    title: "",
+    description: "",
+    difficultLevel: "",
+    constraintValue: "",
+    input: "",
+    expectedOutput: "",
+    tags: "",
   });
 
   const [examples, setExamples] = useState([]);
   const [newExample, setNewExample] = useState({
-    input: '',
-    output: '',
-    explanation: '',
+    input: "",
+    output: "",
+    explanation: "",
   });
 
   const [errors, setErrors] = useState({
@@ -30,7 +40,7 @@ const AddQuestions = () => {
     constraintValue: false,
     input: false,
     expectedOutput: false,
-    userId: false,
+    tags: false,
   });
 
   const toast = useToast();
@@ -57,8 +67,8 @@ const AddQuestions = () => {
   useEffect(() => {
     const adjustTextareaHeight = (ref) => {
       if (ref.current) {
-        ref.current.style.height = 'auto';
-        ref.current.style.height = ref.current.scrollHeight + 'px';
+        ref.current.style.height = "auto";
+        ref.current.style.height = ref.current.scrollHeight + "px";
       }
     };
 
@@ -70,9 +80,9 @@ const AddQuestions = () => {
   const handleAddExample = () => {
     setExamples([...examples, newExample]);
     setNewExample({
-      input: '',
-      output: '',
-      explanation: '',
+      input: "",
+      output: "",
+      explanation: "",
     });
   };
 
@@ -101,24 +111,24 @@ const AddQuestions = () => {
 
     // Submit form data to backend or handle as needed
     console.log({ formData, examples });
-dispatch(postQuestion({...formData, examples}))
+    dispatch(postQuestion({ ...formData, examples }));
     // Reset form fields after successful submission
     setFormData({
-      title: '',
-      description: '',
-      difficultLevel: '',
-      constraintValue: '',
-      input: '',
-      expectedOutput: '',
-      userId: '',
+      title: "",
+      description: "",
+      difficultLevel: "",
+      constraintValue: "",
+      input: "",
+      expectedOutput: "",
+      tags: "",
     });
     setExamples([]);
 
     // Show success toast
     toast({
-      title: 'Question Added',
-      description: 'Your question has been successfully added!',
-      status: 'success',
+      title: "Question Added",
+      description: "Your question has been successfully added!",
+      status: "success",
       duration: 3000,
       isClosable: true,
     });
@@ -143,7 +153,7 @@ dispatch(postQuestion({...formData, examples}))
             value={formData.description}
             onChange={handleChange}
             ref={textAreaRefs.description}
-            style={{ minHeight: '100px', resize: 'none' }}
+            style={{ minHeight: "100px", resize: "none" }}
           />
         </FormControl>
         <FormControl mb={4} isInvalid={errors.difficultLevel}>
@@ -175,7 +185,7 @@ dispatch(postQuestion({...formData, examples}))
             value={formData.input}
             onChange={handleChange}
             ref={textAreaRefs.input}
-            style={{ minHeight: '100px', resize: 'none' }}
+            style={{ minHeight: "100px", resize: "none" }}
           />
         </FormControl>
         <FormControl mb={4} isInvalid={errors.expectedOutput}>
@@ -185,13 +195,20 @@ dispatch(postQuestion({...formData, examples}))
             value={formData.expectedOutput}
             onChange={handleChange}
             ref={textAreaRefs.expectedOutput}
-            style={{ minHeight: '100px', resize: 'none' }}
+            style={{ minHeight: "100px", resize: "none" }}
           />
         </FormControl>
         <FormControl mb={4}>
           <FormLabel>Examples</FormLabel>
           {examples.map((example, index) => (
-            <Box key={index} border="1px solid #CBD5E0" borderRadius="md" p={4} mb={4} position="relative">
+            <Box
+              key={index}
+              border="1px solid #CBD5E0"
+              borderRadius="md"
+              p={4}
+              mb={4}
+              position="relative"
+            >
               <IconButton
                 aria-label="Close"
                 icon={<CloseIcon />}
@@ -225,7 +242,7 @@ dispatch(postQuestion({...formData, examples}))
                     setExamples(updatedExamples);
                   }}
                   placeholder="Output"
-                  style={{ minHeight: '100px', resize: 'none' }}
+                  style={{ minHeight: "100px", resize: "none" }}
                 />
               </FormControl>
               <FormControl mb={2}>
@@ -238,7 +255,7 @@ dispatch(postQuestion({...formData, examples}))
                     setExamples(updatedExamples);
                   }}
                   placeholder="Explanation"
-                  style={{ minHeight: '100px', resize: 'none' }}
+                  style={{ minHeight: "100px", resize: "none" }}
                 />
               </FormControl>
             </Box>
@@ -251,16 +268,18 @@ dispatch(postQuestion({...formData, examples}))
             Add Example
           </Button>
         </FormControl>
-        <FormControl mb={4} isInvalid={errors.userId}>
-          <FormLabel>User ID</FormLabel>
+        <FormControl mb={4} isInvalid={errors.tags}>
+          <FormLabel>Tags</FormLabel>
           <Input
             type="text"
-            name="userId"
-            value={formData.userId}
+            name="tags"
+            value={formData.tags}
             onChange={handleChange}
           />
         </FormControl>
-        <Button type="submit" colorScheme="blue">Submit</Button>
+        <Button type="submit" colorScheme="blue">
+          Submit
+        </Button>
       </form>
     </Box>
   );
