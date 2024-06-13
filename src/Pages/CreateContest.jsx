@@ -57,6 +57,9 @@ const CreateContest = ({ onCreate }) => {
     ],
   });
 
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filteredStudents, setFilteredStudents] = useState([]);
+
   const { students } = useSelector((store) => store.data);
 
   useEffect(() => {
@@ -65,15 +68,34 @@ const CreateContest = ({ onCreate }) => {
 
   useEffect(() => {
     if (students) {
+      const formattedStudents = students.map((student) => ({
+        id: student.id,
+        name: student.name,
+        grid: student.grid,
+        branchCode: student.branchCode,
+        course: student.course,
+      }));
       setContestData((prevData) => ({
         ...prevData,
-        studentsList: students.map((student) => ({
-          id: student.id,
-          name: student.name,
-        })),
+        studentsList: formattedStudents,
       }));
+      setFilteredStudents(formattedStudents);
     }
   }, [students]);
+
+  useEffect(() => {
+    const lowercasedQuery = searchQuery.toLowerCase();
+    setFilteredStudents(
+      contestData.studentsList.filter(
+        (student) =>
+          student.name.toLowerCase().includes(lowercasedQuery) ||
+          student.id.toLowerCase().includes(lowercasedQuery) ||
+          student.grid.toLowerCase().includes(lowercasedQuery) ||
+          student.branchCode.toLowerCase().includes(lowercasedQuery) ||
+          student.course.toLowerCase().includes(lowercasedQuery)
+      )
+    );
+  }, [searchQuery, contestData.studentsList]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -106,6 +128,9 @@ const CreateContest = ({ onCreate }) => {
       studentsList: students.map((student) => ({
         id: student.id,
         name: student.name,
+        grid: student.grid,
+        branchCode: student.branchCode,
+        course: student.course,
       })),
       questionsList: [
         { id: 1, title: "Question 1" },
@@ -137,6 +162,7 @@ const CreateContest = ({ onCreate }) => {
     menu: (provided) => ({
       ...provided,
       backgroundColor: bgColor,
+      zIndex: 9999, // Ensure dropdown covers other elements
     }),
     placeholder: (provided) => ({
       ...provided,
@@ -227,6 +253,19 @@ const CreateContest = ({ onCreate }) => {
             styles={customSelectStyles}
           />
         </FormControl>
+        <FormControl id="selectedStudents" mt={4}>
+          <FormLabel color={textColor}>Select Students</FormLabel>
+          <Select
+            options={filteredStudents.map((student) => ({
+              value: student.id,
+              label: `${student.name} - ${student.id} - ${student.grid} - ${student.course} - ${student.branchCode}`,
+            }))}
+            onChange={handleSelectStudents}
+            isMulti
+            closeMenuOnSelect={false}
+            styles={customSelectStyles}
+          />
+        </FormControl>
         <FormControl id="selectedQuestions" mt={4}>
           <FormLabel color={textColor}>Select Questions</FormLabel>
           <Select
@@ -235,19 +274,6 @@ const CreateContest = ({ onCreate }) => {
               label: question.title,
             }))}
             onChange={handleSelectQuestions}
-            isMulti
-            closeMenuOnSelect={false}
-            styles={customSelectStyles}
-          />
-        </FormControl>
-        <FormControl id="selectedStudents" mt={4}>
-          <FormLabel color={textColor}>Select Students</FormLabel>
-          <Select
-            options={contestData.studentsList.map((student) => ({
-              value: student.id,
-              label: student.name,
-            }))}
-            onChange={handleSelectStudents}
             isMulti
             closeMenuOnSelect={false}
             styles={customSelectStyles}
