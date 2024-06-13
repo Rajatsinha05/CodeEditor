@@ -1,18 +1,14 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import axios from "axios";
 import Cookies from "js-cookie";
-// Use require to import jwt-decode
 import { jwtDecode } from "jwt-decode";
+import axiosInstance from "../config/axiosConfig";
 
 // Define an async thunk to post a question
 export const postQuestion = createAsyncThunk(
   "api/postQuestion",
   async (data, { rejectWithValue }) => {
     try {
-      const response = await axios.post(
-        "http://localhost:8090/questions",
-        data
-      );
+      const response = await axiosInstance.post("/questions", data);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -25,9 +21,7 @@ export const getQuestionById = createAsyncThunk(
   "api/getQuestionById",
   async (questionId, { rejectWithValue }) => {
     try {
-      const response = await axios.get(
-        `http://localhost:8090/questions/${questionId}`
-      );
+      const response = await axiosInstance.get(`/questions/${questionId}`);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -40,7 +34,7 @@ export const fetchQuestions = createAsyncThunk(
   "api/fetchQuestions",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get("http://localhost:8090/questions");
+      const response = await axiosInstance.get("/questions");
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -53,27 +47,53 @@ export const login = createAsyncThunk(
   "api/login",
   async (user, { rejectWithValue }) => {
     try {
-      const response = await axios.post(
-        "http://localhost:8090/users/login",
-        user
-      );
-      const token = response.data.token;
+      const response = await axiosInstance.post("/users/login", user);
+      
+      const userDetailsToken = response.data.user;
 
+      let token = response.data.token;
       // Set the JWT token in cookies
-      Cookies.set("token", token, { expires: 1 }); // token expires in 1 day
-
+      Cookies.set("token", token, { expires: 7 }); // token expires in 1 day
+      Cookies.set("userToken", userDetailsToken,{expires: 7}); //
       // Decode the token to get user data
-      const decoded = jwtDecode(token);
+      let decoded = await jwtDecode(userDetailsToken);
 
+      decoded = await stringToObject(decoded);
       return { ...response.data, user: decoded };
     } catch (error) {
       return rejectWithValue(error.response.data);
     }
   }
 );
-// decode.......
+
+// Define async thunks for students
+export const getStudents = createAsyncThunk(
+  "api/getStudents",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.get("/students");
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response.data);
+    }
+  }
+);
+
+export const createStudent = createAsyncThunk(
+  "api/createStudent",
+  async (student, { rejectWithValue }) => {
+    console.log('student: ', student);
+    try {
+      const response = await axiosInstance.post("/students", student);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response.data);
+    }
+  }
+);
+
+// Decode function
 const stringToObject = (str) => {
-  
   if (typeof str !== "string" || str.trim() === "") {
     return {};
   }
@@ -86,6 +106,7 @@ const stringToObject = (str) => {
     obj[key.trim()] = value.trim();
   });
   return obj;
+  return str;
 };
 
 // Define the initial state
@@ -93,10 +114,11 @@ const initialState = {
   questions: [],
   question: {},
   loading: false,
-  user: Cookies.get("token")
-    ? stringToObject(jwtDecode(Cookies.get("token"))?.sub)
+  user: Cookies.get("userToken")
+    ? stringToObject(jwtDecode(Cookies.get("userToken"))?.sub)
     : null,
-  isLogin: !!Cookies.get("token"),
+  students: [],
+  isLogin: Cookies.get("token") ? true : false,
   token: Cookies.get("token") || null,
   error: null,
 };
@@ -162,8 +184,37 @@ const apiSlice = createSlice({
         state.token = action.payload.token;
         state.isLogin = true;
         state.loading = false;
+        window.location.reload();
       })
       .addCase(login.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      // Reducers for fetching students
+      .addCase(getStudents.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getStudents.fulfilled, (state, action) => {
+        state.students = action.payload;
+        state.loading = false;
+      })
+      .addCase(getStudents.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      // Reducers for creating a student
+      .addCase(createStudent.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(createStudent.fulfilled, (state, action) => {
+        state.students.push(action.payload);
+        state.loading = false;
+      })
+      .addCase(createStudent.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

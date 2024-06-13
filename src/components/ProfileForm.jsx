@@ -8,9 +8,10 @@ import {
   useToast,
 } from "@chakra-ui/react";
 import { useDispatch } from "react-redux";
-import { createStudent } from "../redux/actions/studentActions";
+// import { createStudent } from "../redux/actions/studentActions";
 
 const ProfileForm = ({ isAdmin }) => {
+  let createStudent = "";
   const toast = useToast();
   const dispatch = useDispatch();
   const [formData, setFormData] = useState({

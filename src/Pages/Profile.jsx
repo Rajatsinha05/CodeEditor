@@ -1,18 +1,43 @@
 import React, { useState } from "react";
-import { Box, Heading, VStack, FormControl, FormLabel, Input, Button, Tabs, TabPanels, TabPanel, useToast, Flex, IconButton, Drawer, DrawerOverlay, DrawerContent, DrawerCloseButton, DrawerHeader, DrawerBody, useDisclosure, useColorModeValue } from "@chakra-ui/react";
+import {
+  Box,
+  Heading,
+  VStack,
+  FormControl,
+  FormLabel,
+  Input,
+  Select,
+  Button,
+  Tabs,
+  TabPanels,
+  TabPanel,
+  useToast,
+  Flex,
+  IconButton,
+  Drawer,
+  DrawerOverlay,
+  DrawerContent,
+  DrawerCloseButton,
+  DrawerHeader,
+  DrawerBody,
+  useDisclosure,
+  useColorModeValue,
+} from "@chakra-ui/react";
 import { FaBars } from "react-icons/fa";
 import { useSelector, useDispatch } from "react-redux";
+import { createStudent } from "../redux/apiSlice";
 
 const Profile = () => {
   const toast = useToast();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [selectedTab, setSelectedTab] = useState(0);
   const [studentData, setStudentData] = useState({
-    studentName: "",
-    studentEmail: "",
+    name: "",
+    email: "",
     grid: "",
     branchCode: "",
-    studentPassword: ""
+    password: "",
+    course: "",
   });
 
   const { user } = useSelector((store) => store.data);
@@ -36,11 +61,12 @@ const Profile = () => {
     e.preventDefault();
     // Validation
     if (
-      studentData.studentName === "" ||
-      studentData.studentEmail === "" ||
+      studentData.name === "" ||
+      studentData.email === "" ||
       studentData.grid === "" ||
       studentData.branchCode === "" ||
-      studentData.studentPassword === ""
+      studentData.password === "" ||
+      studentData.course === ""
     ) {
       toast({
         title: "Validation Error",
@@ -51,7 +77,7 @@ const Profile = () => {
       });
     } else {
       // Dispatch action to store/send data through API
-      dispatch(createStudent(studentData));
+      dispatch(createStudent({ ...studentData, user: { id: user.id } }));
       toast({
         title: "Student created",
         description: "A new student has been created successfully.",
@@ -61,11 +87,12 @@ const Profile = () => {
       });
       // Reset form data
       setStudentData({
-        studentName: "",
-        studentEmail: "",
+        name: "",
+        email: "",
         grid: "",
         branchCode: "",
-        studentPassword: ""
+        password: "",
+        course: "",
       });
     }
   };
@@ -74,7 +101,7 @@ const Profile = () => {
     const { id, value } = e.target;
     setStudentData((prevData) => ({
       ...prevData,
-      [id]: value
+      [id]: value,
     }));
   };
 
@@ -211,8 +238,8 @@ const Profile = () => {
             <TabPanel>
               {isAdmin && (
                 <VStack as="form" spacing={4} onSubmit={handleCreateUser}>
-                  <FormControl id="username" isRequired>
-                    <FormLabel>Username</FormLabel>
+                  <FormControl id="name" isRequired>
+                    <FormLabel>name</FormLabel>
                     <Input type="text" />
                   </FormControl>
                   <FormControl id="email" isRequired>
@@ -230,36 +257,28 @@ const Profile = () => {
               )}
             </TabPanel>
             <TabPanel>
-            {isAdmin && (
+              {isAdmin && (
                 <VStack
                   as="form"
                   spacing={4}
                   onSubmit={handleCreateStudent}
                   onChange={handleChange}
                 >
-                  <FormControl id="studentName" isRequired>
+                  <FormControl id="name" isRequired>
                     <FormLabel>Student Name</FormLabel>
                     <Input
                       type="text"
-                      id="studentName"
-                      value={studentData.studentName}
+                      id="name"
+                      value={studentData.name}
                     />
                   </FormControl>
-                  <FormControl id="studentEmail" isRequired>
+                  <FormControl id="email" isRequired>
                     <FormLabel>Student Email</FormLabel>
-                    <Input
-                      type="email"
-                      id="studentEmail"
-                      value={studentData.studentEmail}
-                    />
+                    <Input type="email" id="email" value={studentData.email} />
                   </FormControl>
                   <FormControl id="grid" isRequired>
                     <FormLabel>Grid</FormLabel>
-                    <Input
-                      type="text"
-                      id="grid"
-                      value={studentData.grid}
-                    />
+                    <Input type="text" id="grid" value={studentData.grid} />
                   </FormControl>
                   <FormControl id="branchCode" isRequired>
                     <FormLabel>Branch Code</FormLabel>
@@ -269,13 +288,32 @@ const Profile = () => {
                       value={studentData.branchCode}
                     />
                   </FormControl>
-                  <FormControl id="studentPassword" isRequired>
+                  <FormControl id="password" isRequired>
                     <FormLabel>Password</FormLabel>
                     <Input
                       type="password"
-                      id="studentPassword"
-                      value={studentData.studentPassword}
+                      id="password"
+                      value={studentData.password}
                     />
+                  </FormControl>
+                  <FormControl id="course" isRequired>
+                    <FormLabel>Course</FormLabel>
+                    <Select id="course" value={studentData.course}>
+                      <option value="full stack Developer">
+                        Full Stack Developer{" "}
+                      </option>
+                      <option value="frontend Developer">
+                        Frontend Developer
+                      </option>
+                      <option value="backend Developer">
+                        Backend Developer
+                      </option>
+                      <option value="android Developer">
+                        Android Developer
+                      </option>
+                      <option value="c">C</option>
+                      <option value="cpp">C++</option>
+                    </Select>
                   </FormControl>
                   <Button type="submit" colorScheme="blue" w="full">
                     Create Student
@@ -299,4 +337,3 @@ const Profile = () => {
 };
 
 export default Profile;
-

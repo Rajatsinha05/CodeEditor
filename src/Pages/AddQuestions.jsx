@@ -109,10 +109,8 @@ const AddQuestions = () => {
       return;
     }
 
-    // Submit form data to backend or handle as needed
-    console.log({ formData, examples });
     dispatch(postQuestion({ ...formData, examples }));
-    // Reset form fields after successful submission
+
     setFormData({
       title: "",
       description: "",

@@ -1,5 +1,4 @@
-// Login.js
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Button,
   FormControl,
@@ -31,6 +30,7 @@ const Login = ({ isOpen, onClose }) => {
   });
 
   const toast = useToast();
+  const { isLogin, loginError } = useSelector((store) => store.data);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -46,10 +46,7 @@ const Login = ({ isOpen, onClose }) => {
     }));
   };
 
-  let { isLogin, user } = useSelector((store) => store.data);
-  console.log("isLogin, user : ", isLogin, user);
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     // Form validation
@@ -72,9 +69,12 @@ const Login = ({ isOpen, onClose }) => {
       setErrors(validationErrors);
       return;
     }
+    console.log("islogin before", isLogin);
+    await dispatch(login(formData));
+    console.log("islogin after", isLogin);
+  };
 
-    dispatch(login(formData));
-
+  useEffect(() => {
     if (isLogin) {
       toast({
         title: "Login Successful",
@@ -83,25 +83,25 @@ const Login = ({ isOpen, onClose }) => {
         duration: 3000,
         isClosable: true,
       });
-    } else {
+
+      // Clear form fields after successful login
+      setFormData({
+        email: "",
+        password: "",
+      });
+
+      // Close the modal
+      onClose();
+    } else if (loginError) {
       toast({
         title: "Login failed",
+        description: "Please check your email and password",
         status: "error",
         duration: 3000,
         isClosable: true,
-        position:"top-center"
       });
     }
-
-    // Clear form fields after successful login
-    setFormData({
-      email: "",
-      password: "",
-    });
-
-    // Close the modal
-    onClose();
-  };
+  }, [isLogin, loginError, toast, formData.email, onClose]);
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="md">

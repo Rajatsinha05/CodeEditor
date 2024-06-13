@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Select from "react-select";
 import {
   Box,
@@ -10,20 +10,35 @@ import {
   useColorMode,
   useTheme,
 } from "@chakra-ui/react";
+import { useDispatch, useSelector } from "react-redux";
+import { getStudents } from "../redux/apiSlice";
 
 const CreateContest = ({ onCreate }) => {
   const { colorMode } = useColorMode();
   const theme = useTheme();
+  const dispatch = useDispatch();
 
-  const bgColor = theme.colors[colorMode].background;
-  console.log("bgColor: ", bgColor);
-  const textColor = theme.colors[colorMode].text;
-  console.log("textColor: ", textColor);
-  const primaryColor = theme.colors[colorMode].primary;
-  const secondaryColor = theme.colors[colorMode].secondary;
-  console.log("primaryColor: ", primaryColor);
-  const borderColor = theme.colors[colorMode].text;
-  const placeholderColor = theme.colors[colorMode].primary;
+  const isDarkMode = colorMode === "dark";
+
+  const bgColor = isDarkMode ? theme.colors.gray[800] : theme.colors.gray[100];
+  const textColor = isDarkMode
+    ? theme.colors.whiteAlpha[900]
+    : theme.colors.blackAlpha[900];
+  const primaryColor = isDarkMode
+    ? theme.colors.gray[700]
+    : theme.colors.gray[200];
+  const borderColor = isDarkMode
+    ? theme.colors.whiteAlpha[300]
+    : theme.colors.blackAlpha[300];
+  const placeholderColor = isDarkMode
+    ? theme.colors.gray[400]
+    : theme.colors.gray[600];
+  const optionBgColor = isDarkMode
+    ? theme.colors.gray[700]
+    : theme.colors.gray[100];
+  const optionHoverBgColor = isDarkMode
+    ? theme.colors.gray[600]
+    : theme.colors.gray[200];
 
   const [contestData, setContestData] = useState({
     title: "",
@@ -34,17 +49,31 @@ const CreateContest = ({ onCreate }) => {
     difficultyLevel: "",
     selectedQuestions: [],
     selectedStudents: [],
-    studentsList: [
-      { id: 1, name: "John Doe" },
-      { id: 2, name: "Jane Smith" },
-      { id: 3, name: "Mike Johnson" },
-    ],
+    studentsList: [],
     questionsList: [
       { id: 1, title: "Question 1" },
       { id: 2, title: "Question 2" },
       { id: 3, title: "Question 3" },
     ],
   });
+
+  const { students } = useSelector((store) => store.data);
+
+  useEffect(() => {
+    dispatch(getStudents());
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (students) {
+      setContestData((prevData) => ({
+        ...prevData,
+        studentsList: students.map((student) => ({
+          id: student.id,
+          name: student.name,
+        })),
+      }));
+    }
+  }, [students]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -74,17 +103,45 @@ const CreateContest = ({ onCreate }) => {
       difficultyLevel: "",
       selectedQuestions: [],
       selectedStudents: [],
-      studentsList: [
-        { id: 1, name: "John Doe" },
-        { id: 2, name: "Jane Smith" },
-        { id: 3, name: "Mike Johnson" },
-      ],
+      studentsList: students.map((student) => ({
+        id: student.id,
+        name: student.name,
+      })),
       questionsList: [
         { id: 1, title: "Question 1" },
         { id: 2, title: "Question 2" },
         { id: 3, title: "Question 3" },
       ],
     });
+  };
+
+  const customSelectStyles = {
+    control: (provided) => ({
+      ...provided,
+      backgroundColor: bgColor,
+      color: textColor,
+      borderColor: borderColor,
+    }),
+    option: (provided, state) => ({
+      ...provided,
+      backgroundColor: state.isSelected ? primaryColor : optionBgColor,
+      color: textColor,
+      "&:hover": {
+        backgroundColor: optionHoverBgColor,
+      },
+    }),
+    singleValue: (provided) => ({
+      ...provided,
+      color: textColor,
+    }),
+    menu: (provided) => ({
+      ...provided,
+      backgroundColor: bgColor,
+    }),
+    placeholder: (provided) => ({
+      ...provided,
+      color: placeholderColor,
+    }),
   };
 
   return (
@@ -97,8 +154,8 @@ const CreateContest = ({ onCreate }) => {
             name="title"
             value={contestData.title}
             onChange={handleChange}
-            bg={colorMode === "dark" ? "transparent" : primaryColor}
-            color="black" // Change text color here
+            bg={primaryColor}
+            color={textColor}
             border={`1px solid ${borderColor}`}
             _placeholder={{ color: placeholderColor }}
           />
@@ -109,8 +166,8 @@ const CreateContest = ({ onCreate }) => {
             name="description"
             value={contestData.description}
             onChange={handleChange}
-            bg={colorMode === "dark" ? "transparent" : primaryColor}
-            color="black" // Change text color here
+            bg={primaryColor}
+            color={textColor}
             border={`1px solid ${borderColor}`}
             _placeholder={{ color: placeholderColor }}
           />
@@ -122,8 +179,8 @@ const CreateContest = ({ onCreate }) => {
             name="startTime"
             value={contestData.startTime}
             onChange={handleChange}
-            bg={colorMode === "dark" ? "transparent" : primaryColor}
-            color="black" // Change text color here
+            bg={primaryColor}
+            color={textColor}
             border={`1px solid ${borderColor}`}
             _placeholder={{ color: placeholderColor }}
           />
@@ -135,8 +192,8 @@ const CreateContest = ({ onCreate }) => {
             name="endTime"
             value={contestData.endTime}
             onChange={handleChange}
-            bg={colorMode === "dark" ? "transparent" : primaryColor}
-            color="black" // Change text color here
+            bg={primaryColor}
+            color={textColor}
             border={`1px solid ${borderColor}`}
             _placeholder={{ color: placeholderColor }}
           />
@@ -148,8 +205,8 @@ const CreateContest = ({ onCreate }) => {
             name="totalMarks"
             value={contestData.totalMarks}
             onChange={handleChange}
-            bg={colorMode === "dark" ? "transparent" : primaryColor}
-            color="black" // Change text color here
+            bg={primaryColor}
+            color={textColor}
             border={`1px solid ${borderColor}`}
             _placeholder={{ color: placeholderColor }}
           />
@@ -160,29 +217,14 @@ const CreateContest = ({ onCreate }) => {
             name="difficultyLevel"
             value={contestData.difficultyLevel}
             onChange={(value) =>
-              setContestData({ ...contestData, difficultyLevel: value })
+              setContestData({ ...contestData, difficultyLevel: value.value })
             }
             options={[
               { value: "EASY", label: "Easy" },
               { value: "MEDIUM", label: "Medium" },
               { value: "HARD", label: "Hard" },
             ]}
-            bg={bgColor}
-            color={textColor}
-            borderColor={borderColor}
-            placeholderTextColor={placeholderColor}
-            styles={{
-              control: (provided, state) => ({
-                ...provided,
-                backgroundColor: bgColor,
-                color: textColor,
-                borderColor: borderColor,
-              }),
-              placeholder: (provided, state) => ({
-                ...provided,
-                color: placeholderColor,
-              }),
-            }}
+            styles={customSelectStyles}
           />
         </FormControl>
         <FormControl id="selectedQuestions" mt={4}>
@@ -195,22 +237,7 @@ const CreateContest = ({ onCreate }) => {
             onChange={handleSelectQuestions}
             isMulti
             closeMenuOnSelect={false}
-            bg={bgColor}
-            color={textColor}
-            borderColor={borderColor}
-            placeholderTextColor={placeholderColor}
-            styles={{
-              control: (provided, state) => ({
-                ...provided,
-                backgroundColor: bgColor,
-                color: textColor,
-                borderColor: borderColor,
-              }),
-              placeholder: (provided, state) => ({
-                ...provided,
-                color: placeholderColor,
-              }),
-            }}
+            styles={customSelectStyles}
           />
         </FormControl>
         <FormControl id="selectedStudents" mt={4}>
@@ -223,22 +250,7 @@ const CreateContest = ({ onCreate }) => {
             onChange={handleSelectStudents}
             isMulti
             closeMenuOnSelect={false}
-            bg={bgColor}
-            color={textColor}
-            borderColor={borderColor}
-            placeholderTextColor={placeholderColor}
-            styles={{
-              control: (provided, state) => ({
-                ...provided,
-                backgroundColor: bgColor,
-                color: secondaryColor,
-                borderColor: borderColor,
-              }),
-              placeholder: (provided, state) => ({
-                ...provided,
-                color: placeholderColor,
-              }),
-            }}
+            styles={customSelectStyles}
           />
         </FormControl>
         <Button mt={4} colorScheme="blue" type="submit">
