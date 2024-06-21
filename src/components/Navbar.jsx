@@ -16,7 +16,6 @@ import {
   VStack,
   useBreakpointValue,
   useDisclosure,
-  useColorModeValue,
   Menu,
   MenuButton,
   MenuList,
@@ -36,7 +35,8 @@ import {
 import "../CSS/Navbar.css";
 import Login from "../Pages/Login";
 import { useSelector } from "react-redux";
-import Cookie from "js-cookie"
+import Cookie from "js-cookie";
+
 const Navbar = () => {
   const { colorMode, toggleColorMode } = useColorMode();
   const iconSize = "1.5rem";
@@ -60,13 +60,7 @@ const Navbar = () => {
 
   const renderNavLinks = () => (
     <>
-      <NavLink
-        exact
-        to="/"
-        className="nav-link"
-        activeClassName="active"
-        zIndex="10"
-      >
+      <NavLink exact to="/" className="nav-link" activeClassName="active" zIndex="10">
         <Tooltip label="Home" placement="right">
           <IconButton icon={<FaHome size={iconSize} />} aria-label="Home" />
         </Tooltip>
@@ -76,30 +70,16 @@ const Navbar = () => {
           <IconButton icon={<FaCode size={iconSize} />} aria-label="Problems" />
         </Tooltip>
       </NavLink>
-      {isLogin && (
+      {isLogin && (user?.role === "ADMIN" || user?.role === "SUPERADMIN") && (
         <>
-          <NavLink
-            to="/addQuestion"
-            className="nav-link"
-            activeClassName="active"
-          >
+          <NavLink to="/addQuestion" className="nav-link" activeClassName="active">
             <Tooltip label="Add Question" placement="right">
-              <IconButton
-                icon={<FaPlus size={iconSize} />}
-                aria-label="Add Question"
-              />
+              <IconButton icon={<FaPlus size={iconSize} />} aria-label="Add Question" />
             </Tooltip>
           </NavLink>
-          <NavLink
-            to="/createContest"
-            className="nav-link"
-            activeClassName="active"
-          >
+          <NavLink to="/createContest" className="nav-link" activeClassName="active">
             <Tooltip label="Create Contest" placement="right">
-              <IconButton
-                icon={<FaPlus size={iconSize} />}
-                aria-label="Create Contest"
-              />
+              <IconButton icon={<FaPlus size={iconSize} />} aria-label="Create Contest" />
             </Tooltip>
           </NavLink>
         </>
@@ -108,11 +88,7 @@ const Navbar = () => {
   );
 
   return (
-    <Box
-      position="relative"
-      zIndex="10 "
-      bg={isOpen ? "rgba(0, 0, 0, 0.5)" : "transparent"}
-    >
+    <Box position="relative" zIndex="10" bg={isOpen ? "rgba(0, 0, 0, 0.5)" : "transparent"}>
       <nav className="navbar">
         {isMobileOrTablet ? (
           <Flex alignItems="center" justifyContent="flex-end">
@@ -127,18 +103,9 @@ const Navbar = () => {
           <Flex alignItems="center" justifyContent="space-between">
             <Box>{renderNavLinks()}</Box>
             <Flex alignItems="center">
-              <Tooltip
-                label={`${colorMode === "light" ? "Dark" : "Light"}`}
-                placement="right"
-              >
+              <Tooltip label={`${colorMode === "light" ? "Dark" : "Light"}`} placement="right">
                 <IconButton
-                  icon={
-                    colorMode === "light" ? (
-                      <FaMoon size={iconSize} />
-                    ) : (
-                      <FaSun size={iconSize} />
-                    )
-                  }
+                  icon={colorMode === "light" ? <FaMoon size={iconSize} /> : <FaSun size={iconSize} />}
                   onClick={toggleColorMode}
                   aria-label="Toggle Color Mode"
                 />
@@ -164,25 +131,14 @@ const Navbar = () => {
                   </Button>
                 </>
               ) : (
-                <>
-                  <Button ml={4} onClick={onOpen}>
-                    <FaSignInAlt size={iconSize} /> Login
-                  </Button>
-                  {/* <Button ml={4}>
-                    <NavLink to="/signup" className="nav-link" activeClassName="active">
-                      <FaSignOutAlt size={iconSize} /> Signup
-                    </NavLink>
-                  </Button> */}
-                </>
+                <Button ml={4} onClick={onOpen}>
+                  <FaSignInAlt size={iconSize} /> Login
+                </Button>
               )}
             </Flex>
           </Flex>
         )}
-        <Drawer
-          placement="left"
-          onClose={handleDrawerClose}
-          isOpen={isDrawerOpen}
-        >
+        <Drawer placement="left" onClose={handleDrawerClose} isOpen={isDrawerOpen}>
           <DrawerOverlay />
           <DrawerContent>
             <DrawerCloseButton />
@@ -206,16 +162,8 @@ const Navbar = () => {
                 >
                   Problems
                 </NavLink>
-                {isLogin ? (
+                {isLogin && (
                   <>
-                    <NavLink
-                      to="/addQuestion"
-                      className="nav-link"
-                      activeClassName="active"
-                      onClick={handleDrawerClose}
-                    >
-                      Add Question
-                    </NavLink>
                     <NavLink
                       to="/profile"
                       className="nav-link"
@@ -224,18 +172,37 @@ const Navbar = () => {
                     >
                       Profile
                     </NavLink>
+                    {user?.role === "ADMIN" || user?.role === "SUPERADMIN" ? (
+                      <>
+                        <NavLink
+                          to="/addQuestion"
+                          className="nav-link"
+                          activeClassName="active"
+                          onClick={handleDrawerClose}
+                        >
+                          Add Question
+                        </NavLink>
+                        <NavLink
+                          to="/createContest"
+                          className="nav-link"
+                          activeClassName="active"
+                          onClick={handleDrawerClose}
+                        >
+                          Create Contest
+                        </NavLink>
+                      </>
+                    ) : null}
                   </>
-                ) : (
-                  <>
-                    <NavLink
-                      to="/login"
-                      className="nav-link"
-                      activeClassName="active"
-                      onClick={handleDrawerClose}
-                    >
-                      Login
-                    </NavLink>
-                  </>
+                )}
+                {!isLogin && (
+                  <NavLink
+                    to="/login"
+                    className="nav-link"
+                    activeClassName="active"
+                    onClick={handleDrawerClose}
+                  >
+                    Login
+                  </NavLink>
                 )}
               </VStack>
             </DrawerBody>

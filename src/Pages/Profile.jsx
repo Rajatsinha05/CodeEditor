@@ -266,11 +266,7 @@ const Profile = () => {
                 >
                   <FormControl id="name" isRequired>
                     <FormLabel>Student Name</FormLabel>
-                    <Input
-                      type="text"
-                      id="name"
-                      value={studentData.name}
-                    />
+                    <Input type="text" id="name" value={studentData.name} />
                   </FormControl>
                   <FormControl id="email" isRequired>
                     <FormLabel>Student Email</FormLabel>
@@ -299,8 +295,9 @@ const Profile = () => {
                   <FormControl id="course" isRequired>
                     <FormLabel>Course</FormLabel>
                     <Select id="course" value={studentData.course}>
+                      <option value="">Choose</option>
                       <option value="full stack Developer">
-                        Full Stack Developer{" "}
+                        Full Stack Developer
                       </option>
                       <option value="frontend Developer">
                         Frontend Developer

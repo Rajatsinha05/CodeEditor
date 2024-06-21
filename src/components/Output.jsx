@@ -11,18 +11,19 @@ import {
   DrawerHeader,
   DrawerBody,
   DrawerCloseButton,
-  List,
-  ListItem,
   Spinner,
-  Flex,
-  Icon,
   VStack,
   HStack,
+  Icon,
+  Flex
 } from "@chakra-ui/react";
 import { CheckCircleIcon, WarningIcon } from "@chakra-ui/icons";
 import { executeCode } from "../api";
 import Cookie from "js-cookie";
+
 const Output = ({ editorRef, language, inputData, expectedOutput }) => {
+  console.log('{ editorRef, language, inputData, expectedOutput }: ', { editorRef, language, inputData, expectedOutput });
+  
   const toast = useToast();
   const [output, setOutput] = useState(null);
   const [input, setInput] = useState("");
@@ -30,8 +31,8 @@ const Output = ({ editorRef, language, inputData, expectedOutput }) => {
   const [isError, setIsError] = useState(false);
   const [testResults, setTestResults] = useState([]);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-
   const [token, setToken] = useState("");
+
   useEffect(() => {
     setToken(Cookie.get("token"));
   }, []);
@@ -53,12 +54,15 @@ const Output = ({ editorRef, language, inputData, expectedOutput }) => {
 
     try {
       setIsLoading(true);
-      const result = await executeCode(language, sourceCode, input, token);
+      const result = await executeCode(language, sourceCode, input);
       
-      setOutput(result.output.split("\n").filter((line) => line.trim() !== ""));
-      result.stderr ? setIsError(true) : setIsError(false);
+      const resultOutput = result.output
+        .split("\n")
+        .filter((line) => line.trim() !== "");
+
+      setOutput(resultOutput);
+      setIsError(!!result.stderr);
     } catch (error) {
-      
       toast({
         title: "An error occurred.",
         description: error.message || "Unable to run code",
@@ -81,18 +85,23 @@ const Output = ({ editorRef, language, inputData, expectedOutput }) => {
       const resultOutput = result.output
         .split("\n")
         .filter((line) => line.trim() !== "");
+
       setOutput(resultOutput);
+
+      // Flatten and split the expectedOutput array
+      const expectedOutputs = expectedOutput
+        .flatMap(e => e.split("\n"))
+        .filter((line) => line.trim() !== "");
 
       const results = resultOutput.map((output, index) => ({
         output,
-        expected: expectedOutput[index],
-        passed: output == expectedOutput[index],
+        expected: expectedOutputs[index] || "",
+        passed: output === expectedOutputs[index],
       }));
       setTestResults(results);
 
-      result.stderr ? setIsError(true) : setIsError(false);
+      setIsError(!!result.stderr);
     } catch (error) {
-      
       toast({
         title: "An error occurred.",
         description: error.message || "Unable to run code",
@@ -102,7 +111,6 @@ const Output = ({ editorRef, language, inputData, expectedOutput }) => {
     } finally {
       setIsLoading(false);
       setIsDrawerOpen(true);
-      
     }
   };
 

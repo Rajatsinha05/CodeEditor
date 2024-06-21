@@ -35,7 +35,7 @@ const Problems = () => {
             backgroundColor="rgba(0, 0, 0, 0.03)"
           >
             <Link
-              to={`/problem/${question.id}`}
+              to={`/problem/${question._id}`}
               style={{ textDecoration: "none", display: "block" }}
             >
               <Flex p={4} alignItems="center" justifyContent="space-between">

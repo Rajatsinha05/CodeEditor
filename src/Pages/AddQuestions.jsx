@@ -26,6 +26,7 @@ const AddQuestions = () => {
     tags: "",
   });
 
+
   const [examples, setExamples] = useState([]);
   const [newExample, setNewExample] = useState({
     input: "",
@@ -110,7 +111,8 @@ const AddQuestions = () => {
     }
 
     dispatch(postQuestion({ ...formData, examples }));
-
+    console.log('{ ...formData, examples }: ', { ...formData, examples });
+    
     setFormData({
       title: "",
       description: "",

@@ -12,8 +12,12 @@ import {
 } from "@chakra-ui/react";
 import { useDispatch, useSelector } from "react-redux";
 import { getStudents } from "../redux/apiSlice";
+import { color } from "framer-motion";
+import { createContest } from "../redux/contestSlice";
 
 const CreateContest = ({ onCreate }) => {
+  const { user,questions } = useSelector((store) => store.data);
+
   const { colorMode } = useColorMode();
   const theme = useTheme();
   const dispatch = useDispatch();
@@ -49,8 +53,8 @@ const CreateContest = ({ onCreate }) => {
     difficultyLevel: "",
     selectedQuestions: [],
     selectedStudents: [],
-    studentsList: [],
-    questionsList: [
+    enrolledStudents: [],
+    questions: [
       { id: 1, title: "Question 1" },
       { id: 2, title: "Question 2" },
       { id: 3, title: "Question 3" },
@@ -77,7 +81,7 @@ const CreateContest = ({ onCreate }) => {
       }));
       setContestData((prevData) => ({
         ...prevData,
-        studentsList: formattedStudents,
+        enrolledStudents: formattedStudents,
       }));
       setFilteredStudents(formattedStudents);
     }
@@ -86,16 +90,16 @@ const CreateContest = ({ onCreate }) => {
   useEffect(() => {
     const lowercasedQuery = searchQuery.toLowerCase();
     setFilteredStudents(
-      contestData.studentsList.filter(
+      contestData.enrolledStudents.filter(
         (student) =>
           student.name.toLowerCase().includes(lowercasedQuery) ||
-          student.id.toLowerCase().includes(lowercasedQuery) ||
+          student.id == lowercasedQuery ||
           student.grid.toLowerCase().includes(lowercasedQuery) ||
           student.branchCode.toLowerCase().includes(lowercasedQuery) ||
           student.course.toLowerCase().includes(lowercasedQuery)
       )
     );
-  }, [searchQuery, contestData.studentsList]);
+  }, [searchQuery, contestData.enrolledStudents]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -114,25 +118,28 @@ const CreateContest = ({ onCreate }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onCreate(contestData);
+    // onCreate(contestData);
+    console.log("SubmitData", { ...contestData, userId: user?.id });
     // Reset form data after submission
+    dispatch(createContest({ ...contestData, userId: user?.id }));
     setContestData({
       title: "",
       description: "",
       startTime: "",
       endTime: "",
       totalMarks: "",
+      createdBy: "",
       difficultyLevel: "",
       selectedQuestions: [],
       selectedStudents: [],
-      studentsList: students.map((student) => ({
+      enrolledStudents: students.map((student) => ({
         id: student.id,
         name: student.name,
         grid: student.grid,
         branchCode: student.branchCode,
         course: student.course,
       })),
-      questionsList: [
+      questions: [
         { id: 1, title: "Question 1" },
         { id: 2, title: "Question 2" },
         { id: 3, title: "Question 3" },
@@ -264,12 +271,13 @@ const CreateContest = ({ onCreate }) => {
             isMulti
             closeMenuOnSelect={false}
             styles={customSelectStyles}
+            onInputChange={(inputValue) => setSearchQuery(inputValue)}
           />
         </FormControl>
         <FormControl id="selectedQuestions" mt={4}>
           <FormLabel color={textColor}>Select Questions</FormLabel>
           <Select
-            options={contestData.questionsList.map((question) => ({
+            options={contestData.questions.map((question) => ({
               value: question.id,
               label: question.title,
             }))}

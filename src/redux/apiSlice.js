@@ -2,13 +2,16 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import Cookies from "js-cookie";
 import { jwtDecode } from "jwt-decode";
 import axiosInstance from "../config/axiosConfig";
+import axios from "axios";
+
 
 // Define an async thunk to post a question
 export const postQuestion = createAsyncThunk(
   "api/postQuestion",
   async (data, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.post("/questions", data);
+      const response = await axios.post("http://localhost:7080/question", data);
+      console.log("response: ", response);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -21,7 +24,9 @@ export const getQuestionById = createAsyncThunk(
   "api/getQuestionById",
   async (questionId, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.get(`/questions/${questionId}`);
+      const response = await axios.get(
+        `http://localhost:7080/question/${questionId}`
+      );
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -34,7 +39,7 @@ export const fetchQuestions = createAsyncThunk(
   "api/fetchQuestions",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.get("/questions");
+      const response = await axios.get("http://localhost:7080/question");
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -48,13 +53,13 @@ export const login = createAsyncThunk(
   async (user, { rejectWithValue }) => {
     try {
       const response = await axiosInstance.post("/users/login", user);
-      
+
       const userDetailsToken = response.data.user;
 
       let token = response.data.token;
       // Set the JWT token in cookies
       Cookies.set("token", token, { expires: 7 }); // token expires in 1 day
-      Cookies.set("userToken", userDetailsToken,{expires: 7}); //
+      Cookies.set("userToken", userDetailsToken, { expires: 7 }); //
       // Decode the token to get user data
       let decoded = await jwtDecode(userDetailsToken);
 
@@ -82,7 +87,6 @@ export const getStudents = createAsyncThunk(
 export const createStudent = createAsyncThunk(
   "api/createStudent",
   async (student, { rejectWithValue }) => {
-    console.log('student: ', student);
     try {
       const response = await axiosInstance.post("/students", student);
       return response.data;
@@ -106,7 +110,7 @@ const stringToObject = (str) => {
     obj[key.trim()] = value.trim();
   });
   return obj;
-  return str;
+  // return str;
 };
 
 // Define the initial state
