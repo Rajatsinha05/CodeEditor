@@ -5,6 +5,7 @@ const CodeSuggestions = ({ monaco, language }) => {
     let suggestions = [];
     switch (language) {
       case "javascript":
+        
         suggestions = [
           {
             label: "console.log",
