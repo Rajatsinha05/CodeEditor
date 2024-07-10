@@ -11,11 +11,11 @@ import {
   IconButton,
 } from "@chakra-ui/react";
 import { CloseIcon } from "@chakra-ui/icons";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { postQuestion } from "../redux/apiSlice";
 
 const AddQuestions = () => {
-  let dispatch = useDispatch();
+  const dispatch = useDispatch();
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -25,7 +25,6 @@ const AddQuestions = () => {
     expectedOutput: "",
     tags: "",
   });
-
 
   const [examples, setExamples] = useState([]);
   const [newExample, setNewExample] = useState({
@@ -79,6 +78,20 @@ const AddQuestions = () => {
   }, [formData]);
 
   const handleAddExample = () => {
+    if (
+      newExample.input.trim() === "" ||
+      newExample.output.trim() === "" ||
+      newExample.explanation.trim() === ""
+    ) {
+      toast({
+        title: "Error",
+        description: "All example fields must be filled out.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
     setExamples([...examples, newExample]);
     setNewExample({
       input: "",
@@ -90,6 +103,8 @@ const AddQuestions = () => {
   const handleRemoveExample = (indexToRemove) => {
     setExamples(examples.filter((_, index) => index !== indexToRemove));
   };
+
+  const { user } = useSelector((store) => store.data);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -110,9 +125,16 @@ const AddQuestions = () => {
       return;
     }
 
-    dispatch(postQuestion({ ...formData, examples }));
-    console.log('{ ...formData, examples }: ', { ...formData, examples });
-    
+    dispatch(
+      postQuestion({
+        ...formData,
+        examples,
+        user: {
+          id: Number(user.id),
+        },
+      })
+    );
+
     setFormData({
       title: "",
       description: "",
@@ -164,9 +186,9 @@ const AddQuestions = () => {
             onChange={handleChange}
           >
             <option value="">Select</option>
-            <option value="Low">Low</option>
-            <option value="Medium">Medium</option>
-            <option value="High">High</option>
+            <option value="EASY">EASY</option>
+            <option value="MEDIUM">MEDIUM</option>
+            <option value="HARD">HARD</option>
           </Select>
         </FormControl>
         <FormControl mb={4} isInvalid={errors.constraintValue}>
@@ -260,13 +282,38 @@ const AddQuestions = () => {
               </FormControl>
             </Box>
           ))}
-          <Button
-            type="button"
-            colorScheme="blue"
-            onClick={() => setExamples([...examples, newExample])}
-          >
-            Add Example
-          </Button>
+          <FormControl mb={4}>
+            <FormLabel>Add New Example</FormLabel>
+            <FormControl mb={2}>
+              <Input
+                name="newInput"
+                value={newExample.input}
+                onChange={(e) => setNewExample({ ...newExample, input: e.target.value })}
+                placeholder="Input"
+              />
+            </FormControl>
+            <FormControl mb={2}>
+              <Textarea
+                name="newOutput"
+                value={newExample.output}
+                onChange={(e) => setNewExample({ ...newExample, output: e.target.value })}
+                placeholder="Output"
+                style={{ minHeight: "100px", resize: "none" }}
+              />
+            </FormControl>
+            <FormControl mb={2}>
+              <Textarea
+                name="newExplanation"
+                value={newExample.explanation}
+                onChange={(e) => setNewExample({ ...newExample, explanation: e.target.value })}
+                placeholder="Explanation"
+                style={{ minHeight: "100px", resize: "none" }}
+              />
+            </FormControl>
+            <Button type="button" colorScheme="blue" onClick={handleAddExample}>
+              Add Example
+            </Button>
+          </FormControl>
         </FormControl>
         <FormControl mb={4} isInvalid={errors.tags}>
           <FormLabel>Tags</FormLabel>

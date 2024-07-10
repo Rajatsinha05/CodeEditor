@@ -11,38 +11,24 @@ import {
   useTheme,
 } from "@chakra-ui/react";
 import { useDispatch, useSelector } from "react-redux";
-import { getStudents } from "../redux/apiSlice";
-import { color } from "framer-motion";
+import { getStudents, fetchQuestions } from "../redux/apiSlice";
 import { createContest } from "../redux/contestSlice";
 
 const CreateContest = ({ onCreate }) => {
-  const { user,questions } = useSelector((store) => store.data);
+  const { user, questions } = useSelector((store) => store.data);
 
   const { colorMode } = useColorMode();
   const theme = useTheme();
   const dispatch = useDispatch();
 
   const isDarkMode = colorMode === "dark";
-
   const bgColor = isDarkMode ? theme.colors.gray[800] : theme.colors.gray[100];
-  const textColor = isDarkMode
-    ? theme.colors.whiteAlpha[900]
-    : theme.colors.blackAlpha[900];
-  const primaryColor = isDarkMode
-    ? theme.colors.gray[700]
-    : theme.colors.gray[200];
-  const borderColor = isDarkMode
-    ? theme.colors.whiteAlpha[300]
-    : theme.colors.blackAlpha[300];
-  const placeholderColor = isDarkMode
-    ? theme.colors.gray[400]
-    : theme.colors.gray[600];
-  const optionBgColor = isDarkMode
-    ? theme.colors.gray[700]
-    : theme.colors.gray[100];
-  const optionHoverBgColor = isDarkMode
-    ? theme.colors.gray[600]
-    : theme.colors.gray[200];
+  const textColor = isDarkMode ? theme.colors.whiteAlpha[900] : theme.colors.blackAlpha[900];
+  const primaryColor = isDarkMode ? theme.colors.gray[700] : theme.colors.gray[200];
+  const borderColor = isDarkMode ? theme.colors.whiteAlpha[300] : theme.colors.blackAlpha[300];
+  const placeholderColor = isDarkMode ? theme.colors.gray[400] : theme.colors.gray[600];
+  const optionBgColor = isDarkMode ? theme.colors.gray[700] : theme.colors.gray[100];
+  const optionHoverBgColor = isDarkMode ? theme.colors.gray[600] : theme.colors.gray[200];
 
   const [contestData, setContestData] = useState({
     title: "",
@@ -53,12 +39,6 @@ const CreateContest = ({ onCreate }) => {
     difficultyLevel: "",
     selectedQuestions: [],
     selectedStudents: [],
-    enrolledStudents: [],
-    questions: [
-      { id: 1, title: "Question 1" },
-      { id: 2, title: "Question 2" },
-      { id: 3, title: "Question 3" },
-    ],
   });
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -68,6 +48,7 @@ const CreateContest = ({ onCreate }) => {
 
   useEffect(() => {
     dispatch(getStudents());
+    dispatch(fetchQuestions());
   }, [dispatch]);
 
   useEffect(() => {
@@ -79,10 +60,6 @@ const CreateContest = ({ onCreate }) => {
         branchCode: student.branchCode,
         course: student.course,
       }));
-      setContestData((prevData) => ({
-        ...prevData,
-        enrolledStudents: formattedStudents,
-      }));
       setFilteredStudents(formattedStudents);
     }
   }, [students]);
@@ -90,16 +67,16 @@ const CreateContest = ({ onCreate }) => {
   useEffect(() => {
     const lowercasedQuery = searchQuery.toLowerCase();
     setFilteredStudents(
-      contestData.enrolledStudents.filter(
+      students.filter(
         (student) =>
           student.name.toLowerCase().includes(lowercasedQuery) ||
-          student.id == lowercasedQuery ||
+          student.id.toString().includes(lowercasedQuery) ||
           student.grid.toLowerCase().includes(lowercasedQuery) ||
           student.branchCode.toLowerCase().includes(lowercasedQuery) ||
           student.course.toLowerCase().includes(lowercasedQuery)
       )
     );
-  }, [searchQuery, contestData.enrolledStudents]);
+  }, [searchQuery, students]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -116,34 +93,28 @@ const CreateContest = ({ onCreate }) => {
     setContestData({ ...contestData, selectedStudents });
   };
 
+  const handleSelectDifficultyLevel = (selectedOption) => {
+    setContestData({ ...contestData, difficultyLevel: selectedOption.value });
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    // onCreate(contestData);
-    console.log("SubmitData", { ...contestData, userId: user?.id });
-    // Reset form data after submission
-    dispatch(createContest({ ...contestData, userId: user?.id }));
+    const contestPayload = {
+      ...contestData,
+      createdById: user?.id,
+      questionIds: contestData.selectedQuestions,
+      enrolledStudentIds: contestData.selectedStudents,
+    };
+    dispatch(createContest(contestPayload));
     setContestData({
       title: "",
       description: "",
       startTime: "",
       endTime: "",
       totalMarks: "",
-      createdBy: "",
       difficultyLevel: "",
       selectedQuestions: [],
       selectedStudents: [],
-      enrolledStudents: students.map((student) => ({
-        id: student.id,
-        name: student.name,
-        grid: student.grid,
-        branchCode: student.branchCode,
-        course: student.course,
-      })),
-      questions: [
-        { id: 1, title: "Question 1" },
-        { id: 2, title: "Question 2" },
-        { id: 3, title: "Question 3" },
-      ],
     });
   };
 
@@ -169,7 +140,7 @@ const CreateContest = ({ onCreate }) => {
     menu: (provided) => ({
       ...provided,
       backgroundColor: bgColor,
-      zIndex: 9999, // Ensure dropdown covers other elements
+      zIndex: 9999,
     }),
     placeholder: (provided) => ({
       ...provided,
@@ -247,11 +218,11 @@ const CreateContest = ({ onCreate }) => {
         <FormControl id="difficultyLevel" mt={4}>
           <FormLabel color={textColor}>Difficulty Level</FormLabel>
           <Select
-            name="difficultyLevel"
-            value={contestData.difficultyLevel}
-            onChange={(value) =>
-              setContestData({ ...contestData, difficultyLevel: value.value })
-            }
+            value={{
+              value: contestData.difficultyLevel,
+              label: contestData.difficultyLevel.charAt(0) + contestData.difficultyLevel.slice(1).toLowerCase(),
+            }}
+            onChange={handleSelectDifficultyLevel}
             options={[
               { value: "EASY", label: "Easy" },
               { value: "MEDIUM", label: "Medium" },
@@ -277,7 +248,7 @@ const CreateContest = ({ onCreate }) => {
         <FormControl id="selectedQuestions" mt={4}>
           <FormLabel color={textColor}>Select Questions</FormLabel>
           <Select
-            options={contestData.questions.map((question) => ({
+            options={questions.map((question) => ({
               value: question.id,
               label: question.title,
             }))}

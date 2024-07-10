@@ -1,17 +1,13 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import Cookies from "js-cookie";
-import { jwtDecode } from "jwt-decode";
 import axiosInstance from "../config/axiosConfig";
-import axios from "axios";
-
 
 // Define an async thunk to post a question
 export const postQuestion = createAsyncThunk(
   "api/postQuestion",
   async (data, { rejectWithValue }) => {
     try {
-      const response = await axios.post("http://localhost:7080/question", data);
-      console.log("response: ", response);
+      const response = await axiosInstance.post("/questions", data);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -24,9 +20,7 @@ export const getQuestionById = createAsyncThunk(
   "api/getQuestionById",
   async (questionId, { rejectWithValue }) => {
     try {
-      const response = await axios.get(
-        `http://localhost:7080/question/${questionId}`
-      );
+      const response = await axiosInstance.get(`/questions/${questionId}`);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -39,7 +33,7 @@ export const fetchQuestions = createAsyncThunk(
   "api/fetchQuestions",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get("http://localhost:7080/question");
+      const response = await axiosInstance.get("/questions");
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -53,18 +47,16 @@ export const login = createAsyncThunk(
   async (user, { rejectWithValue }) => {
     try {
       const response = await axiosInstance.post("/users/login", user);
+      const { token, user: userDetailsToken } = response.data;
 
-      const userDetailsToken = response.data.user;
-
-      let token = response.data.token;
       // Set the JWT token in cookies
-      Cookies.set("token", token, { expires: 7 }); // token expires in 1 day
-      Cookies.set("userToken", userDetailsToken, { expires: 7 }); //
-      // Decode the token to get user data
-      let decoded = await jwtDecode(userDetailsToken);
+      Cookies.set("token", token, { expires: 7 });
+      Cookies.set("userToken", userDetailsToken, { expires: 7 });
 
-      decoded = await stringToObject(decoded);
-      return { ...response.data, user: decoded };
+      // Decode the token to get user data
+      const decodedUser = stringToObject(userDetailsToken);
+
+      return { ...response.data, user: decodedUser };
     } catch (error) {
       return rejectWithValue(error.response.data);
     }
@@ -102,15 +94,16 @@ const stringToObject = (str) => {
     return {};
   }
 
-  const regex = /(\w+)=([^,]+)/g;
-  const matches = str.match(regex);
+  const regex = /(\w+)=([^(,|\)]+)[,|\)]/g;
+  const matches = [...str.matchAll(regex)];
   const obj = {};
+
   matches.forEach((match) => {
-    const [key, value] = match.split("=");
+    const [_, key, value] = match;
     obj[key.trim()] = value.trim();
   });
+
   return obj;
-  // return str;
 };
 
 // Define the initial state
@@ -118,11 +111,9 @@ const initialState = {
   questions: [],
   question: {},
   loading: false,
-  user: Cookies.get("userToken")
-    ? stringToObject(jwtDecode(Cookies.get("userToken"))?.sub)
-    : null,
+  user: Cookies.get("userToken") ? stringToObject(Cookies.get("userToken")) : null,
   students: [],
-  isLogin: Cookies.get("token") ? true : false,
+  isLogin: !!Cookies.get("token"),
   token: Cookies.get("token") || null,
   error: null,
 };

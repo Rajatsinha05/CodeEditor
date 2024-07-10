@@ -69,9 +69,9 @@ const Login = ({ isOpen, onClose }) => {
       setErrors(validationErrors);
       return;
     }
-    console.log("islogin before", isLogin);
+
     await dispatch(login(formData));
-    console.log("islogin after", isLogin);
+    console.log("formData: ", formData);
   };
 
   useEffect(() => {
@@ -101,7 +101,7 @@ const Login = ({ isOpen, onClose }) => {
         isClosable: true,
       });
     }
-  }, [isLogin, loginError, toast, formData.email, onClose]);
+  }, [isLogin, loginError, toast, formData.email, onClose, dispatch]);
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="md">
@@ -149,3 +149,5 @@ const Login = ({ isOpen, onClose }) => {
 };
 
 export default Login;
+
+// Redux code remains the same

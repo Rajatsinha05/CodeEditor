@@ -3,6 +3,7 @@ import axiosInstance from "../config/axiosConfig";
 
 // Create the async thunk for creating a contest
 const createContest = createAsyncThunk("/contest", async (data, { rejectWithValue }) => {
+  console.log('data: ', data);
   try {
     const response = await axiosInstance.post("/contests", data);
     console.log('response.data: ', response.data);
