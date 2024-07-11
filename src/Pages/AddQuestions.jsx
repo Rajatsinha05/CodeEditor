@@ -106,56 +106,126 @@ const AddQuestions = () => {
 
   const { user } = useSelector((store) => store.data);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  // const handleSubmit = (e) => {
+  //   e.preventDefault();
 
+  //   // Form validation
+  //   const validationErrors = {};
+  //   let isValid = true;
+
+  //   Object.keys(formData).forEach((key) => {
+  //     if (!formData[key]) {
+  //       validationErrors[key] = true;
+  //       isValid = false;
+  //     }
+  //   });
+
+  //   if (!isValid) {
+  //     setErrors(validationErrors);
+  //     return;
+  //   }
+
+  //   dispatch(
+  //     postQuestion({
+  //       ...formData,
+  //       examples,
+  //       user: {
+  //         id: Number(user.id),
+  //       },
+  //     })
+  //   );
+
+  //   setFormData({
+  //     title: "",
+  //     description: "",
+  //     difficultLevel: "",
+  //     constraintValue: "",
+  //     input: "",
+  //     expectedOutput: "",
+  //     tags: "",
+  //   });
+  //   setExamples([]);
+
+  //   // Show success toast
+  //   toast({
+  //     title: "Question Added",
+  //     description: "Your question has been successfully added!",
+  //     status: "success",
+  //     duration: 3000,
+  //     isClosable: true,
+  //   });
+  // };
+
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+  
     // Form validation
     const validationErrors = {};
     let isValid = true;
-
+  
     Object.keys(formData).forEach((key) => {
       if (!formData[key]) {
         validationErrors[key] = true;
         isValid = false;
       }
     });
-
+  
     if (!isValid) {
       setErrors(validationErrors);
+      toast({
+        title: "Failed to Add Question",
+        description: "Please fill all fields correctly.",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+        position: "top",
+      });
       return;
     }
-
-    dispatch(
-      postQuestion({
+  
+    try {
+      await dispatch(postQuestion({
         ...formData,
         examples,
         user: {
           id: Number(user.id),
         },
-      })
-    );
-
-    setFormData({
-      title: "",
-      description: "",
-      difficultLevel: "",
-      constraintValue: "",
-      input: "",
-      expectedOutput: "",
-      tags: "",
-    });
-    setExamples([]);
-
-    // Show success toast
-    toast({
-      title: "Question Added",
-      description: "Your question has been successfully added!",
-      status: "success",
-      duration: 3000,
-      isClosable: true,
-    });
+      })).unwrap();
+  
+      setFormData({
+        title: "",
+        description: "",
+        difficultLevel: "",
+        constraintValue: "",
+        input: "",
+        expectedOutput: "",
+        tags: "",
+      });
+      setExamples([]);
+  
+      // Show success toast
+      toast({
+        title: "Question Added",
+        description: "Your question has been successfully added!",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+        position: "top",
+      });
+    } catch (err) {
+      // Handle errors when the API request fails
+      toast({
+        title: "Failed to Add Question",
+        description: err.message || "An error occurred while adding the question.",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+        position: "top",
+      });
+    }
   };
-
+  
   return (
     <Box p={4}>
       <form onSubmit={handleSubmit}>

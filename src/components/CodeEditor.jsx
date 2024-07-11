@@ -45,9 +45,7 @@ const CodeEditor = ({ problemId }) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const addContest = (contest) => {
-    setContests((prevContests) => [...prevContests, contest]);
-  };
+  
 
   const toggleDrawer = () => {
     setIsDrawerOpen(!isDrawerOpen);
@@ -64,6 +62,7 @@ const CodeEditor = ({ problemId }) => {
     dispatch(getQuestionById(problemId));
   }, []);
   let { data } = useSelector((store) => store);
+  console.log('data: ', data);
 
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -161,7 +160,7 @@ const CodeEditor = ({ problemId }) => {
 
   return (
     <Box p={4} position="relative">
-      <ContestCreation addContest={addContest} />
+      {/* <ContestCreation addContest={addContest} /> */}
       <CameraDisplay videoBoxSize={videoBoxSize} />
       {isScreenBlurred && (
         <Box

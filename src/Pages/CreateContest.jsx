@@ -97,25 +97,58 @@ const CreateContest = ({ onCreate }) => {
     setContestData({ ...contestData, difficultyLevel: selectedOption.value });
   };
 
-  const handleSubmit = (e) => {
+const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!contestData.title || !contestData.selectedQuestions.length || !contestData.selectedStudents.length) {
+      toast({
+        title: "Missing Information",
+        description: "Please ensure all fields are filled and selections are made.",
+        status: "warning",
+        duration: 5000,
+        isClosable: true,
+        position: "top-center",
+      });
+      return;
+    }
+
     const contestPayload = {
       ...contestData,
       createdById: user?.id,
       questionIds: contestData.selectedQuestions,
       enrolledStudentIds: contestData.selectedStudents,
     };
-    dispatch(createContest(contestPayload));
-    setContestData({
-      title: "",
-      description: "",
-      startTime: "",
-      endTime: "",
-      totalMarks: "",
-      difficultyLevel: "",
-      selectedQuestions: [],
-      selectedStudents: [],
-    });
+
+    try {
+      await dispatch(createContest(contestPayload)).unwrap();
+      setContestData({
+        title: "",
+        description: "",
+        startTime: "",
+        endTime: "",
+        totalMarks: "",
+        difficultyLevel: "",
+        selectedQuestions: [],
+        selectedStudents: [],
+      });
+      toast({
+        title: "Contest Created",
+        description: "The contest has been successfully created.",
+        status: "success",
+        duration: 5000,
+        isClosable: true,
+        position: "top-center",
+      });
+      onCreate && onCreate(); // Callback for additional actions
+    } catch (error) {
+      toast({
+        title: "Error Creating Contest",
+        description: error.message || "Failed to create contest due to an error.",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+        position: "top-center",
+      });
+    }
   };
 
   const customSelectStyles = {
