@@ -22,10 +22,13 @@ import {
   DrawerBody,
   useDisclosure,
   useColorModeValue,
+  Tab,
+  TabList,
 } from "@chakra-ui/react";
 import { FaBars } from "react-icons/fa";
 import { useSelector, useDispatch } from "react-redux";
 import { createStudent } from "../redux/apiSlice";
+import StudentStats from "../components/StudentStats";
 
 const Profile = () => {
   const toast = useToast();
@@ -43,6 +46,7 @@ const Profile = () => {
   const { user } = useSelector((store) => store.data);
   const isAdmin = user?.role === "ADMIN" || user?.role === "SUPERADMIN";
   const isSuperAdmin = user?.role === "SUPERADMIN";
+  const isStudent = user?.role === "STUDENT";
 
   const dispatch = useDispatch();
 
@@ -113,7 +117,24 @@ const Profile = () => {
 
   return (
     <Flex minH="100vh" bg={bgColor}>
-      {/* Sidebar for larger screens */}
+      <Box flex="1" ml={{ base: 0, md: "60" }} p={5} bg={bgColor}>
+        <Tabs colorScheme="blue">
+          <TabList>
+            <Tab>Profile</Tab>
+            {isStudent && <Tab>Student Stats</Tab>}
+          </TabList>
+          <TabPanels>
+            <TabPanel>
+              <Heading size="lg">Welcome, {user.name}</Heading>
+            </TabPanel>
+            {isStudent && (
+              <TabPanel>
+                <StudentStats student={user} />
+              </TabPanel>
+            )}
+          </TabPanels>
+        </Tabs>
+      </Box>
       <Box
         w={{ base: "full", md: "60" }}
         pos="fixed"
