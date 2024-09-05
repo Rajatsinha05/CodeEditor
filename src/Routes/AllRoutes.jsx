@@ -9,13 +9,14 @@ import CreateContest from "../Pages/CreateContest";
 import Profile from "../Pages/Profile";
 import PrivateRouteAdmin from "./PrivateRouteAdmin";
 import { useSelector } from "react-redux";
+import Home from "../Pages/Home";
 
 const AllRoutes = () => {
   let { user, isLogin } = useSelector((store) => store.data);
 
   return (
     <Routes>
-      <Route exact path="/" element={<Problems />} />
+      <Route exact path="/" element={<Home />} />
       <Route path="/problems" element={<Problems />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
@@ -25,21 +26,21 @@ const AllRoutes = () => {
       {/* Private Routes only for admin or superAdmin */}
       {isLogin && (user?.role === "ADMIN" || user?.role === "SUPERADMIN") && (
         <>
-          <Route 
-            path="/createContest" 
+          <Route
+            path="/createContest"
             element={
               <PrivateRouteAdmin>
                 <CreateContest />
               </PrivateRouteAdmin>
-            } 
+            }
           />
-          <Route 
-            path="/addQuestion" 
+          <Route
+            path="/addQuestion"
             element={
               <PrivateRouteAdmin>
                 <AddQuestions />
               </PrivateRouteAdmin>
-            } 
+            }
           />
         </>
       )}

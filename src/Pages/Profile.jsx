@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Heading,
@@ -27,7 +27,7 @@ import {
 } from "@chakra-ui/react";
 import { FaBars } from "react-icons/fa";
 import { useSelector, useDispatch } from "react-redux";
-import { createStudent } from "../redux/apiSlice";
+import { createStudent, getsolvedQuestions } from "../redux/apiSlice";
 import StudentStats from "../components/StudentStats";
 
 const Profile = () => {
@@ -49,6 +49,26 @@ const Profile = () => {
   const isStudent = user?.role === "STUDENT";
 
   const dispatch = useDispatch();
+  const [solvedQuestions, setSolvedQuestions] = useState([]);
+
+  useEffect(() => {
+    if (isStudent) {
+      dispatch(getsolvedQuestions({ studentId: user.id }))
+        .unwrap()
+        .then((data) => {
+          setSolvedQuestions(data.solvedQuestions);
+        })
+        .catch((error) => {
+          toast({
+            title: "Error fetching solved questions",
+            description: error.message,
+            status: "error",
+            duration: 5000,
+            isClosable: true,
+          });
+        });
+    }
+  }, [dispatch, user.id, isStudent, toast]);
 
   const handleCreateUser = (e) => {
     e.preventDefault();
@@ -80,7 +100,6 @@ const Profile = () => {
         isClosable: true,
       });
     } else {
-      // Dispatch action to store/send data through API
       dispatch(createStudent({ ...studentData, user: { id: user.id } }));
       toast({
         title: "Student created",
@@ -89,7 +108,6 @@ const Profile = () => {
         duration: 3000,
         isClosable: true,
       });
-      // Reset form data
       setStudentData({
         name: "",
         email: "",
@@ -121,7 +139,7 @@ const Profile = () => {
         <Tabs colorScheme="blue">
           <TabList>
             <Tab>Profile</Tab>
-            {isStudent && <Tab>Student Stats</Tab>}
+            {isStudent && <Tab>Stats</Tab>}
           </TabList>
           <TabPanels>
             <TabPanel>
@@ -129,7 +147,7 @@ const Profile = () => {
             </TabPanel>
             {isStudent && (
               <TabPanel>
-                <StudentStats student={user} />
+                <StudentStats student={{ ...user, solvedQuestions }} />
               </TabPanel>
             )}
           </TabPanels>
@@ -260,7 +278,7 @@ const Profile = () => {
               {isAdmin && (
                 <VStack as="form" spacing={4} onSubmit={handleCreateUser}>
                   <FormControl id="name" isRequired>
-                    <FormLabel>name</FormLabel>
+                    <FormLabel>Name</FormLabel>
                     <Input type="text" />
                   </FormControl>
                   <FormControl id="email" isRequired>

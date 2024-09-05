@@ -8,6 +8,7 @@ import {
   useToast,
 } from "@chakra-ui/react";
 import { useDispatch } from "react-redux";
+import { createUser } from "../redux/apiSlice";
 // import { createStudent } from "../redux/actions/studentActions";
 
 const ProfileForm = ({ isAdmin }) => {
@@ -58,6 +59,8 @@ const ProfileForm = ({ isAdmin }) => {
       } else {
         // Dispatch action to create user
         // Example: dispatch(createUser(formData));
+        dispatch(createUser({...formData,role:"ADMIN"}));
+
       }
       // Reset form data
       setFormData({

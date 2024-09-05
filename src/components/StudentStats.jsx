@@ -1,37 +1,55 @@
-import React from 'react';
-import {
-  Box, Heading, Stat, StatLabel, StatNumber, StatGroup, StatHelpText, Progress
-} from "@chakra-ui/react";
+import React from "react";
+import { Box, Heading, SimpleGrid, Text, Link as ChakraLink } from "@chakra-ui/react";
+import { Link } from "react-router-dom";
 
 const StudentStats = ({ student }) => {
   return (
-    <Box p={5} shadow="md" borderWidth="1px" borderRadius="lg" overflow="hidden">
-      <Heading size="lg" mb={4}>Student Performance Dashboard</Heading>
-      <StatGroup>
-        <Stat p={4} borderWidth="1px" borderRadius="lg">
-          <StatLabel>Total Solved Questions</StatLabel>
-          <StatNumber>{student.totalSolvedQuestions}</StatNumber>
-          <StatHelpText>Includes practice and contest problems</StatHelpText>
-        </Stat>
-        <Stat p={4} borderWidth="1px" borderRadius="lg">
-          <StatLabel>Total Contests</StatLabel>
-          <StatNumber>{student.totalContests}</StatNumber>
-          <StatHelpText>Participated</StatHelpText>
-        </Stat>
-        <Stat p={4} borderWidth="1px" borderRadius="lg">
-          <StatLabel>Current Rating</StatLabel>
-          <StatNumber>{student.rating}</StatNumber>
-          <Progress hasStripe value={student.rating} max={2000} />
-          <StatHelpText>Maximum: 2000</StatHelpText>
-        </Stat>
-        <Stat p={4} borderWidth="1px" borderRadius="lg">
-          <StatLabel>Attendance</StatLabel>
-          <StatNumber>{student.attendancePercentage}%</StatNumber>
-          <Progress colorScheme="green" hasStripe value={student.attendancePercentage} />
-          <StatHelpText>Based on total classes</StatHelpText>
-        </Stat>
-        {/* More stats can be dynamically added here */}
-      </StatGroup>
+    <Box
+      bg="gray.50"
+      p={6}
+      borderRadius="md"
+      boxShadow="md"
+      _dark={{ bg: "gray.700", boxShadow: "dark-lg" }}
+    >
+      <Heading size="md" mb={4} color="blue.600" _dark={{ color: "blue.300" }}>
+        Solved Questions
+      </Heading>
+      {student.solvedQuestions && student.solvedQuestions.length > 0 ? (
+        <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
+          {student.solvedQuestions.map((question) => (
+            <ChakraLink
+              as={Link}
+              to={`/problem/${question.id}`}
+              key={question.id}
+              _hover={{ textDecoration: "none" }}
+              _focus={{ boxShadow: "outline" }}
+            >
+              <Box
+                p={4}
+                bg="white"
+                borderRadius="md"
+                boxShadow="sm"
+                _hover={{ bg: "blue.50", _dark: { bg: "blue.900" } }}
+                _dark={{ bg: "gray.800", color: "gray.300", boxShadow: "dark-lg" }}
+                transition="background 0.2s ease"
+              >
+                <Text
+                  fontWeight="bold"
+                  color="blue.800"
+                  _dark={{ color: "blue.200" }}
+                  isTruncated
+                >
+                  {question.title}
+                </Text>
+              </Box>
+            </ChakraLink>
+          ))}
+        </SimpleGrid>
+      ) : (
+        <Text mt={3} color="gray.600" _dark={{ color: "gray.400" }}>
+          No solved questions yet.
+        </Text>
+      )}
     </Box>
   );
 };

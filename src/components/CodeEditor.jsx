@@ -62,7 +62,8 @@ const CodeEditor = ({ problemId }) => {
     dispatch(getQuestionById(problemId));
   }, []);
   let { data } = useSelector((store) => store);
-  console.log('data: ', data);
+  
+  
 
   useEffect(() => {
     const handleVisibilityChange = () => {

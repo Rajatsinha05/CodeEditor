@@ -10,7 +10,7 @@ const CodeSuggestions = ({ monaco, language }) => {
           {
             label: "console.log",
             kind: monaco.languages.CompletionItemKind.Function,
-            insertText: "console.log('${1:}')",
+            insertText: "",
             insertTextRules:
               monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
             documentation: "Log to console",

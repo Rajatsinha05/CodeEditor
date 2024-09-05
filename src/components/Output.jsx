@@ -15,15 +15,16 @@ import {
   VStack,
   HStack,
   Icon,
-  Flex
+  Flex,
 } from "@chakra-ui/react";
 import { CheckCircleIcon, WarningIcon } from "@chakra-ui/icons";
 import { executeCode } from "../api";
 import Cookie from "js-cookie";
+import { useParams } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { solvedQuestions } from "../redux/apiSlice";
 
 const Output = ({ editorRef, language, inputData, expectedOutput }) => {
-  console.log('{ editorRef, language, inputData, expectedOutput }: ', { editorRef, language, inputData, expectedOutput });
-  
   const toast = useToast();
   const [output, setOutput] = useState(null);
   const [input, setInput] = useState("");
@@ -32,6 +33,11 @@ const Output = ({ editorRef, language, inputData, expectedOutput }) => {
   const [testResults, setTestResults] = useState([]);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [token, setToken] = useState("");
+  const { id: questionId } = useParams();
+
+  const { user } = useSelector((store) => store.data);
+  const studentId = user.id;
+  const dispatch = useDispatch();
 
   useEffect(() => {
     setToken(Cookie.get("token"));
@@ -55,7 +61,6 @@ const Output = ({ editorRef, language, inputData, expectedOutput }) => {
     try {
       setIsLoading(true);
       const result = await executeCode(language, sourceCode, input);
-      
       const resultOutput = result.output
         .split("\n")
         .filter((line) => line.trim() !== "");
@@ -81,16 +86,14 @@ const Output = ({ editorRef, language, inputData, expectedOutput }) => {
     try {
       setIsLoading(true);
       const result = await executeCode(language, sourceCode, inputData);
-      
       const resultOutput = result.output
         .split("\n")
         .filter((line) => line.trim() !== "");
 
       setOutput(resultOutput);
 
-      // Flatten and split the expectedOutput array
       const expectedOutputs = expectedOutput
-        .flatMap(e => e.split("\n"))
+        .split("\n")
         .filter((line) => line.trim() !== "");
 
       const results = resultOutput.map((output, index) => ({
@@ -98,7 +101,19 @@ const Output = ({ editorRef, language, inputData, expectedOutput }) => {
         expected: expectedOutputs[index] || "",
         passed: output === expectedOutputs[index],
       }));
+
       setTestResults(results);
+
+      const allPassed = results.every((test) => test.passed);
+      if (allPassed) {
+        dispatch(solvedQuestions({ questionId, studentId }));
+        toast({
+          title: "All tests passed!",
+          description: "The question has been marked as solved.",
+          status: "success",
+          duration: 6000,
+        });
+      }
 
       setIsError(!!result.stderr);
     } catch (error) {
@@ -112,10 +127,6 @@ const Output = ({ editorRef, language, inputData, expectedOutput }) => {
       setIsLoading(false);
       setIsDrawerOpen(true);
     }
-  };
-
-  const clearOutput = () => {
-    setOutput(null);
   };
 
   const toggleDrawer = () => {

@@ -41,6 +41,38 @@ export const fetchQuestions = createAsyncThunk(
   }
 );
 
+// student questions solved successfully
+
+// Define an async thunk to update solved questions for a student
+export const solvedQuestions = createAsyncThunk(
+  "api/solvedQuestions",
+  async ({ questionId, studentId }, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.put(
+        `/students/${studentId}/solve/${questionId}`
+      );
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response.data);
+    }
+  }
+);
+
+export const getsolvedQuestions = createAsyncThunk(
+  "api/getsolvedQuestions",
+  async ({ studentId }, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.get(
+        `/students/${studentId}/solved-questions`
+      );
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response.data);
+    }
+  }
+);
+
+
 // Define an async thunk for login
 export const login = createAsyncThunk(
   "api/login",
@@ -87,6 +119,17 @@ export const createStudent = createAsyncThunk(
     }
   }
 );
+export const createUser = createAsyncThunk(
+  "api/createUser",
+  async (user, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.post("/users/signup", user);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response.data);
+    }
+  }
+);
 
 // Decode function
 const stringToObject = (str) => {
@@ -111,7 +154,9 @@ const initialState = {
   questions: [],
   question: {},
   loading: false,
-  user: Cookies.get("userToken") ? stringToObject(Cookies.get("userToken")) : null,
+  user: Cookies.get("userToken")
+    ? stringToObject(Cookies.get("userToken"))
+    : null,
   students: [],
   isLogin: !!Cookies.get("token"),
   token: Cookies.get("token") || null,
@@ -210,6 +255,55 @@ const apiSlice = createSlice({
         state.loading = false;
       })
       .addCase(createStudent.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(createUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(createUser.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = action.payload;
+      })
+      .addCase(createUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(solvedQuestions.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(solvedQuestions.fulfilled, (state, action) => {
+        const updatedStudent = action.payload;
+        const studentIndex = state.students.findIndex(
+          (student) => student.id === updatedStudent.id
+        );
+        if (studentIndex !== -1) {
+          state.students[studentIndex] = updatedStudent;
+        }
+        state.loading = false;
+      })
+      .addCase(solvedQuestions.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      .addCase(getsolvedQuestions.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getsolvedQuestions.fulfilled, (state, action) => {
+        const solvedQuestionsData = action.payload;
+        const studentIndex = state.students.findIndex(
+          (student) => student.id === solvedQuestionsData.studentId
+        );
+        if (studentIndex !== -1) {
+          state.students[studentIndex].solvedQuestions = solvedQuestionsData.solvedQuestions;
+        }
+        state.loading = false;
+      })
+      .addCase(getsolvedQuestions.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });
