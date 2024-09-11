@@ -1,13 +1,14 @@
 import { configureStore } from "@reduxjs/toolkit";
 import editorReducer from "./editorSlice";
 import { apiReducer } from "./apiSlice";
-import {contestSlice} from "./contestSlice";
+import { contestReducer } from "./contestSlice";
 
+// Configure the store with the different reducers
 export const store = configureStore({
   reducer: {
-    editor: editorReducer,
-    data:apiReducer,
-    contest:contestSlice,
-
+    editor: editorReducer,    // Handles the state for the editor
+    data: apiReducer,         // Handles API-related state
+    contest: contestReducer,  // Handles contests state
   },
+ 
 });

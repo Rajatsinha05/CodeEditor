@@ -4,6 +4,7 @@ import { Navigate } from "react-router-dom";
 
 const PrivateRouteAdmin = ({ children }) => {
   let { user, isLogin } = useSelector((store) => store.data);
+  
 
   if (!isLogin) {
     return <Navigate to="/login" />;
