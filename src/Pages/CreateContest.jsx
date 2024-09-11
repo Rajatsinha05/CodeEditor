@@ -9,6 +9,7 @@ import {
   Button,
   useColorMode,
   useTheme,
+  useToast,
 } from "@chakra-ui/react";
 import { useDispatch, useSelector } from "react-redux";
 import { getStudents, fetchQuestions } from "../redux/apiSlice";
@@ -16,19 +17,31 @@ import { createContest } from "../redux/contestSlice";
 
 const CreateContest = ({ onCreate }) => {
   const { user, questions } = useSelector((store) => store.data);
-
+  const toast = useToast();
   const { colorMode } = useColorMode();
   const theme = useTheme();
   const dispatch = useDispatch();
 
   const isDarkMode = colorMode === "dark";
   const bgColor = isDarkMode ? theme.colors.gray[800] : theme.colors.gray[100];
-  const textColor = isDarkMode ? theme.colors.whiteAlpha[900] : theme.colors.blackAlpha[900];
-  const primaryColor = isDarkMode ? theme.colors.gray[700] : theme.colors.gray[200];
-  const borderColor = isDarkMode ? theme.colors.whiteAlpha[300] : theme.colors.blackAlpha[300];
-  const placeholderColor = isDarkMode ? theme.colors.gray[400] : theme.colors.gray[600];
-  const optionBgColor = isDarkMode ? theme.colors.gray[700] : theme.colors.gray[100];
-  const optionHoverBgColor = isDarkMode ? theme.colors.gray[600] : theme.colors.gray[200];
+  const textColor = isDarkMode
+    ? theme.colors.whiteAlpha[900]
+    : theme.colors.blackAlpha[900];
+  const primaryColor = isDarkMode
+    ? theme.colors.gray[700]
+    : theme.colors.gray[200];
+  const borderColor = isDarkMode
+    ? theme.colors.whiteAlpha[300]
+    : theme.colors.blackAlpha[300];
+  const placeholderColor = isDarkMode
+    ? theme.colors.gray[400]
+    : theme.colors.gray[600];
+  const optionBgColor = isDarkMode
+    ? theme.colors.gray[700]
+    : theme.colors.gray[100];
+  const optionHoverBgColor = isDarkMode
+    ? theme.colors.gray[600]
+    : theme.colors.gray[200];
 
   const [contestData, setContestData] = useState({
     title: "",
@@ -69,11 +82,11 @@ const CreateContest = ({ onCreate }) => {
     setFilteredStudents(
       students.filter(
         (student) =>
-          student.name.toLowerCase().includes(lowercasedQuery) ||
-          student.id.toString().includes(lowercasedQuery) ||
-          student.grid.toLowerCase().includes(lowercasedQuery) ||
-          student.branchCode.toLowerCase().includes(lowercasedQuery) ||
-          student.course.toLowerCase().includes(lowercasedQuery)
+          student?.name?.toLowerCase().includes(lowercasedQuery) ||
+          student?.id?.toString().includes(lowercasedQuery) ||
+          student?.grid?.toLowerCase().includes(lowercasedQuery) ||
+          student?.branchCode?.toLowerCase().includes(lowercasedQuery) ||
+          student?.course?.toLowerCase().includes(lowercasedQuery)
       )
     );
   }, [searchQuery, students]);
@@ -97,12 +110,17 @@ const CreateContest = ({ onCreate }) => {
     setContestData({ ...contestData, difficultyLevel: selectedOption.value });
   };
 
-const handleSubmit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!contestData.title || !contestData.selectedQuestions.length || !contestData.selectedStudents.length) {
+    if (
+      !contestData.title ||
+      !contestData.selectedQuestions.length ||
+      !contestData.selectedStudents.length
+    ) {
       toast({
         title: "Missing Information",
-        description: "Please ensure all fields are filled and selections are made.",
+        description:
+          "Please ensure all fields are filled and selections are made.",
         status: "warning",
         duration: 5000,
         isClosable: true,
@@ -142,7 +160,8 @@ const handleSubmit = async (e) => {
     } catch (error) {
       toast({
         title: "Error Creating Contest",
-        description: error.message || "Failed to create contest due to an error.",
+        description:
+          error.message || "Failed to create contest due to an error.",
         status: "error",
         duration: 5000,
         isClosable: true,
@@ -253,7 +272,9 @@ const handleSubmit = async (e) => {
           <Select
             value={{
               value: contestData.difficultyLevel,
-              label: contestData.difficultyLevel.charAt(0) + contestData.difficultyLevel.slice(1).toLowerCase(),
+              label:
+                contestData.difficultyLevel.charAt(0) +
+                contestData.difficultyLevel.slice(1).toLowerCase(),
             }}
             onChange={handleSelectDifficultyLevel}
             options={[

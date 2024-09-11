@@ -28,14 +28,13 @@ const AllRoutes = () => {
       {/* Private Routes only for admin or superAdmin */}
       {isLogin && (user?.role === "ADMIN" || user?.role === "SUPERADMIN") && (
         <>
-          <Route
-            path="/createContest"
+           <Route 
+            path="/createContest" 
             element={
               <PrivateRouteAdmin>
-                <CreateContest/>
+                <CreateContest />
               </PrivateRouteAdmin>
-            }
-          />
+            } />
           <Route
             path="/addQuestion"
             element={

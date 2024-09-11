@@ -7,8 +7,10 @@ export const createContest = createAsyncThunk(
   async (contestData, { rejectWithValue }) => {
     try {
       const response = await axiosInstance.post("/contests", contestData);
+      console.log('response: ', response);
       return response.data;
     } catch (error) {
+      console.log('error: ', error);
       // Catch and return error
       return rejectWithValue(error.response?.data || 'An error occurred');
     }
@@ -23,7 +25,7 @@ export const fetchContests = createAsyncThunk(
       const response = await axiosInstance.get("/contests");
       return response.data;
     } catch (error) {
-      console.log(error); // Useful for debugging
+       // Useful for debugging
       return rejectWithValue(error.response?.data || 'An error occurred');
     }
   }
@@ -33,14 +35,14 @@ export const fetchContests = createAsyncThunk(
 export const getContestById = createAsyncThunk(
   "contests/getContestById",
   async (contestId, { rejectWithValue }) => {
-    console.log('contestId: ', contestId);
+    
     try {
       const response = await axiosInstance.get(`/contests/${contestId}`);
-      console.log('response: ', response);
+      
       
       return response.data;
     } catch (error) {
-      console.log('error: ', error);
+      
       return rejectWithValue(error.response?.data || 'An error occurred');
     }
   }

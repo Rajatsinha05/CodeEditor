@@ -5,7 +5,7 @@ import { getContestById } from '../redux/contestSlice';
 import {
     Box, Text, VStack, Divider, List, ListItem, Badge, HStack, Tag, Avatar, Icon, Button, useColorMode, Flex
 } from '@chakra-ui/react';
-import { CalendarIcon, TimeIcon, SunIcon, MoonIcon } from '@chakra-ui/icons';
+import { CalendarIcon, TimeIcon } from '@chakra-ui/icons';
 
 const ContestDetails = () => {
     const { id } = useParams(); // Get contest ID from the URL
@@ -20,6 +20,18 @@ const ContestDetails = () => {
     // Get the specific contest from the store
     const { contest } = useSelector((store) => store.contest);
 
+    const formatDateTime12Hour = (dateString) => {
+        const options = { 
+            year: 'numeric', 
+            month: 'short', 
+            day: 'numeric', 
+            hour: 'numeric', 
+            minute: 'numeric', 
+            hour12: true 
+        };
+        return new Date(dateString).toLocaleString('en-US', options);
+    };
+
     return (
         <Box p={8} maxW="1000px" mx="auto" bg={colorMode === 'light' ? 'gray.100' : 'gray.800'} borderRadius="lg" shadow="lg">
             {/* Header with theme toggle button */}
@@ -27,9 +39,6 @@ const ContestDetails = () => {
                 <Text fontSize="3xl" fontWeight="bold" color={colorMode === 'light' ? 'teal.600' : 'teal.300'}>
                     {contest.title}
                 </Text>
-                {/* <Button onClick={toggleColorMode} colorScheme="teal" size="sm">
-                    {colorMode === 'light' ? <MoonIcon /> : <SunIcon />}
-                </Button> */}
             </Flex>
 
             {/* Contest Title */}
@@ -44,13 +53,13 @@ const ContestDetails = () => {
                 <HStack>
                     <Icon as={CalendarIcon} color={colorMode === 'light' ? 'gray.500' : 'gray.400'} />
                     <Text fontSize="md" color={colorMode === 'light' ? 'gray.600' : 'gray.400'}>
-                        Starts: {new Date(contest.startTime).toLocaleString()}
+                        Starts: {formatDateTime12Hour(contest.startTime)}
                     </Text>
                 </HStack>
                 <HStack>
                     <Icon as={TimeIcon} color={colorMode === 'light' ? 'gray.500' : 'gray.400'} />
                     <Text fontSize="md" color={colorMode === 'light' ? 'gray.600' : 'gray.400'}>
-                        Ends: {new Date(contest.endTime).toLocaleString()}
+                        Ends: {formatDateTime12Hour(contest.endTime)}
                     </Text>
                 </HStack>
             </HStack>
