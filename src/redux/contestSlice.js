@@ -1,7 +1,7 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axiosInstance from "../config/axiosConfig";
 
-// Define an async thunk to create a contest
+// Async thunk to create a contest
 export const createContest = createAsyncThunk(
   "contests/createContest",
   async (contestData, { rejectWithValue }) => {
@@ -9,13 +9,13 @@ export const createContest = createAsyncThunk(
       const response = await axiosInstance.post("/contests", contestData);
       return response.data;
     } catch (error) {
-      // Use error.response?.data to prevent accessing undefined properties
+      // Catch and return error
       return rejectWithValue(error.response?.data || 'An error occurred');
     }
   }
 );
 
-// Define an async thunk to fetch all contests
+// Async thunk to fetch all contests
 export const fetchContests = createAsyncThunk(
   "contests/fetchContests",
   async (_, { rejectWithValue }) => {
@@ -23,34 +23,35 @@ export const fetchContests = createAsyncThunk(
       const response = await axiosInstance.get("/contests");
       return response.data;
     } catch (error) {
-      console.log(error);
+      console.log(error); // Useful for debugging
       return rejectWithValue(error.response?.data || 'An error occurred');
     }
   }
 );
 
-// Define an async thunk to fetch a contest by ID
+// Async thunk to fetch a contest by ID
 export const getContestById = createAsyncThunk(
   "contests/getContestById",
   async (contestId, { rejectWithValue }) => {
+    console.log('contestId: ', contestId);
     try {
       const response = await axiosInstance.get(`/contests/${contestId}`);
+      console.log('response: ', response);
+      
       return response.data;
     } catch (error) {
+      console.log('error: ', error);
       return rejectWithValue(error.response?.data || 'An error occurred');
     }
   }
 );
 
-// Define an async thunk to update a contest
+// Async thunk to update a contest
 export const updateContest = createAsyncThunk(
   "contests/updateContest",
   async ({ contestId, updatedData }, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.put(
-        `/contests/${contestId}`,
-        updatedData
-      );
+      const response = await axiosInstance.put(`/contests/${contestId}`, updatedData);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || 'An error occurred');
@@ -58,13 +59,13 @@ export const updateContest = createAsyncThunk(
   }
 );
 
-// Define an async thunk to delete a contest
+// Async thunk to delete a contest
 export const deleteContest = createAsyncThunk(
   "contests/deleteContest",
   async (contestId, { rejectWithValue }) => {
     try {
       await axiosInstance.delete(`/contests/${contestId}`);
-      return contestId;
+      return contestId; // Return the ID so it can be removed in the reducer
     } catch (error) {
       return rejectWithValue(error.response?.data || 'An error occurred');
     }
@@ -73,26 +74,26 @@ export const deleteContest = createAsyncThunk(
 
 // Define the initial state for contests
 const initialContestState = {
-  contests: [],
-  contest: {},
-  loading: false,
-  error: null,
+  contests: [], // List of all contests
+  contest: {},  // Specific contest details
+  loading: false, // Loading state for any operation
+  error: null,    // Store any error messages
 };
 
-// Create a slice for contests
+// Create the slice for contests
 export const contestSlice = createSlice({
   name: "contests",
   initialState: initialContestState,
-  reducers: {},
+  reducers: {}, // No custom reducers needed as of now
   extraReducers: (builder) => {
     builder
-      // Create Contest Reducer
+      // Create Contest Reducers
       .addCase(createContest.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(createContest.fulfilled, (state, action) => {
-        state.contests.push(action.payload);
+        state.contests.push(action.payload); // Add new contest to list
         state.loading = false;
       })
       .addCase(createContest.rejected, (state, action) => {
@@ -100,13 +101,13 @@ export const contestSlice = createSlice({
         state.error = action.payload;
       })
 
-      // Fetch Contests Reducer
+      // Fetch Contests Reducers
       .addCase(fetchContests.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(fetchContests.fulfilled, (state, action) => {
-        state.contests = action.payload;
+        state.contests = action.payload; // Update contest list
         state.loading = false;
       })
       .addCase(fetchContests.rejected, (state, action) => {
@@ -114,13 +115,13 @@ export const contestSlice = createSlice({
         state.error = action.payload;
       })
 
-      // Fetch Contest by ID Reducer
+      // Fetch Contest by ID Reducers
       .addCase(getContestById.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(getContestById.fulfilled, (state, action) => {
-        state.contest = action.payload;
+        state.contest = action.payload; // Set specific contest details
         state.loading = false;
       })
       .addCase(getContestById.rejected, (state, action) => {
@@ -128,7 +129,7 @@ export const contestSlice = createSlice({
         state.error = action.payload;
       })
 
-      // Update Contest Reducer
+      // Update Contest Reducers
       .addCase(updateContest.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -138,7 +139,7 @@ export const contestSlice = createSlice({
           (contest) => contest.id === action.payload.id
         );
         if (index !== -1) {
-          state.contests[index] = action.payload;
+          state.contests[index] = action.payload; // Update contest in list
         }
         state.loading = false;
       })
@@ -147,14 +148,14 @@ export const contestSlice = createSlice({
         state.error = action.payload;
       })
 
-      // Delete Contest Reducer
+      // Delete Contest Reducers
       .addCase(deleteContest.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(deleteContest.fulfilled, (state, action) => {
         state.contests = state.contests.filter(
-          (contest) => contest.id !== action.payload
+          (contest) => contest.id !== action.payload // Remove contest by ID
         );
         state.loading = false;
       })
@@ -165,6 +166,5 @@ export const contestSlice = createSlice({
   },
 });
 
-// Export the actions and reducer for contests
-export const contestActions = contestSlice.actions;
+// Export the reducer to use in the store
 export const contestReducer = contestSlice.reducer;
