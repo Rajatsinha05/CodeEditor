@@ -21,20 +21,25 @@ const AllRoutes = () => {
       <Route path="/problems" element={<Problems />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
-      <Route path="/problem/:id" element={<SingleProblem />} />
+      <Route path="/problem/:id" element={<SingleProblem type="question" />} />
       <Route path="/profile" element={<Profile />} />
       <Route path="/contest/:id" element={<ContestDetails />} />
 
+      <Route
+        path="/contest/:id/attempt/:id"
+        element={<SingleProblem type="contest" />}
+      />
       {/* Private Routes only for admin or superAdmin */}
       {isLogin && (user?.role === "ADMIN" || user?.role === "SUPERADMIN") && (
         <>
-           <Route 
-            path="/createContest" 
+          <Route
+            path="/createContest"
             element={
               <PrivateRouteAdmin>
                 <CreateContest />
               </PrivateRouteAdmin>
-            } />
+            }
+          />
           <Route
             path="/addQuestion"
             element={

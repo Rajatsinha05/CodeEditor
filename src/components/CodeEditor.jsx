@@ -23,7 +23,7 @@ import CustomSelect from "./CustomSelect";
 import CameraDisplay from "./CameraDisplay";
 import CodeSuggestions from "./CodeSuggestions";
 
-const CodeEditor = ({ problemId }) => {
+const CodeEditor = ({ problemId, type }) => {
   const editorRef = useRef();
   const [value, setValue] = useState(CODE_SNIPPETS["java"]); // Default to Java
   const [language, setLanguage] = useState("java"); // Default language set to Java
@@ -181,18 +181,39 @@ const CodeEditor = ({ problemId }) => {
             {data.question?.description}
           </Text>
 
-          <Tag size="lg" colorScheme={data.question?.difficultLevel === "EASY" ? "green" : data.question?.difficultLevel === "MEDIUM" ? "yellow" : "red"}>
+          <Tag
+            size="lg"
+            colorScheme={
+              data.question?.difficultLevel === "EASY"
+                ? "green"
+                : data.question?.difficultLevel === "MEDIUM"
+                ? "yellow"
+                : "red"
+            }
+          >
             Difficulty: {data.question?.difficultLevel}
           </Tag>
 
           <VStack align="stretch" mt={4}>
             <Text fontWeight="bold">Input:</Text>
-            <Box bg={boxBg} p={2} borderRadius="md" border={`1px solid ${borderColor}`} width="100%">
+            <Box
+              bg={boxBg}
+              p={2}
+              borderRadius="md"
+              border={`1px solid ${borderColor}`}
+              width="100%"
+            >
               <Text>{data.question?.input}</Text>
             </Box>
 
             <Text fontWeight="bold">Expected Output:</Text>
-            <Box bg={boxBg} p={2} borderRadius="md" border={`1px solid ${borderColor}`} width="100%">
+            <Box
+              bg={boxBg}
+              p={2}
+              borderRadius="md"
+              border={`1px solid ${borderColor}`}
+              width="100%"
+            >
               <Text whiteSpace="pre-wrap">{data.question?.expectedOutput}</Text>
             </Box>
           </VStack>
@@ -229,7 +250,10 @@ const CodeEditor = ({ problemId }) => {
         <Box flex={1} width="auto">
           <VStack spacing={4} align="stretch">
             <HStack flexWrap="wrap">
-              <LanguageSelector language={language} onSelect={handleLanguageChange} />
+              <LanguageSelector
+                language={language}
+                onSelect={handleLanguageChange}
+              />
               <CustomSelect
                 value={theme}
                 onChange={(e) => setTheme(e.target.value)}
@@ -276,6 +300,7 @@ const CodeEditor = ({ problemId }) => {
                 inputData={data?.question?.input}
                 expectedOutput={data?.question?.expectedOutput}
                 contests={contests}
+                type={type}
               />
               <TestResultsDrawer
                 isLoading={isLoading}

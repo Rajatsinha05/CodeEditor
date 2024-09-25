@@ -13,10 +13,10 @@ import {
 } from "@chakra-ui/react";
 import { useDispatch, useSelector } from "react-redux";
 import { getStudents, fetchQuestions } from "../redux/apiSlice";
-import { createContest } from "../redux/contestSlice";
+import { createContest } from "../redux/contestapislice";
 
 const CreateContest = ({ onCreate }) => {
-  const { user, questions } = useSelector((store) => store.data);
+  const { user, questions, students } = useSelector((store) => store.data);
   const toast = useToast();
   const { colorMode } = useColorMode();
   const theme = useTheme();
@@ -50,14 +50,12 @@ const CreateContest = ({ onCreate }) => {
     endTime: "",
     totalMarks: "",
     difficultyLevel: "",
-    selectedQuestions: [],
-    selectedStudents: [],
+    selectedQuestions: [], // Now an array of objects { questionId, title, marks }
+    selectedStudents: [], // Array of student IDs
   });
 
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredStudents, setFilteredStudents] = useState([]);
-
-  const { students } = useSelector((store) => store.data);
 
   useEffect(() => {
     dispatch(getStudents());
@@ -96,9 +94,30 @@ const CreateContest = ({ onCreate }) => {
     setContestData({ ...contestData, [name]: value });
   };
 
+  // Update to handle marks for each selected question
   const handleSelectQuestions = (selectedOptions) => {
-    const selectedQuestions = selectedOptions.map((option) => option.value);
-    setContestData({ ...contestData, selectedQuestions });
+    const selectedQuestionIds = selectedOptions.map((option) => option.value);
+    // Keep existing questions that are still selected
+    const updatedQuestions = contestData.selectedQuestions.filter((q) =>
+      selectedQuestionIds.includes(q.questionId)
+    );
+    // Add newly selected questions
+    selectedOptions.forEach((option) => {
+      if (!updatedQuestions.find((q) => q.questionId === option.value)) {
+        updatedQuestions.push({
+          questionId: option.value,
+          title: option.label, // Update this to use 'title' instead of 'questionTitle'
+          marks: "", // Initialize marks to an empty string
+        });
+      }
+    });
+    setContestData({ ...contestData, selectedQuestions: updatedQuestions });
+  };
+
+  const handleMarksChange = (index, value) => {
+    const updatedQuestions = [...contestData.selectedQuestions];
+    updatedQuestions[index].marks = value;
+    setContestData({ ...contestData, selectedQuestions: updatedQuestions });
   };
 
   const handleSelectStudents = (selectedOptions) => {
@@ -115,12 +134,15 @@ const CreateContest = ({ onCreate }) => {
     if (
       !contestData.title ||
       !contestData.selectedQuestions.length ||
-      !contestData.selectedStudents.length
+      !contestData.selectedStudents.length ||
+      contestData.selectedQuestions.some(
+        (q) => q.marks === "" || isNaN(q.marks)
+      )
     ) {
       toast({
         title: "Missing Information",
         description:
-          "Please ensure all fields are filled and selections are made.",
+          "Please ensure all fields are filled and marks are assigned to all selected questions.",
         status: "warning",
         duration: 5000,
         isClosable: true,
@@ -130,11 +152,21 @@ const CreateContest = ({ onCreate }) => {
     }
 
     const contestPayload = {
-      ...contestData,
-      createdById: user?.id,
-      questionIds: contestData.selectedQuestions,
-      enrolledStudentIds: contestData.selectedStudents,
+      title: contestData.title,
+      description: contestData.description,
+      startTime: contestData.startTime,
+      endTime: contestData.endTime,
+      totalMarks: parseInt(contestData.totalMarks, 10),
+      difficultyLevel: contestData.difficultyLevel,
+      createdBy: user?.id,
+      contestQuestions: contestData.selectedQuestions.map((q) => ({
+        questionId: q.questionId,
+        title: q.title, // Ensure 'title' is used here
+        marks: parseInt(q.marks, 10), // Ensure marks are included
+      })),
+      enrolledStudents: contestData.selectedStudents,
     };
+    console.log("Contest", contestPayload);
 
     try {
       await dispatch(createContest(contestPayload)).unwrap();
@@ -197,6 +229,14 @@ const CreateContest = ({ onCreate }) => {
     placeholder: (provided) => ({
       ...provided,
       color: placeholderColor,
+    }),
+    multiValue: (provided) => ({
+      ...provided,
+      backgroundColor: primaryColor,
+    }),
+    multiValueLabel: (provided) => ({
+      ...provided,
+      color: textColor,
     }),
   };
 
@@ -270,12 +310,16 @@ const CreateContest = ({ onCreate }) => {
         <FormControl id="difficultyLevel" mt={4}>
           <FormLabel color={textColor}>Difficulty Level</FormLabel>
           <Select
-            value={{
-              value: contestData.difficultyLevel,
-              label:
-                contestData.difficultyLevel.charAt(0) +
-                contestData.difficultyLevel.slice(1).toLowerCase(),
-            }}
+            value={
+              contestData.difficultyLevel
+                ? {
+                    value: contestData.difficultyLevel,
+                    label:
+                      contestData.difficultyLevel.charAt(0) +
+                      contestData.difficultyLevel.slice(1).toLowerCase(),
+                  }
+                : null
+            }
             onChange={handleSelectDifficultyLevel}
             options={[
               { value: "EASY", label: "Easy" },
@@ -312,6 +356,29 @@ const CreateContest = ({ onCreate }) => {
             styles={customSelectStyles}
           />
         </FormControl>
+        {/* Marks input for each selected question */}
+        {contestData.selectedQuestions.length > 0 && (
+          <Box mt={4}>
+            <FormLabel color={textColor}>Assign Marks to Questions</FormLabel>
+            {contestData.selectedQuestions.map((question, index) => (
+              <FormControl key={question.questionId} mt={2}>
+                <FormLabel color={textColor}>
+                  Marks for "{question.title}" {/* Updated to use 'title' */}
+                </FormLabel>
+                <Input
+                  type="number"
+                  name="marks"
+                  value={question.marks}
+                  onChange={(e) => handleMarksChange(index, e.target.value)}
+                  bg={primaryColor}
+                  color={textColor}
+                  border={`1px solid ${borderColor}`}
+                  _placeholder={{ color: placeholderColor }}
+                />
+              </FormControl>
+            ))}
+          </Box>
+        )}
         <Button mt={4} colorScheme="blue" type="submit">
           Create Contest
         </Button>
