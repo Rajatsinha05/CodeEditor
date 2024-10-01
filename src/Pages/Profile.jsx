@@ -29,6 +29,14 @@ import { FaBars } from "react-icons/fa";
 import { useSelector, useDispatch } from "react-redux";
 import { createStudent, getsolvedQuestions } from "../redux/apiSlice";
 import StudentStats from "../components/StudentStats";
+import * as XLSX from "xlsx"; // Import to handle Excel files
+
+// To install the required npm packages:
+// npm install xlsx
+// npm install @chakra-ui/react @emotion/react @emotion/styled framer-motion
+// npm install react-icons
+// npm install react-redux
+// npm install @reduxjs/toolkit
 
 const Profile = () => {
   const toast = useToast();
@@ -50,6 +58,8 @@ const Profile = () => {
 
   const dispatch = useDispatch();
   const [solvedQuestions, setSolvedQuestions] = useState([]);
+  const [excelData, setExcelData] = useState(null); // Added state for Excel data
+  const [isCreateButtonVisible, setCreateButtonVisible] = useState(false); // To show "Create Students" button
 
   useEffect(() => {
     if (isStudent) {
@@ -125,6 +135,91 @@ const Profile = () => {
       ...prevData,
       [id]: value,
     }));
+  };
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const binaryStr = event.target.result;
+        const workbook = XLSX.read(binaryStr, { type: "binary" });
+        const sheetName = workbook.SheetNames[0];
+        const sheet = workbook.Sheets[sheetName];
+        const data = XLSX.utils.sheet_to_json(sheet);
+        setExcelData(data);
+        setCreateButtonVisible(true); // Show "Create Students" button after file upload
+        toast({
+          title: "File Uploaded",
+          description:
+            "Excel file has been successfully uploaded. Click 'Create Students' to proceed.",
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+        });
+      };
+      reader.readAsBinaryString(file);
+    }
+  };
+
+  const handleBulkCreateStudents = () => {
+    if (excelData && excelData.length > 0) {
+      excelData.forEach((student) => {
+        // Validation for each student
+        if (
+          student.name &&
+          student.email &&
+          student.grid &&
+          student.branchCode &&
+          student.password &&
+          student.course
+        ) {
+          dispatch(createStudent({ ...student, user: { id: user.id } }))
+            .then(() => {
+              toast({
+                title: `Student ${student.name} created`,
+                status: "success",
+                duration: 3000,
+                isClosable: true,
+              });
+            })
+            .catch((error) => {
+              toast({
+                title: "Error creating student",
+                description: `Failed to create student ${student.name}: ${error.message}`,
+                status: "error",
+                duration: 5000,
+                isClosable: true,
+              });
+            });
+        } else {
+          toast({
+            title: `Validation Error`,
+            description: `All fields are required for student ${student.name}`,
+            status: "error",
+            duration: 3000,
+            isClosable: true,
+          });
+        }
+      });
+    }
+  };
+
+  const handleDownloadTemplate = () => {
+    const worksheet = XLSX.utils.json_to_sheet([
+      {
+        name: "",
+        email: "",
+        grid: "",
+        branchCode: "",
+        password: "",
+        course:
+          "Available options: full stack Developer, frontend Developer, backend Developer, android Developer, C, C++",
+      },
+    ]);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Students");
+    XLSX.writeFile(workbook, "StudentTemplate.xlsx");
   };
 
   // Theme colors
@@ -354,6 +449,30 @@ const Profile = () => {
                   <Button type="submit" colorScheme="blue" w="full">
                     Create Student
                   </Button>
+                  {/* Added Excel file upload and download buttons */}
+                  <Input
+                    type="file"
+                    accept=".xlsx, .xls"
+                    onChange={handleFileUpload}
+                    mt={4}
+                  />
+                  <Button
+                    colorScheme="blue"
+                    onClick={handleDownloadTemplate}
+                    w="full"
+                  >
+                    Download Excel Template
+                  </Button>
+                  {isCreateButtonVisible && (
+                    <Button
+                      colorScheme="green"
+                      onClick={handleBulkCreateStudents}
+                      w="full"
+                      mt={4}
+                    >
+                      Create Students
+                    </Button>
+                  )}
                 </VStack>
               )}
             </TabPanel>

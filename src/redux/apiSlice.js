@@ -72,7 +72,6 @@ export const getsolvedQuestions = createAsyncThunk(
   }
 );
 
-
 // Define an async thunk for login
 export const login = createAsyncThunk(
   "api/login",
@@ -119,6 +118,29 @@ export const createStudent = createAsyncThunk(
     }
   }
 );
+//  using file upload
+export const createStudentsFromFile = createAsyncThunk(
+  "api/createStudentsFromFile",
+  async (formData, { rejectWithValue }) => {
+    console.log("file hitign");
+
+    try {
+      const response = await axiosInstance.post("/students/upload", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      console.log("Success", response.data);
+
+      return response.data;
+    } catch (error) {
+      console.log("error", error);
+
+      return rejectWithValue(error.response.data);
+    }
+  }
+);
+
 export const createUser = createAsyncThunk(
   "api/createUser",
   async (user, { rejectWithValue }) => {
@@ -299,11 +321,23 @@ const apiSlice = createSlice({
           (student) => student.id === solvedQuestionsData.studentId
         );
         if (studentIndex !== -1) {
-          state.students[studentIndex].solvedQuestions = solvedQuestionsData.solvedQuestions;
+          state.students[studentIndex].solvedQuestions =
+            solvedQuestionsData.solvedQuestions;
         }
         state.loading = false;
       })
       .addCase(getsolvedQuestions.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(createStudentsFromFile.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(createStudentsFromFile.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(createStudentsFromFile.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });
