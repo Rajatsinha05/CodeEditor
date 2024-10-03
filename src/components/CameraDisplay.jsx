@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Box, Text, useToast } from "@chakra-ui/react";
+import { Box, Text, useToast, HStack, Icon } from "@chakra-ui/react";
+import { ViewOffIcon } from "@chakra-ui/icons";
 import Draggable from "react-draggable";
 import * as faceapi from "face-api.js";
 
@@ -10,6 +11,7 @@ const CameraDisplay = ({ videoBoxSize }) => {
   const [isFaceDetected, setIsFaceDetected] = useState(true);
   const detectionInterval = useRef(null);
   const noFaceTimeout = useRef(null);
+  const cameraAlertShown = useRef(false); // Flag to track if camera alert has been shown
 
   const FACE_DETECTION_TIME_LIMIT = 10000; // 10 seconds
 
@@ -78,15 +80,21 @@ const CameraDisplay = ({ videoBoxSize }) => {
         await loadModels();
 
         setIsCameraActive(true);
+        cameraAlertShown.current = false; // Reset camera alert flag when camera is active
       } catch (err) {
         setIsCameraActive(false);
-        toast({
-          title: "Error",
-          description: "Failed to access the camera.",
-          status: "error",
-          duration: 5000,
-          isClosable: true,
-        });
+
+        // Show the camera alert only if it hasn't been shown yet
+        if (!cameraAlertShown.current) {
+          toast({
+            title: "Error",
+            description: "Failed to access the camera.",
+            status: "error",
+            duration: 5000,
+            isClosable: true,
+          });
+          cameraAlertShown.current = true; // Set flag to true to avoid duplicate alerts
+        }
       }
     };
 
@@ -105,9 +113,10 @@ const CameraDisplay = ({ videoBoxSize }) => {
   return (
     <>
       {!isCameraActive && (
-        <Text color="red.500" mb={4}>
-          Please Turn on your Camera.
-        </Text>
+        <HStack color="red.500" mb={4}>
+          <Icon as={ViewOffIcon} boxSize={6} />
+          <Text>Please Turn on your Camera.</Text>
+        </HStack>
       )}
       {isCameraActive && (
         <Draggable>

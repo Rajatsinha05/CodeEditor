@@ -10,10 +10,28 @@ import {
   Divider,
   useColorMode,
   useColorModeValue,
+  IconButton,
+  Tooltip,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalCloseButton,
+  ModalBody,
+  ModalFooter,
+  useDisclosure,
+  Tag,
+  Avatar,
+  Flex,
+  Icon,
+  Stack,
 } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration";
+import { CalendarIcon, TimeIcon, RepeatIcon, InfoOutlineIcon } from "@chakra-ui/icons";
+import { MdFilterList, MdPlayArrow, MdEventAvailable, MdRule, MdOutlineTimer } from "react-icons/md";
+import { FaFlagCheckered } from "react-icons/fa";
 
 dayjs.extend(duration);
 
@@ -24,14 +42,17 @@ const Home = () => {
   const [filter, setFilter] = useState("active");
   const [timers, setTimers] = useState({}); // Store countdown timers for upcoming contests
   const { isLogin, user } = useSelector((store) => store.data);
+  const { isOpen, onOpen, onClose } = useDisclosure(); // Modal controls
+  const [selectedContest, setSelectedContest] = useState(null); // Store selected contest details
+
   // Fetch contests when component mounts
   useEffect(() => {
-    if (user.role == "STUDENT") {
+    if (user.role === "STUDENT") {
       dispatch(fetchContestsByStudent(user.id));
     } else {
       dispatch(fetchContests());
     }
-  }, [dispatch]);
+  }, [dispatch, user]);
 
   // Get contests from Redux store
   const { contests } = useSelector((store) => store.contest);
@@ -58,6 +79,12 @@ const Home = () => {
   // Handle contest navigation
   const handleContestClick = (contestId) => {
     navigate(`/contest/${contestId}`);
+  };
+
+  // Handle opening the start contest modal
+  const handleStartContestClick = (contest) => {
+    setSelectedContest(contest);
+    onOpen();
   };
 
   // Filter contests based on selected filter
@@ -105,30 +132,50 @@ const Home = () => {
       borderRadius="lg"
       shadow="md"
     >
-      <Text fontSize="2xl" fontWeight="bold" mb={6} color={textColor}>
-        Contests
-      </Text>
+      <HStack justify="space-between" mb={6}>
+        <Text fontSize="2xl" fontWeight="bold" color={textColor}>
+          Contests
+        </Text>
+        <Tooltip label="Filter Contests" aria-label="Filter Contests">
+          <IconButton
+            icon={<MdFilterList />}
+            onClick={() => setFilter("all")}
+            aria-label="Filter"
+            colorScheme="teal"
+            variant="outline"
+          />
+        </Tooltip>
+      </HStack>
 
       {/* Filter Buttons */}
       <HStack mb={6} spacing={4}>
-        <Button
-          colorScheme={filter === "active" ? "teal" : "gray"}
-          onClick={() => setFilter("active")}
-        >
-          Active
-        </Button>
-        <Button
-          colorScheme={filter === "upcoming" ? "yellow" : "gray"}
-          onClick={() => setFilter("upcoming")}
-        >
-          Upcoming
-        </Button>
-        <Button
-          colorScheme={filter === "past" ? "red" : "gray"}
-          onClick={() => setFilter("past")}
-        >
-          Past
-        </Button>
+        <Tooltip label="Active Contests" aria-label="Active Contests">
+          <Button
+            leftIcon={<MdEventAvailable />}
+            colorScheme={filter === "active" ? "teal" : "gray"}
+            onClick={() => setFilter("active")}
+          >
+            Active
+          </Button>
+        </Tooltip>
+        <Tooltip label="Upcoming Contests" aria-label="Upcoming Contests">
+          <Button
+            leftIcon={<CalendarIcon />}
+            colorScheme={filter === "upcoming" ? "yellow" : "gray"}
+            onClick={() => setFilter("upcoming")}
+          >
+            Upcoming
+          </Button>
+        </Tooltip>
+        <Tooltip label="Past Contests" aria-label="Past Contests">
+          <Button
+            leftIcon={<RepeatIcon />}
+            colorScheme={filter === "past" ? "red" : "gray"}
+            onClick={() => setFilter("past")}
+          >
+            Past
+          </Button>
+        </Tooltip>
       </HStack>
 
       <Divider borderColor={dividerColor} mb={6} />
@@ -164,31 +211,41 @@ const Home = () => {
                   transition: "0.3s",
                   cursor: "pointer",
                 }}
-                onClick={() => handleContestClick(contest.id)}
               >
                 <Text fontSize="xl" fontWeight="bold" color={titleColor}>
                   {contest.title}
                 </Text>
-                <Text fontSize="md" color={textColor}>
+                <Text fontSize="md" color={textColor} mt={2}>
                   {contest.description}
                 </Text>
-                <Text fontSize="sm" color={textColor}>
-                  Starts:{" "}
-                  {dayjs(contest.startTime).format("YYYY-MM-DD hh:mm A")}
-                </Text>
-                <Text fontSize="sm" color={textColor}>
-                  Ends: {dayjs(contest.endTime).format("YYYY-MM-DD hh:mm A")}
-                </Text>
+                <Stack mt={3} spacing={4}>
+                  <HStack>
+                    <Icon as={CalendarIcon} color="teal.500" />
+                    <Text fontSize="sm" color={textColor}>
+                      Starts: {dayjs(contest.startTime).format("YYYY-MM-DD hh:mm A")}
+                    </Text>
+                  </HStack>
+                  <HStack>
+                    <Icon as={FaFlagCheckered} color="red.500" />
+                    <Text fontSize="sm" color={textColor}>
+                      Ends: {dayjs(contest.endTime).format("YYYY-MM-DD hh:mm A")}
+                    </Text>
+                  </HStack>
+                </Stack>
+                <Divider my={4} borderColor={dividerColor} />
 
                 {/* Conditionally show contest status or Start button */}
                 {contestActive && (
-                  <Button
-                    mt={4}
-                    colorScheme="teal"
-                    onClick={() => handleContestClick(contest.id)}
-                  >
-                    Start Contest
-                  </Button>
+                  <Tooltip label="Start Contest" aria-label="Start Contest">
+                    <Button
+                      mt={4}
+                      colorScheme="teal"
+                      onClick={() => handleStartContestClick(contest)}
+                      leftIcon={<MdPlayArrow />}
+                    >
+                      Start Contest
+                    </Button>
+                  </Tooltip>
                 )}
                 {contestUpcoming && (
                   <Box mt={4} color="yellow.500" fontWeight="bold">
@@ -209,6 +266,78 @@ const Home = () => {
           </Text>
         )}
       </VStack>
+
+      {/* Start Contest Modal */}
+      {selectedContest && (
+        <Modal isOpen={isOpen} onClose={onClose}>
+          <ModalOverlay />
+          <ModalContent>
+            <ModalHeader>
+              <Flex alignItems="center">
+                <Avatar size="sm" mr={3} />
+                Contest Details and Rules
+              </Flex>
+            </ModalHeader>
+            <ModalCloseButton />
+            <ModalBody>
+              <Text fontSize="2xl" fontWeight="bold" mb={2}>
+                {selectedContest.title}
+              </Text>
+              <Text fontSize="md" color={textColor}>
+                {selectedContest.description}
+              </Text>
+              <Divider my={4} />
+              <HStack mb={4}>
+                <Icon as={InfoOutlineIcon} w={5} h={5} color="blue.500" />
+                <Text fontSize="md" fontWeight="semibold">
+                  General Information:
+                </Text>
+              </HStack>
+              <VStack align="start" spacing={2}>
+                <Text fontSize="sm">
+                  <Icon as={CalendarIcon} mr={2} color="teal.500" /> Start Time:{" "}
+                  {dayjs(selectedContest.startTime).format("YYYY-MM-DD hh:mm A")}
+                </Text>
+                <Text fontSize="sm">
+                  <Icon as={FaFlagCheckered} mr={2} color="red.500" /> End Time:{" "}
+                  {dayjs(selectedContest.endTime).format("YYYY-MM-DD hh:mm A")}
+                </Text>
+                <Text fontSize="sm">
+                  <Icon as={MdEventAvailable} mr={2} color="cyan.500" /> Participation:{" "}
+                  Open to all registered students
+                </Text>
+              </VStack>
+              <Divider my={4} />
+              <HStack mb={2}>
+                <Icon as={MdRule} w={5} h={5} color="orange.500" />
+                <Text fontSize="md" fontWeight="semibold">
+                  Contest Rules:
+                </Text>
+              </HStack>
+              <VStack align="start" spacing={2} pl={6}>
+                <Text fontSize="sm">1. Be respectful to other participants.</Text>
+                <Text fontSize="sm">2. Do not engage in any form of cheating.</Text>
+                <Text fontSize="sm">
+                  3. Complete the contest within the given time frame.
+                </Text>
+                <Text fontSize="sm">4. Do not close the browser during the contest.</Text>
+              </VStack>
+              <Divider my={4} />
+              <Text fontSize="md" fontWeight="bold" color="teal.500" mt={4}>
+                Good Luck!
+              </Text>
+            </ModalBody>
+            <ModalFooter>
+              <Button colorScheme="teal" onClick={() => handleContestClick(selectedContest.id)}>
+                Proceed
+              </Button>
+              <Button variant="ghost" onClick={onClose} ml={3}>
+                Cancel
+              </Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
+      )}
     </Box>
   );
 };

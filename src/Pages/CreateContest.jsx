@@ -60,7 +60,7 @@ const CreateContest = ({ onCreate }) => {
   const [filteredStudents, setFilteredStudents] = useState([]);
 
   const { students } = useSelector((store) => store.data);
-  console.log('students: ', students);
+  console.log("students: ", students);
 
   useEffect(() => {
     dispatch(getStudents());
@@ -99,6 +99,10 @@ const CreateContest = ({ onCreate }) => {
     setContestData({ ...contestData, [name]: value });
   };
 
+  const handleAttemptQuestion = (questionId) => {
+    navigate(`/contest/${id}/attempt/${questionId}`);
+  };
+
   const handleSelectQuestions = (selectedOptions) => {
     const contestQuestions = selectedOptions.map((option) => ({
       questionId: option.value,
@@ -128,6 +132,26 @@ const CreateContest = ({ onCreate }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Calculate the sum of marks for all questions
+    const sumOfQuestionMarks = contestData.contestQuestions.reduce(
+      (acc, question) => acc + question.marks,
+      0
+    );
+
+    // Validate totalMarks vs sumOfQuestionMarks
+    if (sumOfQuestionMarks !== parseInt(contestData.totalMarks, 10)) {
+      toast({
+        title: "Total Marks Mismatch",
+        description: `The sum of question marks (${sumOfQuestionMarks}) does not match the total marks (${contestData.totalMarks}). Please correct this before submitting.`,
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+        position: "top-center",
+      });
+      return;
+    }
+
     if (
       !contestData.title ||
       !contestData.contestQuestions.length ||
