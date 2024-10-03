@@ -2,7 +2,7 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import Cookies from "js-cookie";
 import axiosInstance from "../config/axiosConfig";
 
-// Define an async thunk to post a question
+// Async thunk to post a question
 export const postQuestion = createAsyncThunk(
   "api/postQuestion",
   async (data, { rejectWithValue }) => {
@@ -10,12 +10,12 @@ export const postQuestion = createAsyncThunk(
       const response = await axiosInstance.post("/questions", data);
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response.data);
+      return rejectWithValue(error.response?.data || "An error occurred while posting the question.");
     }
   }
 );
 
-// Define an async thunk to get a question by id
+// Async thunk to get a question by ID
 export const getQuestionById = createAsyncThunk(
   "api/getQuestionById",
   async (questionId, { rejectWithValue }) => {
@@ -23,12 +23,12 @@ export const getQuestionById = createAsyncThunk(
       const response = await axiosInstance.get(`/questions/${questionId}`);
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response.data);
+      return rejectWithValue(error.response?.data || "An error occurred while fetching the question.");
     }
   }
 );
 
-// Define an async thunk to fetch questions
+// Async thunk to fetch questions
 export const fetchQuestions = createAsyncThunk(
   "api/fetchQuestions",
   async (_, { rejectWithValue }) => {
@@ -36,14 +36,12 @@ export const fetchQuestions = createAsyncThunk(
       const response = await axiosInstance.get("/questions");
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response.data);
+      return rejectWithValue(error.response?.data || "An error occurred while fetching questions.");
     }
   }
 );
 
-// student questions solved successfully
-
-// Define an async thunk to update solved questions for a student
+// Async thunk to update solved questions for a student
 export const solvedQuestions = createAsyncThunk(
   "api/solvedQuestions",
   async ({ questionId, studentId }, { rejectWithValue }) => {
@@ -53,11 +51,12 @@ export const solvedQuestions = createAsyncThunk(
       );
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response.data);
+      return rejectWithValue(error.response?.data || "An error occurred while updating solved questions.");
     }
   }
 );
 
+// Async thunk to get solved questions for a student
 export const getsolvedQuestions = createAsyncThunk(
   "api/getsolvedQuestions",
   async ({ studentId }, { rejectWithValue }) => {
@@ -67,12 +66,12 @@ export const getsolvedQuestions = createAsyncThunk(
       );
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response.data);
+      return rejectWithValue(error.response?.data || "An error occurred while fetching solved questions.");
     }
   }
 );
 
-// Define an async thunk for login
+// Async thunk for login
 export const login = createAsyncThunk(
   "api/login",
   async (user, { rejectWithValue }) => {
@@ -84,17 +83,17 @@ export const login = createAsyncThunk(
       Cookies.set("token", token, { expires: 7 });
       Cookies.set("userToken", userDetailsToken, { expires: 7 });
 
-      // Decode the token to get user data
+      // Parse the user details from the token using custom logic
       const decodedUser = stringToObject(userDetailsToken);
 
       return { ...response.data, user: decodedUser };
     } catch (error) {
-      return rejectWithValue(error.response.data);
+      return rejectWithValue(error.response?.data || "Login failed. Please check your credentials.");
     }
   }
 );
 
-// Define async thunks for students
+// Async thunk for getting students
 export const getStudents = createAsyncThunk(
   "api/getStudents",
   async (_, { rejectWithValue }) => {
@@ -102,11 +101,12 @@ export const getStudents = createAsyncThunk(
       const response = await axiosInstance.get("/students");
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response.data);
+      return rejectWithValue(error.response?.data || "An error occurred while fetching students.");
     }
   }
 );
 
+// Async thunk to create a new student
 export const createStudent = createAsyncThunk(
   "api/createStudent",
   async (student, { rejectWithValue }) => {
@@ -114,33 +114,29 @@ export const createStudent = createAsyncThunk(
       const response = await axiosInstance.post("/students", student);
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response.data);
+      return rejectWithValue(error.response?.data || "An error occurred while creating a student.");
     }
   }
 );
-//  using file upload
+
+// Async thunk to create students from a file (bulk upload)
 export const createStudentsFromFile = createAsyncThunk(
   "api/createStudentsFromFile",
   async (formData, { rejectWithValue }) => {
-    console.log("file hitign");
-
     try {
       const response = await axiosInstance.post("/students/upload", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
-      console.log("Success", response.data);
-
       return response.data;
     } catch (error) {
-      console.log("error", error);
-
-      return rejectWithValue(error.response.data);
+      return rejectWithValue(error.response?.data || "An error occurred while uploading the file.");
     }
   }
 );
 
+// Async thunk to create a new user
 export const createUser = createAsyncThunk(
   "api/createUser",
   async (user, { rejectWithValue }) => {
@@ -148,23 +144,25 @@ export const createUser = createAsyncThunk(
       const response = await axiosInstance.post("/users/signup", user);
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response.data);
+      return rejectWithValue(error.response?.data || "An error occurred while creating the user.");
     }
   }
 );
 
-// Decode function
+// Custom function to parse non-standard format string into an object
 const stringToObject = (str) => {
   if (typeof str !== "string" || str.trim() === "") {
     return {};
   }
 
-  const regex = /(\w+)=([^(,|\)]+)[,|\)]/g;
-  const matches = [...str.matchAll(regex)];
+  // Assuming input is in format like: "User(id=1, name=John)"
   const obj = {};
+  const keyValuePairs = str
+    .replace(/[()]/g, "") // Remove parentheses
+    .split(/, /); // Split by comma and space
 
-  matches.forEach((match) => {
-    const [_, key, value] = match;
+  keyValuePairs.forEach((pair) => {
+    const [key, value] = pair.split("=");
     obj[key.trim()] = value.trim();
   });
 
@@ -190,7 +188,13 @@ const apiSlice = createSlice({
   name: "api",
   initialState,
   reducers: {
-    LoginManager: (state, action) => {},
+    logout: (state) => {
+      Cookies.remove("token");
+      Cookies.remove("userToken");
+      state.user = null;
+      state.isLogin = false;
+      state.token = null;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -246,7 +250,6 @@ const apiSlice = createSlice({
         state.token = action.payload.token;
         state.isLogin = true;
         state.loading = false;
-        window.location.reload();
       })
       .addCase(login.rejected, (state, action) => {
         state.loading = false;
@@ -280,6 +283,8 @@ const apiSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
+
+      // Reducer for creating a user
       .addCase(createUser.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -292,6 +297,8 @@ const apiSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
+
+      // Reducer for solving questions
       .addCase(solvedQuestions.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -311,6 +318,7 @@ const apiSlice = createSlice({
         state.error = action.payload;
       })
 
+      // Reducer for getting solved questions
       .addCase(getsolvedQuestions.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -321,8 +329,7 @@ const apiSlice = createSlice({
           (student) => student.id === solvedQuestionsData.studentId
         );
         if (studentIndex !== -1) {
-          state.students[studentIndex].solvedQuestions =
-            solvedQuestionsData.solvedQuestions;
+          state.students[studentIndex].solvedQuestions = solvedQuestionsData.solvedQuestions || [];
         }
         state.loading = false;
       })
@@ -330,6 +337,8 @@ const apiSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
+
+      // Reducer for creating students from file
       .addCase(createStudentsFromFile.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -345,5 +354,5 @@ const apiSlice = createSlice({
 });
 
 // Export the actions and reducer
-export const apiActions = apiSlice.actions;
+export const { logout } = apiSlice.actions;
 export const apiReducer = apiSlice.reducer;

@@ -78,6 +78,21 @@ export const deleteSolvedQuestionById = createAsyncThunk(
   }
 );
 
+// Async thunk to fetch a specific solved question by ID
+export const fetchSolvedQuestionById = createAsyncThunk(
+  "solvedQuestions/fetchById",
+  async (solvedQuestionId, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.get(`/solved-questions/${solvedQuestionId}`);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || "An error occurred while fetching the solved question by ID."
+      );
+    }
+  }
+);
+
 // Define the initial state for solved questions
 const initialSolvedQuestionsState = {
   solvedQuestions: [], // List of solved questions
@@ -153,6 +168,20 @@ export const solvedQuestionSlice = createSlice({
         state.loading = false;
       })
       .addCase(fetchSolvedQuestionsByStudentIdAndContestId.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      // Fetch Specific Solved Question by ID Reducers
+      .addCase(fetchSolvedQuestionById.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchSolvedQuestionById.fulfilled, (state, action) => {
+        state.solvedQuestion = action.payload;
+        state.loading = false;
+      })
+      .addCase(fetchSolvedQuestionById.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
