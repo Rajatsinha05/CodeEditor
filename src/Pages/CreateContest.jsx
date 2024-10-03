@@ -7,6 +7,8 @@ import {
   Input,
   Textarea,
   Button,
+  NumberInput,
+  NumberInputField,
   useColorMode,
   useTheme,
   useToast,
@@ -50,14 +52,15 @@ const CreateContest = ({ onCreate }) => {
     endTime: "",
     totalMarks: "",
     difficultyLevel: "",
-    selectedQuestions: [],
-    selectedStudents: [],
+    contestQuestions: [],
+    enrolledStudents: [],
   });
 
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredStudents, setFilteredStudents] = useState([]);
 
   const { students } = useSelector((store) => store.data);
+  console.log("students: ", students);
 
   useEffect(() => {
     dispatch(getStudents());
@@ -66,7 +69,7 @@ const CreateContest = ({ onCreate }) => {
 
   useEffect(() => {
     if (students) {
-      const formattedStudents = students.map((student) => ({
+      const formattedStudents = students?.map((student) => ({
         id: student.id,
         name: student.name,
         grid: student.grid,
@@ -96,14 +99,31 @@ const CreateContest = ({ onCreate }) => {
     setContestData({ ...contestData, [name]: value });
   };
 
+  const handleAttemptQuestion = (questionId) => {
+    navigate(`/contest/${id}/attempt/${questionId}`);
+  };
+
   const handleSelectQuestions = (selectedOptions) => {
-    const selectedQuestions = selectedOptions.map((option) => option.value);
-    setContestData({ ...contestData, selectedQuestions });
+    const contestQuestions = selectedOptions.map((option) => ({
+      questionId: option.value,
+      marks: 0, // Initialize marks with 0
+    }));
+    setContestData({ ...contestData, contestQuestions });
+  };
+
+  const handleMarksChange = (index, marks) => {
+    const updatedQuestions = [...contestData.contestQuestions];
+    updatedQuestions[index].marks = parseInt(marks, 10) || 0;
+    setContestData({ ...contestData, contestQuestions: updatedQuestions });
   };
 
   const handleSelectStudents = (selectedOptions) => {
-    const selectedStudents = selectedOptions.map((option) => option.value);
-    setContestData({ ...contestData, selectedStudents });
+    const enrolledStudents = selectedOptions.map((option) => ({
+      id: option.value,
+      name: option.label.split(" - ")[0], // Extracting name from label
+      email: "", // Placeholder, assuming you may fill it based on other info or API
+    }));
+    setContestData({ ...contestData, enrolledStudents });
   };
 
   const handleSelectDifficultyLevel = (selectedOption) => {
@@ -112,10 +132,30 @@ const CreateContest = ({ onCreate }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Calculate the sum of marks for all questions
+    const sumOfQuestionMarks = contestData.contestQuestions.reduce(
+      (acc, question) => acc + question.marks,
+      0
+    );
+
+    // Validate totalMarks vs sumOfQuestionMarks
+    if (sumOfQuestionMarks !== parseInt(contestData.totalMarks, 10)) {
+      toast({
+        title: "Total Marks Mismatch",
+        description: `The sum of question marks (${sumOfQuestionMarks}) does not match the total marks (${contestData.totalMarks}). Please correct this before submitting.`,
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+        position: "top-center",
+      });
+      return;
+    }
+
     if (
       !contestData.title ||
-      !contestData.selectedQuestions.length ||
-      !contestData.selectedStudents.length
+      !contestData.contestQuestions.length ||
+      !contestData.enrolledStudents.length
     ) {
       toast({
         title: "Missing Information",
@@ -131,9 +171,7 @@ const CreateContest = ({ onCreate }) => {
 
     const contestPayload = {
       ...contestData,
-      createdById: user?.id,
-      questionIds: contestData.selectedQuestions,
-      enrolledStudentIds: contestData.selectedStudents,
+      createdBy: user?.id,
     };
 
     try {
@@ -145,8 +183,8 @@ const CreateContest = ({ onCreate }) => {
         endTime: "",
         totalMarks: "",
         difficultyLevel: "",
-        selectedQuestions: [],
-        selectedStudents: [],
+        contestQuestions: [],
+        enrolledStudents: [],
       });
       toast({
         title: "Contest Created",
@@ -311,6 +349,25 @@ const CreateContest = ({ onCreate }) => {
             closeMenuOnSelect={false}
             styles={customSelectStyles}
           />
+          {contestData.contestQuestions.map((question, index) => (
+            <Box key={index} mt={2}>
+              <FormLabel color={textColor}>
+                Marks for Question "{questions.find((q) => q.id === question.questionId)?.title}"
+              </FormLabel>
+              <NumberInput
+                min={0}
+                value={question.marks}
+                onChange={(valueString) => handleMarksChange(index, valueString)}
+              >
+                <NumberInputField
+                  bg={primaryColor}
+                  color={textColor}
+                  border={`1px solid ${borderColor}`}
+                  _placeholder={{ color: placeholderColor }}
+                />
+              </NumberInput>
+            </Box>
+          ))}
         </FormControl>
         <Button mt={4} colorScheme="blue" type="submit">
           Create Contest

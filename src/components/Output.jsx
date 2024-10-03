@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   Box,
   Button,
@@ -22,10 +22,25 @@ import { executeCode } from "../api";
 import Cookie from "js-cookie";
 import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { solvedQuestions } from "../redux/apiSlice";
+import { saveOrUpdateSolvedQuestion } from "../redux/QuestionSolvedSplice";
 
-const Output = ({ editorRef, language, inputData, expectedOutput }) => {
+const Output = ({
+  editorRef,
+  language,
+  inputData = "",
+  expectedOutput = "",
+  type,
+}) => {
   const toast = useToast();
+  const dispatch = useDispatch();
+
+  // Selectors at the top level
+  const { questionId, contestId } = useParams();
+  const { user } = useSelector((store) => store.data);
+  const { contest } = useSelector((store) => store.contest);
+  const studentId = user?.id;
+
+  // State management
   const [output, setOutput] = useState(null);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -33,62 +48,130 @@ const Output = ({ editorRef, language, inputData, expectedOutput }) => {
   const [testResults, setTestResults] = useState([]);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [token, setToken] = useState("");
-  const { id: questionId } = useParams();
-
-  const { user } = useSelector((store) => store.data);
-  const studentId = user.id;
-  const dispatch = useDispatch();
 
   useEffect(() => {
-    setToken(Cookie.get("token"));
+    const fetchedToken = Cookie.get("token");
+    setToken(fetchedToken || "");
   }, []);
 
-  const handleInputChange = (e) => {
+  const handleInputChange = useCallback((e) => {
     setInput(e.target.value);
-  };
+  }, []);
 
-  const handleKeyDown = (e) => {
+  const handleKeyDown = useCallback((e) => {
     if (e.key === "Enter") {
       e.preventDefault();
-      setInput((prevInput) => prevInput + "\n");
+      setInput((prevInput) => `${prevInput}\n`);
     }
-  };
+  }, []);
 
-  const runCode = async () => {
+  const runCode = useCallback(async () => {
+    if (!editorRef?.current) {
+      toast({
+        title: "Editor Not Ready",
+        description: "Please wait until the editor is fully loaded.",
+        status: "warning",
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
     const sourceCode = editorRef.current.getValue();
-    if (!sourceCode) return;
+    if (!sourceCode.trim()) {
+      toast({
+        title: "No Code Provided",
+        description: "Please enter some code to run.",
+        status: "warning",
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    console.log(
+      "let marks = contest?.contestQuestions",
+      contest?.contestQuestions
+    );
+
+    setIsLoading(true);
+    setIsError(false);
+    setOutput(null);
 
     try {
-      setIsLoading(true);
-      const result = await executeCode(language, sourceCode, input);
-      const resultOutput = result.output
-        .split("\n")
-        .filter((line) => line.trim() !== "");
+      const result = await executeCode(language, sourceCode, input.trim());
+      const resultOutput =
+        result.output?.split("\n").filter((line) => line.trim() !== "") || [];
 
       setOutput(resultOutput);
       setIsError(!!result.stderr);
+
+      if (result.stderr) {
+        toast({
+          title: "Runtime Error",
+          description: result.stderr,
+          status: "error",
+          duration: 6000,
+          isClosable: true,
+        });
+      }
     } catch (error) {
       toast({
-        title: "An error occurred.",
+        title: "Execution Failed",
         description: error.message || "Unable to run code",
         status: "error",
         duration: 6000,
+        isClosable: true,
       });
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [editorRef, language, input, toast]);
 
-  const submitCode = async () => {
+  const submitCode = useCallback(async () => {
+    if (!editorRef?.current) {
+      toast({
+        title: "Editor Not Ready",
+        description: "Please wait until the editor is fully loaded.",
+        status: "warning",
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
     const sourceCode = editorRef.current.getValue();
-    if (!sourceCode) return;
+    if (!sourceCode.trim()) {
+      toast({
+        title: "No Code Provided",
+        description: "Please enter some code to submit.",
+        status: "warning",
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    if (!questionId || !studentId) {
+      toast({
+        title: "Submission Failed",
+        description: "Invalid question or user information.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    setIsError(false);
+    setTestResults([]);
+    setOutput(null);
 
     try {
-      setIsLoading(true);
-      const result = await executeCode(language, sourceCode, inputData);
-      const resultOutput = result.output
-        .split("\n")
-        .filter((line) => line.trim() !== "");
+      const result = await executeCode(language, sourceCode, inputData.trim());
+      const resultOutput =
+        result.output?.split("\n").filter((line) => line.trim() !== "") || [];
 
       setOutput(resultOutput);
 
@@ -96,42 +179,94 @@ const Output = ({ editorRef, language, inputData, expectedOutput }) => {
         .split("\n")
         .filter((line) => line.trim() !== "");
 
-      const results = resultOutput.map((output, index) => ({
-        output,
-        expected: expectedOutputs[index] || "",
-        passed: output === expectedOutputs[index],
+      // Ensure both arrays have the same length
+      const totalTests = Math.max(resultOutput.length, expectedOutputs.length);
+
+      // Determine if each test case passes
+      const results = Array.from({ length: totalTests }, (_, index) => ({
+        output: resultOutput[index] || "null",
+        expected: expectedOutputs[index] || "null",
+        passed: resultOutput[index] === expectedOutputs[index],
       }));
 
       setTestResults(results);
 
-      const allPassed = results.every((test) => test.passed);
+      // Calculate the number of passed test cases
+      const passedTests = results.filter((test) => test.passed).length;
+      const percentagePassed = (passedTests / totalTests) * 100;
+      console.log("percentagePassed: ", percentagePassed);
+
+      // Get marks from contest question and calculate obtained marks
+      let marks = contest?.contestQuestions.filter(
+        (que) => que.questionId == questionId
+      );
+      console.log("marks: ", marks, questionId);
+
+      const totalMarks = marks[0]?.marks || 0;
+      console.log("totalMarks: ", totalMarks);
+      const obtainedMarks = Math.round((percentagePassed / 100) * totalMarks);
+      console.log("obtainedMarks: ", obtainedMarks);
+
+      // Save the results to the backend (create or update)
+      await dispatch(
+        saveOrUpdateSolvedQuestion({
+          questionId,
+          contestId,
+          studentId,
+          obtainedMarks,
+          contestQuestionId: marks?.id || 1,
+        })
+      );
+
+      // Check if all tests passed
+      const allPassed = passedTests === totalTests;
       if (allPassed) {
-        dispatch(solvedQuestions({ questionId, studentId }));
         toast({
-          title: "All tests passed!",
-          description: "The question has been marked as solved.",
+          title: "All Tests Passed!",
+          description: `You have obtained ${obtainedMarks} out of ${totalMarks} marks.`,
           status: "success",
           duration: 6000,
+          isClosable: true,
+        });
+      } else {
+        toast({
+          title: "Some Tests Failed",
+          description: `You passed ${passedTests} out of ${totalTests} test cases. You have obtained ${obtainedMarks} out of ${totalMarks} marks.`,
+          status: "warning",
+          duration: 6000,
+          isClosable: true,
         });
       }
 
       setIsError(!!result.stderr);
     } catch (error) {
       toast({
-        title: "An error occurred.",
-        description: error.message || "Unable to run code",
+        title: "Submission Failed",
+        description: error.message || "Unable to submit code",
         status: "error",
         duration: 6000,
+        isClosable: true,
       });
     } finally {
       setIsLoading(false);
       setIsDrawerOpen(true);
     }
-  };
+  }, [
+    editorRef,
+    language,
+    inputData,
+    expectedOutput,
+    questionId,
+    contest,
+    contestId,
+    studentId,
+    dispatch,
+    toast,
+  ]);
 
-  const toggleDrawer = () => {
-    setIsDrawerOpen(!isDrawerOpen);
-  };
+  const toggleDrawer = useCallback(() => {
+    setIsDrawerOpen((prev) => !prev);
+  }, []);
 
   return (
     <Box w="100%" h="fit-content" p={4}>
@@ -147,9 +282,11 @@ const Output = ({ editorRef, language, inputData, expectedOutput }) => {
         borderRadius="md"
         borderColor={isError ? "red.500" : "gray.700"}
       >
-        {output
-          ? output.map((line, i) => <Text key={i}>{line}</Text>)
-          : 'Click "Run Code" to see the output here'}
+        {output && output.length > 0 ? (
+          output.map((line, i) => <Text key={i}>{line}</Text>)
+        ) : (
+          <Text>Click "Run Code" to see the output here</Text>
+        )}
       </Box>
       <Input
         placeholder="Enter input here..."
@@ -171,7 +308,12 @@ const Output = ({ editorRef, language, inputData, expectedOutput }) => {
         >
           Run Code
         </Button>
-        <Button variant="outline" colorScheme="teal" onClick={submitCode}>
+        <Button
+          variant="outline"
+          colorScheme="teal"
+          isLoading={isLoading}
+          onClick={submitCode}
+        >
           Submit
         </Button>
       </HStack>
@@ -193,7 +335,7 @@ const Output = ({ editorRef, language, inputData, expectedOutput }) => {
               <Flex justify="center" align="center" h="100%">
                 <Spinner size="xl" color="teal.500" />
               </Flex>
-            ) : (
+            ) : testResults.length > 0 ? (
               <VStack spacing={4} align="stretch">
                 {testResults.map((test, index) => (
                   <Box
@@ -215,12 +357,17 @@ const Output = ({ editorRef, language, inputData, expectedOutput }) => {
                         {test.passed ? "Passed" : "Failed"}
                       </Text>
                       <Text fontSize="sm" color="gray.600">
-                        Expected: {test.expected}, Got: {test.output}
+                        Expected: {test.expected}
+                      </Text>
+                      <Text fontSize="sm" color="gray.600">
+                        Got: {test.output}
                       </Text>
                     </Box>
                   </Box>
                 ))}
               </VStack>
+            ) : (
+              <Text>No test results available.</Text>
             )}
           </DrawerBody>
         </DrawerContent>

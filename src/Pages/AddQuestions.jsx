@@ -106,57 +106,6 @@ const AddQuestions = () => {
 
   const { user } = useSelector((store) => store.data);
 
-  // const handleSubmit = (e) => {
-  //   e.preventDefault();
-
-  //   // Form validation
-  //   const validationErrors = {};
-  //   let isValid = true;
-
-  //   Object.keys(formData).forEach((key) => {
-  //     if (!formData[key]) {
-  //       validationErrors[key] = true;
-  //       isValid = false;
-  //     }
-  //   });
-
-  //   if (!isValid) {
-  //     setErrors(validationErrors);
-  //     return;
-  //   }
-
-  //   dispatch(
-  //     postQuestion({
-  //       ...formData,
-  //       examples,
-  //       user: {
-  //         id: Number(user.id),
-  //       },
-  //     })
-  //   );
-
-  //   setFormData({
-  //     title: "",
-  //     description: "",
-  //     difficultLevel: "",
-  //     constraintValue: "",
-  //     input: "",
-  //     expectedOutput: "",
-  //     tags: "",
-  //   });
-  //   setExamples([]);
-
-  //   // Show success toast
-  //   toast({
-  //     title: "Question Added",
-  //     description: "Your question has been successfully added!",
-  //     status: "success",
-  //     duration: 3000,
-  //     isClosable: true,
-  //   });
-  // };
-
-
   const handleSubmit = async (e) => {
     e.preventDefault();
   
