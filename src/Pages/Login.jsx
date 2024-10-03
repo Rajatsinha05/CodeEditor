@@ -13,17 +13,19 @@ import {
   ModalBody,
   ModalFooter,
   useToast,
+  useDisclosure,
 } from "@chakra-ui/react";
 import { useDispatch, useSelector } from "react-redux";
 import { login } from "../redux/apiSlice";
+import { useNavigate } from "react-router-dom";
 
-const Login = ({ isOpen, onClose }) => {
+const Login = ({ isOpen, onClosed }) => {
   const dispatch = useDispatch();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
-
+  const { onOpen, onClose } = useDisclosure();
   const [errors, setErrors] = useState({
     email: "",
     password: "",
@@ -71,37 +73,43 @@ const Login = ({ isOpen, onClose }) => {
     }
 
     await dispatch(login(formData));
-    console.log("formData: ", formData);
   };
-
+  let navigate = useNavigate();
   useEffect(() => {
     if (isLogin) {
-      toast({
-        title: "Login Successful",
-        description: `Welcome back, ${formData.email.split("@")[0]}!`,
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
+      if (!toast.isActive("login-success")) {
+        toast({
+          id: "login-success",
+          title: "Login Successful",
+          description: `Welcome back, ${formData.email.split("@")[0]}!`,
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+          position: "top",
+        });
+      }
 
       // Clear form fields after successful login
       setFormData({
         email: "",
         password: "",
       });
-
-      // Close the modal
       onClose();
+      navigate("/");
     } else if (loginError) {
-      toast({
-        title: "Login failed",
-        description: "Please check your email and password",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
+      if (!toast.isActive("login-error")) {
+        toast({
+          id: "login-error",
+          title: "Login failed",
+          description: "Please check your email and password",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+          position: "top",
+        });
+      }
     }
-  }, [isLogin, loginError, toast, formData.email, onClose, dispatch]);
+  }, [isLogin, loginError, toast, formData.email, onClose]);
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="md">
@@ -149,5 +157,3 @@ const Login = ({ isOpen, onClose }) => {
 };
 
 export default Login;
-
-// Redux code remains the same

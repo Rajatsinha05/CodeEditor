@@ -34,10 +34,12 @@ import {
 } from "react-icons/fa";
 import "../CSS/Navbar.css";
 import Login from "../Pages/Login";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import Cookie from "js-cookie";
+import { logout } from "../redux/apiSlice";
 
 const Navbar = () => {
+  const dispatch = useDispatch();
   const { colorMode, toggleColorMode } = useColorMode();
   const iconSize = "1.5rem";
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -48,13 +50,17 @@ const Navbar = () => {
   useEffect(() => {
     if (!isLogin) {
       onOpen();
+    } else {
+      onClose();
     }
-  }, [isLogin, onOpen]);
+  }, [isLogin, onOpen, onClose]);
 
   const handleLogOut = () => {
     Cookie.remove("token");
+    dispatch(logout());
     window.location.reload();
   };
+  
   const handleDrawerOpen = () => setIsDrawerOpen(true);
   const handleDrawerClose = () => setIsDrawerOpen(false);
 
@@ -209,7 +215,7 @@ const Navbar = () => {
           </DrawerContent>
         </Drawer>
       </nav>
-      {!isLogin && <Login isOpen={isOpen} onClose={onClose} />}
+      <Login isOpen={isOpen} onClosed={onClose} />
     </Box>
   );
 };
