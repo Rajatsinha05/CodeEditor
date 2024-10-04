@@ -8,14 +8,67 @@ import {
   Select,
   Textarea,
   useToast,
-  IconButton,
+  useColorModeValue,
 } from "@chakra-ui/react";
-import { CloseIcon } from "@chakra-ui/icons";
 import { useDispatch, useSelector } from "react-redux";
 import { postQuestion } from "../redux/apiSlice";
 
+import ExampleInputs from "../components/Problems/ExampleInputs";
+import { formDataValidator } from "../components/Problems/formDataValidator";
+
+const dsaTopics = [
+  { value: "array", label: "Array" },
+  { value: "linked-list", label: "Linked List" },
+  { value: "stack", label: "Stack" },
+  { value: "queue", label: "Queue" },
+  { value: "tree", label: "Tree" },
+  { value: "graph", label: "Graph" },
+  { value: "hashing", label: "Hashing" },
+  { value: "dynamic-programming", label: "Dynamic Programming" },
+  { value: "greedy", label: "Greedy" },
+  { value: "recursion", label: "Recursion" },
+  { value: "sorting", label: "Sorting" },
+  { value: "searching", label: "Searching" },
+  { value: "two-pointer", label: "Two Pointer" },
+  { value: "sliding-window", label: "Sliding Window" },
+  { value: "bit-manipulation", label: "Bit Manipulation" },
+  { value: "divide-and-conquer", label: "Divide and Conquer" },
+  { value: "backtracking", label: "Backtracking" },
+  { value: "mathematics", label: "Mathematics" },
+  { value: "number-theory", label: "Number Theory" },
+  { value: "graph-traversal", label: "Graph Traversal (BFS/DFS)" },
+  { value: "minimum-spanning-tree", label: "Minimum Spanning Tree" },
+  { value: "shortest-path", label: "Shortest Path" },
+  { value: "binary-search", label: "Binary Search" },
+  { value: "heap", label: "Heap" },
+  { value: "trie", label: "Trie" },
+  { value: "floyd-warshall", label: "Floyd-Warshall Algorithm" },
+  { value: "bellman-ford", label: "Bellman-Ford Algorithm" },
+  { value: "kmp", label: "KMP String Matching Algorithm" },
+  { value: "dp-on-trees", label: "Dynamic Programming on Trees" },
+  { value: "tree-traversal", label: "Tree Traversal (Pre/In/Post Order)" },
+  { value: "prime-numbers", label: "Prime Numbers (Sieve of Eratosthenes)" },
+  { value: "recursion-vs-iteration", label: "Recursion vs Iteration" },
+  { value: "memoization", label: "Memoization" },
+  { value: "knapsack", label: "Knapsack Problem" },
+  { value: "game-theory", label: "Game Theory" },
+  { value: "geometry", label: "Computational Geometry" },
+  { value: "probability", label: "Probability & Combinatorics" },
+  { value: "conditionals", label: "Conditionals (If/Else)" },
+  { value: "loops", label: "Loops (For/While)" },
+  { value: "functions", label: "Functions" },
+  { value: "variables", label: "Variables" },
+  { value: "pointers", label: "Pointers" },
+  { value: "object-oriented", label: "Object-Oriented Programming" },
+  { value: "functional-programming", label: "Functional Programming" },
+  { value: "complexity-analysis", label: "Complexity Analysis (Big O)" },
+];
+
 const AddQuestions = () => {
   const dispatch = useDispatch();
+  const toast = useToast();
+  const { user } = useSelector((store) => store.data);
+
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -23,7 +76,7 @@ const AddQuestions = () => {
     constraintValue: "",
     input: "",
     expectedOutput: "",
-    tags: "",
+    tag: "", // Updated for single tag selection
   });
 
   const [examples, setExamples] = useState([]);
@@ -33,17 +86,7 @@ const AddQuestions = () => {
     explanation: "",
   });
 
-  const [errors, setErrors] = useState({
-    title: false,
-    description: false,
-    difficultLevel: false,
-    constraintValue: false,
-    input: false,
-    expectedOutput: false,
-    tags: false,
-  });
-
-  const toast = useToast();
+  const [errors, setErrors] = useState({});
   const textAreaRefs = {
     description: useRef(null),
     input: useRef(null),
@@ -64,6 +107,18 @@ const AddQuestions = () => {
     }));
   };
 
+  const handleTagChange = (e) => {
+    const { value } = e.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      tag: value,
+    }));
+    setErrors((prevErrors) => ({
+      ...prevErrors,
+      tag: false,
+    }));
+  };
+
   useEffect(() => {
     const adjustTextareaHeight = (ref) => {
       if (ref.current) {
@@ -77,50 +132,12 @@ const AddQuestions = () => {
     adjustTextareaHeight(textAreaRefs.expectedOutput);
   }, [formData]);
 
-  const handleAddExample = () => {
-    if (
-      newExample.input.trim() === "" ||
-      newExample.output.trim() === "" ||
-      newExample.explanation.trim() === ""
-    ) {
-      toast({
-        title: "Error",
-        description: "All example fields must be filled out.",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-      return;
-    }
-    setExamples([...examples, newExample]);
-    setNewExample({
-      input: "",
-      output: "",
-      explanation: "",
-    });
-  };
-
-  const handleRemoveExample = (indexToRemove) => {
-    setExamples(examples.filter((_, index) => index !== indexToRemove));
-  };
-
-  const { user } = useSelector((store) => store.data);
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     // Form validation
-    const validationErrors = {};
-    let isValid = true;
-  
-    Object.keys(formData).forEach((key) => {
-      if (!formData[key]) {
-        validationErrors[key] = true;
-        isValid = false;
-      }
-    });
-  
-    if (!isValid) {
+    const validationErrors = formDataValidator(formData);
+    if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       toast({
         title: "Failed to Add Question",
@@ -132,16 +149,18 @@ const AddQuestions = () => {
       });
       return;
     }
-  
+
     try {
-      await dispatch(postQuestion({
-        ...formData,
-        examples,
-        user: {
-          id: Number(user.id),
-        },
-      })).unwrap();
-  
+      await dispatch(
+        postQuestion({
+          ...formData,
+          user: {
+            id: Number(user.id),
+          },
+          examples,
+        })
+      ).unwrap();
+
       setFormData({
         title: "",
         description: "",
@@ -149,10 +168,10 @@ const AddQuestions = () => {
         constraintValue: "",
         input: "",
         expectedOutput: "",
-        tags: "",
+        tag: "",
       });
       setExamples([]);
-  
+
       // Show success toast
       toast({
         title: "Question Added",
@@ -166,7 +185,8 @@ const AddQuestions = () => {
       // Handle errors when the API request fails
       toast({
         title: "Failed to Add Question",
-        description: err.message || "An error occurred while adding the question.",
+        description:
+          err.message || "An error occurred while adding the question.",
         status: "error",
         duration: 5000,
         isClosable: true,
@@ -174,35 +194,46 @@ const AddQuestions = () => {
       });
     }
   };
-  
+
+  // Using color modes to enhance UI
+  const bgColor = useColorModeValue("white", "gray.700");
+  const textColor = useColorModeValue("gray.800", "gray.200");
+  const formLabelColor = useColorModeValue("teal.600", "teal.200");
+
   return (
-    <Box p={4}>
+    <Box p={6} bg={bgColor} borderRadius="lg" boxShadow="xl">
       <form onSubmit={handleSubmit}>
         <FormControl mb={4} isInvalid={errors.title}>
-          <FormLabel>Title</FormLabel>
+          <FormLabel color={formLabelColor}>Title</FormLabel>
           <Input
             type="text"
             name="title"
             value={formData.title}
             onChange={handleChange}
+            bg={useColorModeValue("gray.50", "gray.800")}
+            color={textColor}
           />
         </FormControl>
         <FormControl mb={4} isInvalid={errors.description}>
-          <FormLabel>Description</FormLabel>
+          <FormLabel color={formLabelColor}>Description</FormLabel>
           <Textarea
             name="description"
             value={formData.description}
             onChange={handleChange}
             ref={textAreaRefs.description}
             style={{ minHeight: "100px", resize: "none" }}
+            bg={useColorModeValue("gray.50", "gray.800")}
+            color={textColor}
           />
         </FormControl>
         <FormControl mb={4} isInvalid={errors.difficultLevel}>
-          <FormLabel>Difficult Level</FormLabel>
+          <FormLabel color={formLabelColor}>Difficult Level</FormLabel>
           <Select
             name="difficultLevel"
             value={formData.difficultLevel}
             onChange={handleChange}
+            bg={useColorModeValue("gray.50", "gray.800")}
+            color={textColor}
           >
             <option value="">Select</option>
             <option value="EASY">EASY</option>
@@ -211,139 +242,65 @@ const AddQuestions = () => {
           </Select>
         </FormControl>
         <FormControl mb={4} isInvalid={errors.constraintValue}>
-          <FormLabel>Constraint Value</FormLabel>
+          <FormLabel color={formLabelColor}>Constraint Value</FormLabel>
           <Input
             type="text"
             name="constraintValue"
             value={formData.constraintValue}
             onChange={handleChange}
+            bg={useColorModeValue("gray.50", "gray.800")}
+            color={textColor}
           />
         </FormControl>
         <FormControl mb={4} isInvalid={errors.input}>
-          <FormLabel>Input</FormLabel>
+          <FormLabel color={formLabelColor}>Input</FormLabel>
           <Textarea
             name="input"
             value={formData.input}
             onChange={handleChange}
             ref={textAreaRefs.input}
             style={{ minHeight: "100px", resize: "none" }}
+            bg={useColorModeValue("gray.50", "gray.800")}
+            color={textColor}
           />
         </FormControl>
         <FormControl mb={4} isInvalid={errors.expectedOutput}>
-          <FormLabel>Expected Output</FormLabel>
+          <FormLabel color={formLabelColor}>Expected Output</FormLabel>
           <Textarea
             name="expectedOutput"
             value={formData.expectedOutput}
             onChange={handleChange}
             ref={textAreaRefs.expectedOutput}
             style={{ minHeight: "100px", resize: "none" }}
+            bg={useColorModeValue("gray.50", "gray.800")}
+            color={textColor}
           />
         </FormControl>
-        <FormControl mb={4}>
-          <FormLabel>Examples</FormLabel>
-          {examples.map((example, index) => (
-            <Box
-              key={index}
-              border="1px solid #CBD5E0"
-              borderRadius="md"
-              p={4}
-              mb={4}
-              position="relative"
-            >
-              <IconButton
-                aria-label="Close"
-                icon={<CloseIcon />}
-                variant="ghost"
-                colorScheme="red"
-                onClick={() => handleRemoveExample(index)}
-                position="absolute"
-                top={1}
-                right={1}
-              />
-              <FormLabel mb={2}>Example {index + 1}</FormLabel>
-              <FormControl mb={2}>
-                <Input
-                  name={`input${index}`}
-                  value={example.input}
-                  onChange={(e) => {
-                    const updatedExamples = [...examples];
-                    updatedExamples[index].input = e.target.value;
-                    setExamples(updatedExamples);
-                  }}
-                  placeholder="Input"
-                />
-              </FormControl>
-              <FormControl mb={2}>
-                <Textarea
-                  name={`output${index}`}
-                  value={example.output}
-                  onChange={(e) => {
-                    const updatedExamples = [...examples];
-                    updatedExamples[index].output = e.target.value;
-                    setExamples(updatedExamples);
-                  }}
-                  placeholder="Output"
-                  style={{ minHeight: "100px", resize: "none" }}
-                />
-              </FormControl>
-              <FormControl mb={2}>
-                <Textarea
-                  name={`explanation${index}`}
-                  value={example.explanation}
-                  onChange={(e) => {
-                    const updatedExamples = [...examples];
-                    updatedExamples[index].explanation = e.target.value;
-                    setExamples(updatedExamples);
-                  }}
-                  placeholder="Explanation"
-                  style={{ minHeight: "100px", resize: "none" }}
-                />
-              </FormControl>
-            </Box>
-          ))}
-          <FormControl mb={4}>
-            <FormLabel>Add New Example</FormLabel>
-            <FormControl mb={2}>
-              <Input
-                name="newInput"
-                value={newExample.input}
-                onChange={(e) => setNewExample({ ...newExample, input: e.target.value })}
-                placeholder="Input"
-              />
-            </FormControl>
-            <FormControl mb={2}>
-              <Textarea
-                name="newOutput"
-                value={newExample.output}
-                onChange={(e) => setNewExample({ ...newExample, output: e.target.value })}
-                placeholder="Output"
-                style={{ minHeight: "100px", resize: "none" }}
-              />
-            </FormControl>
-            <FormControl mb={2}>
-              <Textarea
-                name="newExplanation"
-                value={newExample.explanation}
-                onChange={(e) => setNewExample({ ...newExample, explanation: e.target.value })}
-                placeholder="Explanation"
-                style={{ minHeight: "100px", resize: "none" }}
-              />
-            </FormControl>
-            <Button type="button" colorScheme="blue" onClick={handleAddExample}>
-              Add Example
-            </Button>
-          </FormControl>
+        <FormControl mb={4} isInvalid={errors.tag}>
+          <FormLabel color={formLabelColor}>Tag (Select a Topic)</FormLabel>
+          <Select
+            name="tag"
+            value={formData.tag}
+            onChange={handleTagChange}
+            bg={useColorModeValue("gray.50", "gray.800")}
+            color={textColor}
+          >
+            <option value="">Select a topic</option>
+            {dsaTopics.map((topic) => (
+              <option key={topic.value} value={topic.value}>
+                {topic.label}
+              </option>
+            ))}
+          </Select>
         </FormControl>
-        <FormControl mb={4} isInvalid={errors.tags}>
-          <FormLabel>Tags</FormLabel>
-          <Input
-            type="text"
-            name="tags"
-            value={formData.tags}
-            onChange={handleChange}
-          />
-        </FormControl>
-        <Button type="submit" colorScheme="blue">
+        <ExampleInputs
+          examples={examples}
+          newExample={newExample}
+          setExamples={setExamples}
+          setNewExample={setNewExample}
+          toast={toast}
+        />
+        <Button type="submit" colorScheme="teal" mt={4}>
           Submit
         </Button>
       </form>

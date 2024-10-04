@@ -7,10 +7,9 @@ export const createContest = createAsyncThunk(
   async (contestData, { rejectWithValue }) => {
     try {
       const response = await axiosInstance.post("/contests", contestData);
-      console.log("response: ", response);
+
       return response.data;
     } catch (error) {
-      console.log("error: ", error);
       // Catch and return error
       return rejectWithValue(error.response?.data || "An error occurred");
     }
@@ -23,7 +22,6 @@ export const fetchContests = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await axiosInstance.get("/contests");
-      console.log("response: ", response.data);
 
       return response.data;
     } catch (error) {
@@ -37,16 +35,13 @@ export const fetchContests = createAsyncThunk(
 export const fetchContestsByStudent = createAsyncThunk(
   "contests/fetchContestsByStudent",
   async (studentId, { rejectWithValue }) => {
-    console.log("studentId: ", studentId);
     try {
       const response = await axiosInstance.get(
         `/contests/student/${studentId}`
       );
-      console.log("response: ", response.data);
 
       return response.data;
     } catch (error) {
-      console.log("error: ", error);
       // Return error data or a default message
       return rejectWithValue(error.response?.data || "An error occurred");
     }
@@ -59,6 +54,7 @@ export const getContestById = createAsyncThunk(
   async (contestId, { rejectWithValue }) => {
     try {
       const response = await axiosInstance.get(`/contests/${contestId}`);
+
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || "An error occurred");
@@ -101,6 +97,7 @@ const initialContestState = {
   contest: {}, // Specific contest details
   loading: false, // Loading state for any operation
   error: null, // Store any error messages
+  isFetched: false,
 };
 
 // Create the slice for contests
@@ -128,6 +125,7 @@ export const contestSlice = createSlice({
       .addCase(fetchContests.pending, (state) => {
         state.loading = true;
         state.error = null;
+        state.isFetched = true;
       })
       .addCase(fetchContests.fulfilled, (state, action) => {
         state.contests = action.payload; // Update contest list
@@ -146,6 +144,7 @@ export const contestSlice = createSlice({
       .addCase(fetchContestsByStudent.fulfilled, (state, action) => {
         state.contests = action.payload; // Set contests enrolled by the student
         state.loading = false;
+        state.isFetched = true;
       })
       .addCase(fetchContestsByStudent.rejected, (state, action) => {
         state.loading = false;
