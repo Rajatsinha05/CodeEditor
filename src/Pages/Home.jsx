@@ -29,8 +29,19 @@ import {
 import { useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration";
-import { CalendarIcon, TimeIcon, RepeatIcon, InfoOutlineIcon } from "@chakra-ui/icons";
-import { MdFilterList, MdPlayArrow, MdEventAvailable, MdRule, MdOutlineTimer } from "react-icons/md";
+import {
+  CalendarIcon,
+  TimeIcon,
+  RepeatIcon,
+  InfoOutlineIcon,
+} from "@chakra-ui/icons";
+import {
+  MdFilterList,
+  MdPlayArrow,
+  MdEventAvailable,
+  MdRule,
+  MdOutlineTimer,
+} from "react-icons/md";
 import { FaFlagCheckered } from "react-icons/fa";
 
 dayjs.extend(duration);
@@ -222,13 +233,15 @@ const Home = () => {
                   <HStack>
                     <Icon as={CalendarIcon} color="teal.500" />
                     <Text fontSize="sm" color={textColor}>
-                      Starts: {dayjs(contest.startTime).format("YYYY-MM-DD hh:mm A")}
+                      Starts:{" "}
+                      {dayjs(contest.startTime).format("YYYY-MM-DD hh:mm A")}
                     </Text>
                   </HStack>
                   <HStack>
                     <Icon as={FaFlagCheckered} color="red.500" />
                     <Text fontSize="sm" color={textColor}>
-                      Ends: {dayjs(contest.endTime).format("YYYY-MM-DD hh:mm A")}
+                      Ends:{" "}
+                      {dayjs(contest.endTime).format("YYYY-MM-DD hh:mm A")}
                     </Text>
                   </HStack>
                 </Stack>
@@ -296,15 +309,17 @@ const Home = () => {
               <VStack align="start" spacing={2}>
                 <Text fontSize="sm">
                   <Icon as={CalendarIcon} mr={2} color="teal.500" /> Start Time:{" "}
-                  {dayjs(selectedContest.startTime).format("YYYY-MM-DD hh:mm A")}
+                  {dayjs(selectedContest.startTime).format(
+                    "YYYY-MM-DD hh:mm A"
+                  )}
                 </Text>
                 <Text fontSize="sm">
                   <Icon as={FaFlagCheckered} mr={2} color="red.500" /> End Time:{" "}
                   {dayjs(selectedContest.endTime).format("YYYY-MM-DD hh:mm A")}
                 </Text>
                 <Text fontSize="sm">
-                  <Icon as={MdEventAvailable} mr={2} color="cyan.500" /> Participation:{" "}
-                  Open to all registered students
+                  <Icon as={MdEventAvailable} mr={2} color="cyan.500" />{" "}
+                  Participation: Open to all registered students
                 </Text>
               </VStack>
               <Divider my={4} />
@@ -315,12 +330,18 @@ const Home = () => {
                 </Text>
               </HStack>
               <VStack align="start" spacing={2} pl={6}>
-                <Text fontSize="sm">1. Be respectful to other participants.</Text>
-                <Text fontSize="sm">2. Do not engage in any form of cheating.</Text>
+                <Text fontSize="sm">
+                  1. Be respectful to other participants.
+                </Text>
+                <Text fontSize="sm">
+                  2. Do not engage in any form of cheating.
+                </Text>
                 <Text fontSize="sm">
                   3. Complete the contest within the given time frame.
                 </Text>
-                <Text fontSize="sm">4. Do not close the browser during the contest.</Text>
+                <Text fontSize="sm">
+                  4. Do not close the browser during the contest.
+                </Text>
               </VStack>
               <Divider my={4} />
               <Text fontSize="md" fontWeight="bold" color="teal.500" mt={4}>
@@ -328,7 +349,10 @@ const Home = () => {
               </Text>
             </ModalBody>
             <ModalFooter>
-              <Button colorScheme="teal" onClick={() => handleContestClick(selectedContest.id)}>
+              <Button
+                colorScheme="teal"
+                onClick={() => handleContestClick(selectedContest.id)}
+              >
                 Proceed
               </Button>
               <Button variant="ghost" onClick={onClose} ml={3}>

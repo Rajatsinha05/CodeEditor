@@ -30,19 +30,24 @@ const ContestDetails = () => {
   const { colorMode } = useColorMode(); // For light/dark mode
   const [elapsedTime, setElapsedTime] = useState({}); // State to track the time taken for each question
 
-  useEffect(() => {
-    dispatch(fetchSolvedQuestionsByContestId(id));
-  }, [dispatch, id]);
-
-  // Fetch contest details when component mounts
-  useEffect(() => {
-    dispatch(getContestById(id));
-  }, [dispatch, id]);
-
   // Get solved questions and contest details from the store
-  const { solvedQuestions } = useSelector((store) => store.solved);
-  const { contest } = useSelector((store) => store.contest);
+  const { solvedQuestions, loading: solvedLoading } = useSelector((store) => store.solved);
+  const { contest, loading: contestLoading } = useSelector((store) => store.contest);
   const { user } = useSelector((store) => store.data); // Assuming user data is stored in data slice
+
+  useEffect(() => {
+    if (id) {
+      dispatch(fetchSolvedQuestionsByContestId(id));
+      dispatch(getContestById(id));
+    }
+  }, [dispatch, id]);
+
+  useEffect(() => {
+    // Redirect to home if contest not found (useful if incorrect ID or unauthorized access)
+    if (!contestLoading && !contest) {
+      navigate("/", { replace: true });
+    }
+  }, [contest, contestLoading, navigate]);
 
   // Group solved questions by studentId and calculate the total obtained marks
   const groupedByStudent = groupBy(solvedQuestions, "studentId");
@@ -105,6 +110,16 @@ const ContestDetails = () => {
     }, 1000);
     return () => clearInterval(interval);
   }, []);
+
+  if (contestLoading || !contest) {
+    return (
+      <Box textAlign="center" p={8}>
+        <Text fontSize="xl" color="gray.500">
+          Loading contest details...
+        </Text>
+      </Box>
+    );
+  }
 
   return (
     <Box
@@ -215,7 +230,6 @@ const ContestDetails = () => {
           </Text>
           <VStack spacing={4} align="stretch">
             {contest.contestQuestions.map((question) => {
-              // Find the solved question for the current student and this question
               const solvedQuestion = solvedQuestions.find(
                 (q) =>
                   q.studentId.toString() === user.id.toString() &&

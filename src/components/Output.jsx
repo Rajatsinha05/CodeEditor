@@ -22,7 +22,10 @@ import { executeCode } from "../api";
 import Cookie from "js-cookie";
 import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { saveOrUpdateSolvedQuestion } from "../redux/QuestionSolvedSplice";
+import {
+  saveOrUpdateSolvedQuestion,
+  updateObtainedMarks,
+} from "../redux/QuestionSolvedSplice";
 
 const Output = ({
   editorRef,
@@ -38,6 +41,7 @@ const Output = ({
   const { questionId, contestId } = useParams();
   const { user } = useSelector((store) => store.data);
   const { contest } = useSelector((store) => store.contest);
+  const { solvedQuestions } = useSelector((store) => store.solved);
   const studentId = user?.id;
 
   // State management
@@ -88,11 +92,6 @@ const Output = ({
       });
       return;
     }
-
-    console.log(
-      "let marks = contest?.contestQuestions",
-      contest?.contestQuestions
-    );
 
     setIsLoading(true);
     setIsError(false);
@@ -163,82 +162,119 @@ const Output = ({
       return;
     }
 
+    // Check if the contest is currently active
+    const currentTime = new Date();
+    const contestStartTime = new Date(contest.startTime);
+    const contestEndTime = new Date(contest.endTime);
+    if (currentTime < contestStartTime || currentTime > contestEndTime) {
+      toast({
+        title: "Contest Not Active",
+        description: "You can only submit during the contest time.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
     setIsLoading(true);
     setIsError(false);
     setTestResults([]);
     setOutput(null);
 
     try {
-      const result = await executeCode(language, sourceCode, inputData.trim());
-      const resultOutput =
-        result.output?.split("\n").filter((line) => line.trim() !== "") || [];
+      if (type == "contest") {
+        const result = await executeCode(
+          language,
+          sourceCode,
+          inputData.trim()
+        );
+        const resultOutput =
+          result.output?.split("\n").filter((line) => line.trim() !== "") || [];
 
-      setOutput(resultOutput);
+        setOutput(resultOutput);
 
-      const expectedOutputs = expectedOutput
-        .split("\n")
-        .filter((line) => line.trim() !== "");
+        const expectedOutputs = expectedOutput
+          .split("\n")
+          .filter((line) => line.trim() !== "");
 
-      // Ensure both arrays have the same length
-      const totalTests = Math.max(resultOutput.length, expectedOutputs.length);
+        // Ensure both arrays have the same length
+        const totalTests = Math.max(
+          resultOutput.length,
+          expectedOutputs.length
+        );
 
-      // Determine if each test case passes
-      const results = Array.from({ length: totalTests }, (_, index) => ({
-        output: resultOutput[index] || "null",
-        expected: expectedOutputs[index] || "null",
-        passed: resultOutput[index] === expectedOutputs[index],
-      }));
+        // Determine if each test case passes
+        const results = Array.from({ length: totalTests }, (_, index) => ({
+          output: resultOutput[index] || "null",
+          expected: expectedOutputs[index] || "null",
+          passed: resultOutput[index] === expectedOutputs[index],
+        }));
 
-      setTestResults(results);
+        setTestResults(results);
 
-      // Calculate the number of passed test cases
-      const passedTests = results.filter((test) => test.passed).length;
-      const percentagePassed = (passedTests / totalTests) * 100;
-      console.log("percentagePassed: ", percentagePassed);
+        // Calculate the number of passed test cases
 
-      // Get marks from contest question and calculate obtained marks
-      let marks = contest?.contestQuestions.filter(
-        (que) => que.questionId == questionId
-      );
-      console.log("marks: ", marks, questionId);
+        const passedTests = results.filter((test) => test.passed).length;
+        const percentagePassed = (passedTests / totalTests) * 100;
 
-      const totalMarks = marks[0]?.marks || 0;
-      console.log("totalMarks: ", totalMarks);
-      const obtainedMarks = Math.round((percentagePassed / 100) * totalMarks);
-      console.log("obtainedMarks: ", obtainedMarks);
+        // Get marks from contest question and calculate obtained marks
+        const marks = contest?.contestQuestions.find(
+          (que) => que.questionId == questionId
+        );
+        const totalMarks = marks?.marks || 0;
+        console.log("totalMarks: ", totalMarks);
+        const obtainedMarks = Math.round((percentagePassed / 100) * totalMarks);
 
-      // Save the results to the backend (create or update)
-      await dispatch(
-        saveOrUpdateSolvedQuestion({
-          questionId,
-          contestId,
-          studentId,
-          obtainedMarks,
-          contestQuestionId: marks?.id || 1,
-        })
-      );
+        // Check if this question has already been solved by this student in this contest
+        const existingSolvedQuestion = solvedQuestions.find(
+          (sq) =>
+            sq.questionId == questionId &&
+            sq.contestId == contestId &&
+            sq.studentId == studentId
+        );
 
-      // Check if all tests passed
-      const allPassed = passedTests === totalTests;
-      if (allPassed) {
-        toast({
-          title: "All Tests Passed!",
-          description: `You have obtained ${obtainedMarks} out of ${totalMarks} marks.`,
-          status: "success",
-          duration: 6000,
-          isClosable: true,
-        });
-      } else {
-        toast({
-          title: "Some Tests Failed",
-          description: `You passed ${passedTests} out of ${totalTests} test cases. You have obtained ${obtainedMarks} out of ${totalMarks} marks.`,
-          status: "warning",
-          duration: 6000,
-          isClosable: true,
-        });
+        if (existingSolvedQuestion) {
+          // Update the obtained marks if the question is already solved
+          await dispatch(
+            updateObtainedMarks({
+              id: existingSolvedQuestion.id,
+              questionId,
+              contestId,
+              studentId,
+              obtainedMarks,
+              contestQuestionId: marks?.id || 1,
+            })
+          );
+          toast({
+            title: "Updated Successfully",
+            description: `You have updated your submission. You now have ${obtainedMarks} out of ${totalMarks} marks.`,
+            status: "success",
+            duration: 6000,
+            isClosable: true,
+          });
+        } else {
+          // Create a new solved question if not already solved
+          await dispatch(
+            saveOrUpdateSolvedQuestion({
+              questionId,
+              contestId,
+              studentId,
+              obtainedMarks,
+              contestQuestionId: marks?.id || 1,
+            })
+          );
+          toast({
+            title: "Submitted Successfully",
+            description: `You have obtained ${obtainedMarks} out of ${totalMarks} marks.`,
+            status: "success",
+            duration: 6000,
+            isClosable: true,
+          });
+        }
+
+        setIsError(!!result.stderr);
       }
-
-      setIsError(!!result.stderr);
     } catch (error) {
       toast({
         title: "Submission Failed",
@@ -260,6 +296,7 @@ const Output = ({
     contest,
     contestId,
     studentId,
+    solvedQuestions,
     dispatch,
     toast,
   ]);
