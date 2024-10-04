@@ -6,11 +6,15 @@ export const saveOrUpdateSolvedQuestion = createAsyncThunk(
   "solvedQuestions/saveOrUpdate",
   async (solvedQuestionData, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.post("/solved-questions/save", solvedQuestionData);
+      const response = await axiosInstance.post(
+        "/solved-questions/save",
+        solvedQuestionData
+      );
       return response.data;
     } catch (error) {
       return rejectWithValue(
-        error.response?.data || "An error occurred while saving/updating the solved question."
+        error.response?.data ||
+          "An error occurred while saving/updating the solved question."
       );
     }
   }
@@ -21,11 +25,15 @@ export const updateObtainedMarks = createAsyncThunk(
   "solvedQuestions/updateMarks",
   async (solvedQuestionData, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.put("/solved-questions/update-marks", solvedQuestionData);
+      const response = await axiosInstance.put(
+        "/solved-questions/update-marks",
+        solvedQuestionData
+      );
       return response.data;
     } catch (error) {
       return rejectWithValue(
-        error.response?.data || "An error occurred while updating obtained marks."
+        error.response?.data ||
+          "An error occurred while updating obtained marks."
       );
     }
   }
@@ -36,11 +44,14 @@ export const fetchSolvedQuestionsByContestId = createAsyncThunk(
   "solvedQuestions/fetchByContest",
   async (contestId, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.get(`/solved-questions/contest/${contestId}`);
+      const response = await axiosInstance.get(
+        `/solved-questions/contest/${contestId}`
+      );
       return response.data;
     } catch (error) {
       return rejectWithValue(
-        error.response?.data || "An error occurred while fetching solved questions by contest ID."
+        error.response?.data ||
+          "An error occurred while fetching solved questions by contest ID."
       );
     }
   }
@@ -57,7 +68,8 @@ export const fetchSolvedQuestionsByStudentIdAndContestId = createAsyncThunk(
       return response.data;
     } catch (error) {
       return rejectWithValue(
-        error.response?.data || "An error occurred while fetching solved questions by student and contest ID."
+        error.response?.data ||
+          "An error occurred while fetching solved questions by student and contest ID."
       );
     }
   }
@@ -68,11 +80,14 @@ export const deleteSolvedQuestionById = createAsyncThunk(
   "solvedQuestions/deleteById",
   async (solvedQuestionId, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.delete(`/solved-questions/${solvedQuestionId}`);
+      const response = await axiosInstance.delete(
+        `/solved-questions/${solvedQuestionId}`
+      );
       return { solvedQuestionId, message: response.data };
     } catch (error) {
       return rejectWithValue(
-        error.response?.data || "An error occurred while deleting the solved question."
+        error.response?.data ||
+          "An error occurred while deleting the solved question."
       );
     }
   }
@@ -83,22 +98,42 @@ export const fetchSolvedQuestionById = createAsyncThunk(
   "solvedQuestions/fetchById",
   async (solvedQuestionId, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.get(`/solved-questions/${solvedQuestionId}`);
+      const response = await axiosInstance.get(
+        `/solved-questions/${solvedQuestionId}`
+      );
       return response.data;
     } catch (error) {
       return rejectWithValue(
-        error.response?.data || "An error occurred while fetching the solved question by ID."
+        error.response?.data ||
+          "An error occurred while fetching the solved question by ID."
       );
     }
   }
 );
 
+// Async thunk to fetch the top 20 ranked students
+export const fetchTop20RankedStudents = createAsyncThunk(
+  "solvedQuestions/fetchTop20RankedStudents",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.get("/solved-questions/top-20");
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || "An error occurred while fetching the top 20 ranked students."
+      );
+    }
+  }
+);
+
+
 // Define the initial state for solved questions
 const initialSolvedQuestionsState = {
-  solvedQuestions: [], // List of solved questions
-  solvedQuestion: {}, // Specific solved question details
-  loading: false, // Loading state for any operation
-  error: null, // Store any error messages
+  solvedQuestions: [], 
+  solvedQuestion: {}, 
+  loading: false,
+  error: null,
+  topRankedStudents: []
 };
 
 // Create the slice for solved questions
@@ -115,7 +150,9 @@ export const solvedQuestionSlice = createSlice({
       })
       .addCase(saveOrUpdateSolvedQuestion.fulfilled, (state, action) => {
         state.loading = false;
-        const index = state.solvedQuestions.findIndex((sq) => sq.id === action.payload.id);
+        const index = state.solvedQuestions.findIndex(
+          (sq) => sq.id === action.payload.id
+        );
         if (index !== -1) {
           state.solvedQuestions[index] = action.payload;
         } else {
@@ -134,9 +171,12 @@ export const solvedQuestionSlice = createSlice({
       })
       .addCase(updateObtainedMarks.fulfilled, (state, action) => {
         state.loading = false;
-        const index = state.solvedQuestions.findIndex((sq) => sq.id === action.payload.id);
+        const index = state.solvedQuestions.findIndex(
+          (sq) => sq.id === action.payload.id
+        );
         if (index !== -1) {
-          state.solvedQuestions[index].obtainedMarks = action.payload.obtainedMarks;
+          state.solvedQuestions[index].obtainedMarks =
+            action.payload.obtainedMarks;
         }
       })
       .addCase(updateObtainedMarks.rejected, (state, action) => {
@@ -163,14 +203,20 @@ export const solvedQuestionSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchSolvedQuestionsByStudentIdAndContestId.fulfilled, (state, action) => {
-        state.solvedQuestions = action.payload;
-        state.loading = false;
-      })
-      .addCase(fetchSolvedQuestionsByStudentIdAndContestId.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
+      .addCase(
+        fetchSolvedQuestionsByStudentIdAndContestId.fulfilled,
+        (state, action) => {
+          state.solvedQuestions = action.payload;
+          state.loading = false;
+        }
+      )
+      .addCase(
+        fetchSolvedQuestionsByStudentIdAndContestId.rejected,
+        (state, action) => {
+          state.loading = false;
+          state.error = action.payload;
+        }
+      )
 
       // Fetch Specific Solved Question by ID Reducers
       .addCase(fetchSolvedQuestionById.pending, (state) => {
@@ -200,7 +246,21 @@ export const solvedQuestionSlice = createSlice({
       .addCase(deleteSolvedQuestionById.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
-      });
+      })
+            // Fetch Top 20 Ranked Students Reducers
+            .addCase(fetchTop20RankedStudents.pending, (state) => {
+              state.loading = true;
+              state.error = null;
+            })
+            .addCase(fetchTop20RankedStudents.fulfilled, (state, action) => {
+              state.topRankedStudents = action.payload;
+              state.loading = false;
+            })
+            .addCase(fetchTop20RankedStudents.rejected, (state, action) => {
+              state.loading = false;
+              state.error = action.payload;
+            })
+      
   },
 });
 

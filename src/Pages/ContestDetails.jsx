@@ -1,40 +1,39 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams, useNavigate } from "react-router-dom";
-import { getContestById } from "../redux/contestSlice";
-import {
-  Box,
-  Text,
-  VStack,
-  Divider,
-  HStack,
-  Badge,
-  Avatar,
-  Icon,
-  Button,
-  useColorMode,
-  Flex,
-  Tooltip,
-  Tag,
-} from "@chakra-ui/react";
-import { CalendarIcon, TimeIcon, ArrowForwardIcon, StarIcon } from "@chakra-ui/icons";
-import { MdTimer, MdAdminPanelSettings, MdCheckCircle, MdWarning, MdError } from "react-icons/md";
-import dayjs from "dayjs";
-import { fetchSolvedQuestionsByContestId } from "../redux/QuestionSolvedSplice";
+import { Box, Text, useColorMode } from "@chakra-ui/react";
 import { groupBy } from "lodash";
 
+// Redux Actions
+import { getContestById } from "../redux/contestSlice";
+import { fetchSolvedQuestionsByContestId } from "../redux/QuestionSolvedSplice";
+
+// Components
+import ContestHeader from "../components/ContestHeader";
+import ContestDetailsSection from "../components/ContestDetailsSection";
+import ContestQuestions from "../components/ContestQuestions";
+import StudentRankings from "../components/StudentRankings";
+import EnrolledStudents from "../components/EnrolledStudents";
+import CustomCreativeSpinner from "../components/CustomCreativeSpinner";
+
 const ContestDetails = () => {
-  const { id } = useParams(); // Get contest ID from the URL
+  const { id } = useParams();
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { colorMode } = useColorMode(); // For light/dark mode
-  const [elapsedTime, setElapsedTime] = useState({}); // State to track the time taken for each question
+  const { colorMode } = useColorMode();
+  const [elapsedTime, setElapsedTime] = useState({});
+  const [showSpinner, setShowSpinner] = useState(true); // New state to manage spinner visibility
 
-  // Get solved questions and contest details from the store
-  const { solvedQuestions, loading: solvedLoading } = useSelector((store) => store.solved);
-  const { contest, loading: contestLoading } = useSelector((store) => store.contest);
-  const { user } = useSelector((store) => store.data); // Assuming user data is stored in data slice
+  // Combined selector to access the necessary store data in one go
+  const { solvedQuestions, contest, user, solvedLoading, contestLoading } = useSelector((store) => ({
+    solvedQuestions: store.solved.solvedQuestions,
+    contest: store.contest.contest,
+    user: store.data.user,
+    solvedLoading: store.solved.loading,
+    contestLoading: store.contest.loading,
+  }));
 
+  // Fetch contest data and solved questions only if `id` changes
   useEffect(() => {
     if (id) {
       dispatch(fetchSolvedQuestionsByContestId(id));
@@ -42,83 +41,49 @@ const ContestDetails = () => {
     }
   }, [dispatch, id]);
 
+  // Navigate to home if contest is not found after loading is complete
   useEffect(() => {
-    // Redirect to home if contest not found (useful if incorrect ID or unauthorized access)
     if (!contestLoading && !contest) {
       navigate("/", { replace: true });
     }
   }, [contest, contestLoading, navigate]);
 
-  // Group solved questions by studentId and calculate the total obtained marks
-  const groupedByStudent = groupBy(solvedQuestions, "studentId");
-  const studentRankings = Object.keys(groupedByStudent).map((studentId) => {
-    const totalMarks = groupedByStudent[studentId]?.reduce(
-      (acc, curr) => acc + curr.obtainedMarks,
-      0
-    );
-    return {
-      studentId,
-      totalMarks,
-    };
-  });
+  // Control spinner visibility
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowSpinner(false);
+    }, 1500); // Show spinner for 2 seconds
 
-  // Sort rankings in descending order based on total obtained marks
-  studentRankings.sort((a, b) => b.totalMarks - a.totalMarks);
+    return () => clearTimeout(timer);
+  }, []);
 
-  // Format date/time in a readable format
-  const formatDateTime12Hour = (dateString) => {
-    const options = {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "numeric",
-      minute: "numeric",
-      hour12: true,
-    };
-    return new Date(dateString).toLocaleString("en-US", options);
-  };
+  // Memoize student rankings to avoid unnecessary recalculations
+  const studentRankings = useMemo(() => {
+    if (!solvedQuestions || solvedQuestions.length === 0) return [];
 
-  // Handle attempt question navigation and start timer
-  const handleAttemptQuestion = (questionId) => {
-    const startTime = dayjs();
+    const groupedByStudent = groupBy(solvedQuestions, "studentId");
+    const rankings = Object.keys(groupedByStudent).map((studentId) => {
+      const totalMarks = groupedByStudent[studentId]?.reduce(
+        (acc, curr) => acc + curr.obtainedMarks,
+        0
+      );
+      return { studentId, totalMarks };
+    });
+
+    return rankings.sort((a, b) => b.totalMarks - a.totalMarks);
+  }, [solvedQuestions]);
+
+  // Memoize elapsedTime setter function to avoid unnecessary re-renders of child components
+  const handleSetElapsedTime = useCallback((questionId, startTime) => {
     setElapsedTime((prev) => ({
       ...prev,
       [questionId]: startTime,
     }));
-    navigate(`/contest/${id}/attempt/${questionId}`);
-  };
-
-  // Calculate the time taken for each question
-  const getElapsedTime = (startTime) => {
-    if (!startTime) return "0s";
-    const now = dayjs();
-    const diff = now.diff(startTime);
-    const duration = dayjs.duration(diff);
-    return `${duration.minutes()}m ${duration.seconds()}s`;
-  };
-
-  // Update elapsed time every second
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setElapsedTime((prev) => {
-        const newElapsedTime = {};
-        for (const questionId in prev) {
-          newElapsedTime[questionId] = prev[questionId];
-        }
-        return newElapsedTime;
-      });
-    }, 1000);
-    return () => clearInterval(interval);
   }, []);
 
-  if (contestLoading || !contest) {
-    return (
-      <Box textAlign="center" p={8}>
-        <Text fontSize="xl" color="gray.500">
-          Loading contest details...
-        </Text>
-      </Box>
-    );
+  // Show spinner initially or if the contest is still loading
+  if (showSpinner || contestLoading) {
+    return <CustomCreativeSpinner />;
   }
 
   return (
@@ -130,371 +95,24 @@ const ContestDetails = () => {
       borderRadius="lg"
       shadow="lg"
     >
-      {/* Header with theme toggle button */}
-      <Flex justify="space-between" align="center" mb={6}>
-        <Text
-          fontSize="3xl"
-          fontWeight="bold"
-          color={colorMode === "light" ? "teal.600" : "teal.300"}
-        >
-          {contest?.title}
-        </Text>
-      </Flex>
-
-      {/* Contest Difficulty Level */}
-      {contest?.difficultyLevel && (
-        <Box mb={6}>
-          <Badge colorScheme="purple" fontSize="0.8em" p={1} borderRadius="md">
-            Difficulty: {contest.difficultyLevel}
-          </Badge>
-        </Box>
+      <ContestHeader contest={contest} colorMode={colorMode} />
+      <ContestDetailsSection contest={contest} colorMode={colorMode} />
+      <ContestQuestions
+        contest={contest}
+        solvedQuestions={solvedQuestions}
+        user={user}
+        colorMode={colorMode}
+        setElapsedTime={handleSetElapsedTime}
+      />
+      <StudentRankings
+        studentRankings={studentRankings}
+        contest={contest}
+        user={user}
+        colorMode={colorMode}
+      />
+      {(user.role === "ADMIN" || user.role === "SUPERADMIN") && (
+        <EnrolledStudents contest={contest} colorMode={colorMode} />
       )}
-
-      {/* Contest Dates */}
-      {contest?.startTime && contest?.endTime && (
-        <HStack mb={6} spacing={4}>
-          <HStack>
-            <Icon
-              as={CalendarIcon}
-              color={colorMode === "light" ? "gray.500" : "gray.400"}
-            />
-            <Text
-              fontSize="md"
-              color={colorMode === "light" ? "gray.600" : "gray.400"}
-            >
-              Starts: {formatDateTime12Hour(contest.startTime)}
-            </Text>
-          </HStack>
-          <HStack>
-            <Icon
-              as={TimeIcon}
-              color={colorMode === "light" ? "gray.500" : "gray.400"}
-            />
-            <Text
-              fontSize="md"
-              color={colorMode === "light" ? "gray.600" : "gray.400"}
-            >
-              Ends: {formatDateTime12Hour(contest.endTime)}
-            </Text>
-          </HStack>
-        </HStack>
-      )}
-
-      {/* Total Marks */}
-      {contest?.totalMarks && (
-        <Box mb={6}>
-          <Text
-            fontSize="lg"
-            fontWeight="bold"
-            color={colorMode === "light" ? "gray.700" : "gray.300"}
-          >
-            Total Marks: {contest.totalMarks}
-          </Text>
-        </Box>
-      )}
-
-      <Divider borderColor={colorMode === "light" ? "gray.300" : "gray.600"} />
-
-      {/* Contest Description */}
-      {contest?.description && (
-        <Box my={6}>
-          <Text
-            fontSize="lg"
-            fontWeight="semibold"
-            mb={2}
-            color={colorMode === "light" ? "gray.700" : "gray.300"}
-          >
-            Description
-          </Text>
-          <Text
-            fontSize="md"
-            color={colorMode === "light" ? "gray.600" : "gray.400"}
-          >
-            {contest.description}
-          </Text>
-        </Box>
-      )}
-
-      <Divider borderColor={colorMode === "light" ? "gray.300" : "gray.600"} />
-
-      {/* Contest Questions */}
-      {contest?.contestQuestions?.length > 0 && (
-        <Box my={6}>
-          <Text
-            fontSize="lg"
-            fontWeight="semibold"
-            mb={4}
-            color={colorMode === "light" ? "teal.600" : "teal.300"}
-          >
-            Questions
-          </Text>
-          <VStack spacing={4} align="stretch">
-            {contest.contestQuestions.map((question) => {
-              const solvedQuestion = solvedQuestions.find(
-                (q) =>
-                  q.studentId.toString() === user.id.toString() &&
-                  q.questionId === question.questionId &&
-                  q.contestId === contest.id
-              );
-
-              let solvedStatus = null;
-              let obtainedMarks = 0;
-              if (solvedQuestion) {
-                obtainedMarks = solvedQuestion.obtainedMarks;
-                if (solvedQuestion.obtainedMarks === question.marks) {
-                  solvedStatus = "solved"; // 100% marks
-                } else if (solvedQuestion.obtainedMarks > 0) {
-                  solvedStatus = "partial"; // Partial marks
-                } else {
-                  solvedStatus = "failed"; // 0 marks
-                }
-              }
-
-              return (
-                <Box
-                  key={question.questionId}
-                  p={4}
-                  bg={
-                    solvedStatus === "solved"
-                      ? "green.200"
-                      : solvedStatus === "partial"
-                      ? "yellow.100"
-                      : solvedStatus === "failed"
-                      ? "red.200"
-                      : colorMode === "light"
-                      ? "white"
-                      : "gray.700"
-                  }
-                  borderRadius="md"
-                  shadow="sm"
-                  _hover={{
-                    bg: colorMode === "light" ? "teal.50" : "teal.900",
-                  }}
-                >
-                  <HStack justify="space-between" align="center">
-                    <Text
-                      fontSize="md"
-                      color={
-                        solvedStatus === "solved"
-                          ? "green.700"
-                          : solvedStatus === "partial"
-                          ? "orange.700"
-                          : solvedStatus === "failed"
-                          ? "red.700"
-                          : colorMode === "light"
-                          ? "blue.600"
-                          : "blue.300"
-                      }
-                      fontWeight="medium"
-                    >
-                      {question.title} (Total Marks: {question.marks})
-                    </Text>
-                    <HStack>
-                      {/* Display marks obtained for each question */}
-                      {solvedStatus && (
-                        <Badge
-                          colorScheme={
-                            solvedStatus === "solved"
-                              ? "green"
-                              : solvedStatus === "partial"
-                              ? "orange"
-                              : "red"
-                          }
-                          variant="solid"
-                          px={2}
-                          textColor={
-                            solvedStatus === "solved"
-                              ? "green.800"
-                              : solvedStatus === "partial"
-                              ? "orange.800"
-                              : "red.800"
-                          }
-                        >
-                          Marks Obtained: {obtainedMarks} / {question.marks}
-                        </Badge>
-                      )}
-
-                      <Tooltip label="Time Taken" aria-label="Time Taken">
-                        <HStack>
-                          <Icon
-                            as={MdTimer}
-                            color={
-                              colorMode === "light" ? "gray.600" : "gray.400"
-                            }
-                          />
-                          <Text
-                            fontSize="sm"
-                            color={
-                              colorMode === "light" ? "gray.600" : "gray.400"
-                            }
-                          >
-                            {getElapsedTime(elapsedTime[question.questionId])}
-                          </Text>
-                        </HStack>
-                      </Tooltip>
-                      {solvedStatus === "solved" && (
-                        <Tooltip label="Solved" aria-label="Solved">
-                          <Icon
-                            as={MdCheckCircle}
-                            color="green.500"
-                            boxSize={5}
-                          />
-                        </Tooltip>
-                      )}
-                      {solvedStatus === "partial" && (
-                        <Tooltip label="Partially Completed" aria-label="Partially Completed">
-                          <Icon
-                            as={MdWarning}
-                            color="orange.500"
-                            boxSize={5}
-                          />
-                        </Tooltip>
-                      )}
-                      {solvedStatus === "failed" && (
-                        <Tooltip label="Not Solved (0 Marks)" aria-label="Not Solved">
-                          <Icon
-                            as={MdError}
-                            color="red.500"
-                            boxSize={5}
-                          />
-                        </Tooltip>
-                      )}
-                      <Tooltip label="Attempt Question" aria-label="Attempt Question">
-                        <Button
-                          size="sm"
-                          colorScheme="teal"
-                          variant="ghost"
-                          onClick={() => handleAttemptQuestion(question.questionId)}
-                          leftIcon={<ArrowForwardIcon />}
-                        >
-                          Start
-                        </Button>
-                      </Tooltip>
-                    </HStack>
-                  </HStack>
-                </Box>
-              );
-            })}
-          </VStack>
-        </Box>
-      )}
-
-      <Divider borderColor={colorMode === "light" ? "gray.300" : "gray.600"} />
-
-      {/* Student Rankings */}
-      {studentRankings.length > 0 && contest?.enrolledStudents?.length > 0 && (
-        <Box my={6}>
-          <Text
-            fontSize="lg"
-            fontWeight="semibold"
-            mb={4}
-            color={colorMode === "light" ? "teal.600" : "teal.300"}
-          >
-            Student Rankings
-          </Text>
-          <VStack spacing={4} align="stretch">
-            {studentRankings.map((ranking, index) => {
-              const student = contest.enrolledStudents.find(
-                (s) => s.id.toString() === ranking.studentId
-              );
-              if (!student) {
-                return null; // Skip if student is not found
-              }
-              const isCurrentStudent = student.id.toString() === user.id.toString();
-              return (
-                <HStack
-                  key={ranking.studentId}
-                  p={4}
-                  bg={
-                    isCurrentStudent
-                      ? "blue.600"
-                      : colorMode === "light"
-                      ? "white"
-                      : "gray.700"
-                  }
-                  borderRadius="md"
-                  shadow="sm"
-                  _hover={{
-                    bg: colorMode === "light" ? "gray.100" : "gray.600",
-                  }}
-                  justifyContent="space-between"
-                >
-                  <HStack spacing={3}>
-                    <Avatar name={student.name} size="sm" />
-                    <Text
-                      fontSize="md"
-                      color={
-                        isCurrentStudent
-                          ? "yellow.300"
-                          : colorMode === "light"
-                          ? "gray.700"
-                          : "gray.300"
-                      }
-                      fontWeight="medium"
-                    >
-                      {student.name} - Rank {index + 1}
-                    </Text>
-                    <Tag size="sm" colorScheme="blue">
-                      Total Marks: {ranking.totalMarks}
-                    </Tag>
-                  </HStack>
-                  <Tooltip label="Rank One" aria-label="Rank One">
-                    <Icon
-                      as={StarIcon}
-                      color={index === 0 ? "yellow.400" : "gray.400"}
-                    />
-                  </Tooltip>
-                </HStack>
-              );
-            })}
-          </VStack>
-        </Box>
-      )}
-
-      {/* Enrolled Students (only for ADMIN and SUPERADMIN) */}
-      {(user.role === "ADMIN" || user.role === "SUPERADMIN") &&
-        contest?.enrolledStudents?.length > 0 && (
-          <Box my={6}>
-            <Text
-              fontSize="lg"
-              fontWeight="semibold"
-              mb={4}
-              color={colorMode === "light" ? "teal.600" : "teal.300"}
-            >
-              Enrolled Students
-            </Text>
-            <VStack spacing={4} align="stretch">
-              {contest.enrolledStudents.map((student) => (
-                <HStack
-                  key={student.id}
-                  p={4}
-                  bg={colorMode === "light" ? "white" : "gray.700"}
-                  borderRadius="md"
-                  shadow="sm"
-                  _hover={{ bg: colorMode === "light" ? "gray.100" : "gray.600" }}
-                  justifyContent="space-between"
-                >
-                  <HStack spacing={3}>
-                    <Avatar name={student.name} size="sm" />
-                    <Text
-                      fontSize="md"
-                      color={colorMode === "light" ? "gray.700" : "gray.300"}
-                      fontWeight="medium"
-                    >
-                      {student.name}
-                    </Text>
-                    <Tag size="sm" colorScheme="blue">
-                      {student.email}
-                    </Tag>
-                  </HStack>
-                  <Tooltip label="Admin Access" aria-label="Admin Access">
-                    <Icon as={MdAdminPanelSettings} color="teal.500" />
-                  </Tooltip>
-                </HStack>
-              ))}
-            </VStack>
-          </Box>
-        )}
     </Box>
   );
 };

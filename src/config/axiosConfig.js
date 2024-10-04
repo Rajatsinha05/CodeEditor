@@ -8,7 +8,7 @@ const PRODUCTION_URL =
 
 // Set the base URL to production for now
 const axiosInstance = axios.create({
-  baseURL: PRODUCTION_URL,
+  baseURL: LOCAL_URL,
 });
 
 // Add a request interceptor to attach the token to all requests except login and signup
