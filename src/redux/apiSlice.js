@@ -10,7 +10,9 @@ export const postQuestion = createAsyncThunk(
       const response = await axiosInstance.post("/questions", data);
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data || "An error occurred while posting the question.");
+      return rejectWithValue(
+        error.response?.data || "An error occurred while posting the question."
+      );
     }
   }
 );
@@ -23,7 +25,9 @@ export const getQuestionById = createAsyncThunk(
       const response = await axiosInstance.get(`/questions/${questionId}`);
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data || "An error occurred while fetching the question.");
+      return rejectWithValue(
+        error.response?.data || "An error occurred while fetching the question."
+      );
     }
   }
 );
@@ -36,7 +40,9 @@ export const fetchQuestions = createAsyncThunk(
       const response = await axiosInstance.get("/questions");
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data || "An error occurred while fetching questions.");
+      return rejectWithValue(
+        error.response?.data || "An error occurred while fetching questions."
+      );
     }
   }
 );
@@ -51,7 +57,10 @@ export const solvedQuestions = createAsyncThunk(
       );
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data || "An error occurred while updating solved questions.");
+      return rejectWithValue(
+        error.response?.data ||
+          "An error occurred while updating solved questions."
+      );
     }
   }
 );
@@ -66,7 +75,10 @@ export const getsolvedQuestions = createAsyncThunk(
       );
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data || "An error occurred while fetching solved questions.");
+      return rejectWithValue(
+        error.response?.data ||
+          "An error occurred while fetching solved questions."
+      );
     }
   }
 );
@@ -78,6 +90,10 @@ export const login = createAsyncThunk(
     try {
       const response = await axiosInstance.post("/users/login", user);
       const { token, user: userDetailsToken } = response.data;
+      console.log(" token, user: userDetailsToken: ", {
+        token,
+        user: userDetailsToken,
+      });
 
       // Set the JWT token in cookies
       Cookies.set("token", token, { expires: 7 });
@@ -85,10 +101,14 @@ export const login = createAsyncThunk(
 
       // Parse the user details from the token using custom logic
       const decodedUser = stringToObject(userDetailsToken);
+      console.log("decodedUser: ", decodedUser);
+      console.log("userDetailsToken: ", userDetailsToken);
 
       return { ...response.data, user: decodedUser };
     } catch (error) {
-      return rejectWithValue(error.response?.data || "Login failed. Please check your credentials.");
+      return rejectWithValue(
+        error.response?.data || "Login failed. Please check your credentials."
+      );
     }
   }
 );
@@ -101,7 +121,9 @@ export const getStudents = createAsyncThunk(
       const response = await axiosInstance.get("/students");
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data || "An error occurred while fetching students.");
+      return rejectWithValue(
+        error.response?.data || "An error occurred while fetching students."
+      );
     }
   }
 );
@@ -114,7 +136,9 @@ export const createStudent = createAsyncThunk(
       const response = await axiosInstance.post("/students", student);
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data || "An error occurred while creating a student.");
+      return rejectWithValue(
+        error.response?.data || "An error occurred while creating a student."
+      );
     }
   }
 );
@@ -131,7 +155,9 @@ export const createStudentsFromFile = createAsyncThunk(
       });
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data || "An error occurred while uploading the file.");
+      return rejectWithValue(
+        error.response?.data || "An error occurred while uploading the file."
+      );
     }
   }
 );
@@ -144,7 +170,9 @@ export const createUser = createAsyncThunk(
       const response = await axiosInstance.post("/users/signup", user);
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data || "An error occurred while creating the user.");
+      return rejectWithValue(
+        error.response?.data || "An error occurred while creating the user."
+      );
     }
   }
 );
@@ -155,19 +183,21 @@ const stringToObject = (str) => {
     return {};
   }
 
-  // Assuming input is in format like: "User(id=1, name=John)"
+  // Assuming input is in a format like: "Students(id=10, name=Student7, email=student10@example.com, ...)"
   const obj = {};
-  const keyValuePairs = str
-    .replace(/[()]/g, "") // Remove parentheses
-    .split(/, /); // Split by comma and space
 
-  keyValuePairs.forEach((pair) => {
-    const [key, value] = pair.split("=");
-    obj[key.trim()] = value.trim();
-  });
+  // Regex to match key-value pairs in the format key=value, including values with spaces and symbols
+  const keyValuePattern = /(\w+)=([^,]+)(?=,|$)/g;
+
+  let match;
+  while ((match = keyValuePattern.exec(str)) !== null) {
+    const [_, key, value] = match;
+    obj[key.trim()] = value.trim().replace(/\)$/, ""); // Remove any trailing ")" from values
+  }
 
   return obj;
 };
+
 
 // Define the initial state
 const initialState = {
@@ -329,7 +359,8 @@ const apiSlice = createSlice({
           (student) => student.id === solvedQuestionsData.studentId
         );
         if (studentIndex !== -1) {
-          state.students[studentIndex].solvedQuestions = solvedQuestionsData.solvedQuestions || [];
+          state.students[studentIndex].solvedQuestions =
+            solvedQuestionsData.solvedQuestions || [];
         }
         state.loading = false;
       })

@@ -78,15 +78,6 @@ const Login = ({ isOpen, onClosed }) => {
   useEffect(() => {
     if (isLogin) {
       if (!toast.isActive("login-success")) {
-        toast({
-          id: "login-success",
-          title: "Login Successful",
-          description: `Welcome back, ${formData.email.split("@")[0]}!`,
-          status: "success",
-          duration: 3000,
-          isClosable: true,
-          position: "top",
-        });
       }
 
       // Clear form fields after successful login
