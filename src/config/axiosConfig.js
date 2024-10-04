@@ -1,17 +1,23 @@
-// axiosConfig.js
 import axios from "axios";
 import Cookies from "js-cookie";
 
-// Create an instance of axios with a base URL
+// Define URLs for different environments
+const LOCAL_URL = "http://localhost:8090";
+const PRODUCTION_URL =
+  "https://dry-owls-clap.loca.lt";
+
+// Set the base URL to production for now
 const axiosInstance = axios.create({
-  baseURL: "http://localhost:8090", // Set the base URL for all requests
+  baseURL: PRODUCTION_URL,
 });
 
 // Add a request interceptor to attach the token to all requests except login and signup
 axiosInstance.interceptors.request.use(
   (config) => {
     const token = Cookies.get("token");
-    const isAuthRequest = config.url.includes("/users/login") || config.url.includes("/users/signup");
+    const isAuthRequest =
+      config.url.includes("/users/login") ||
+      config.url.includes("/users/signup");
 
     if (token && !isAuthRequest) {
       config.headers.Authorization = `Bearer ${token}`;

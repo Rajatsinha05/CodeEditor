@@ -99,13 +99,16 @@ const Home = () => {
   };
 
   // Filter contests based on selected filter
-  const filteredContests = contests.filter((contest) => {
-    if (filter === "active")
-      return isContestActive(contest.startTime, contest.endTime);
-    if (filter === "upcoming") return isContestUpcoming(contest.startTime);
-    if (filter === "past") return isContestPast(contest.endTime);
-    return true;
-  });
+  const filteredContests = Array.isArray(contests)
+  ? contests.filter((contest) => {
+      if (filter === "active")
+        return isContestActive(contest.startTime, contest.endTime);
+      if (filter === "upcoming") return isContestUpcoming(contest.startTime);
+      if (filter === "past") return isContestPast(contest.endTime);
+      return true;
+    })
+  : [];
+
 
   // Function to calculate and format the countdown for upcoming contests
   const calculateCountdown = (startTime) => {
@@ -115,6 +118,8 @@ const Home = () => {
   };
 
   useEffect(() => {
+    if (!Array.isArray(contests)) return;
+  
     const intervalId = setInterval(() => {
       const newTimers = {};
       contests.forEach((contest) => {
@@ -124,9 +129,10 @@ const Home = () => {
       });
       setTimers(newTimers);
     }, 1000);
-
+  
     return () => clearInterval(intervalId);
   }, [contests]);
+  
 
   // Dynamic styles based on color mode
   const bgColor = useColorModeValue("gray.50", "gray.800");
