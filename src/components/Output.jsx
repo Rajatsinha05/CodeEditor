@@ -183,7 +183,7 @@ const Output = ({
     setOutput(null);
 
     try {
-      if (type == "contest") {
+     
         const result = await executeCode(
           language,
           sourceCode,
@@ -219,6 +219,7 @@ const Output = ({
         const percentagePassed = (passedTests / totalTests) * 100;
 
         // Get marks from contest question and calculate obtained marks
+        if (type == "contest") {
         const marks = contest?.contestQuestions.find(
           (que) => que.questionId == questionId
         );

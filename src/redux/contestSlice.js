@@ -23,6 +23,8 @@ export const fetchContests = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await axiosInstance.get("/contests");
+      console.log("response: ", response.data);
+
       return response.data;
     } catch (error) {
       // Useful for debugging
@@ -35,9 +37,12 @@ export const fetchContests = createAsyncThunk(
 export const fetchContestsByStudent = createAsyncThunk(
   "contests/fetchContestsByStudent",
   async (studentId, { rejectWithValue }) => {
-    console.log('studentId: ', studentId);
+    console.log("studentId: ", studentId);
     try {
-      const response = await axiosInstance.get(`/contests/student/${studentId}`);
+      const response = await axiosInstance.get(
+        `/contests/student/${studentId}`
+      );
+      console.log("response: ", response.data);
 
       return response.data;
     } catch (error) {
@@ -197,6 +202,5 @@ export const contestSlice = createSlice({
       });
   },
 });
-
 
 export const contestReducer = contestSlice.reducer;
