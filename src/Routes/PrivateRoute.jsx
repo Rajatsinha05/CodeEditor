@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { useSelector } from "react-redux";
-import { Navigate, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Spinner, Center } from "@chakra-ui/react";
 
 const PrivateRoute = ({ children }) => {
@@ -10,7 +10,7 @@ const PrivateRoute = ({ children }) => {
   // Redirect to the login page if not authenticated
   useEffect(() => {
     if (!loading && !isLogin) {
-      return <Navigate to="/login" state={{ from: location }} replace />;
+      navigate("/login");
     }
   }, [loading, isLogin, navigate]);
 
