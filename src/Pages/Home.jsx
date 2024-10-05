@@ -20,6 +20,7 @@ const Home = () => {
   const [selectedContest, setSelectedContest] = useState(null);
   const [loading, setLoading] = useState(true); // Loading state
 
+  // Get the user and contests from the Redux store
   const { user, contests, isFetched } = useSelector((store) => ({
     user: store.data.user,
     contests: store.contest.contests,
@@ -29,7 +30,7 @@ const Home = () => {
   // Fetch contests only if they haven't been fetched yet
   useEffect(() => {
     if (!isFetched) {
-      if (user.role === "STUDENT") {
+      if (user?.role === "STUDENT") {
         dispatch(fetchContestsByStudent(user.id));
       } else {
         dispatch(fetchContests());
@@ -100,6 +101,7 @@ const Home = () => {
           isOpen={isOpen}
           onClose={onClose}
           contest={selectedContest}
+          user={user} // Pass the user object to the StartContestModal component
           onProceed={() => navigate(`/contest/${selectedContest.id}`)}
         />
       )}

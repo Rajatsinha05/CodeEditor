@@ -30,6 +30,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { createStudent, getsolvedQuestions } from "../redux/apiSlice";
 import StudentStats from "../components/StudentStats";
 import * as XLSX from "xlsx"; // Import to handle Excel files
+import Rankings from "../components/Ranking/Rankings ";
 
 // To install the required npm packages:
 // npm install xlsx
@@ -240,6 +241,14 @@ const Profile = () => {
             <TabPanel>
               <Heading size="lg">Welcome, {user.name}</Heading>
             </TabPanel>
+            <TabPanel>
+              <TabPanel>
+                <VStack spacing={4}>
+                  <Heading size="md">Ranking</Heading>
+                  <Rankings /> {/* Add this line to display the ranking data */}
+                </VStack>
+              </TabPanel>
+            </TabPanel>
             {isStudent && (
               <TabPanel>
                 <StudentStats student={{ ...user, solvedQuestions }} />
@@ -318,7 +327,7 @@ const Profile = () => {
           <DrawerOverlay />
           <DrawerContent bg={sidebarBgColor} color={textColor}>
             <DrawerCloseButton />
-            <DrawerHeader color={primaryColor}>Admin Dashboard</DrawerHeader>
+            <DrawerHeader color={primaryColor}>Dashboard</DrawerHeader>
             <DrawerBody>
               <VStack align="start" spacing={4}>
                 {isAdmin && (
@@ -475,6 +484,11 @@ const Profile = () => {
                   )}
                 </VStack>
               )}
+            </TabPanel>
+            <TabPanel>
+              <VStack spacing={4}>
+                <Heading size="md">Ranking</Heading>
+              </VStack>
             </TabPanel>
             <TabPanel>
               {isSuperAdmin && (

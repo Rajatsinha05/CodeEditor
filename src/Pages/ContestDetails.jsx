@@ -1,43 +1,54 @@
 import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams, useNavigate } from "react-router-dom";
-import { Box, Text, useColorMode } from "@chakra-ui/react";
+import { Box, useColorMode } from "@chakra-ui/react";
 import { groupBy } from "lodash";
 
 // Redux Actions
 import { getContestById } from "../redux/contestSlice";
 import { fetchSolvedQuestionsByContestId } from "../redux/QuestionSolvedSplice";
-
-// Components
+import { fetchContestAttemptsByContestId } from "../redux/contestAttemptSlice";
+import CustomCreativeSpinner from "../components/CustomCreativeSpinner";
 import ContestHeader from "../components/ContestHeader";
 import ContestDetailsSection from "../components/ContestDetailsSection";
-import ContestQuestions from "../components/ContestQuestions";
-import StudentRankings from "../components/StudentRankings";
+import ContestAttemptingDetails from "../components/Home/ContestAttemptingDetails ";
 import EnrolledStudents from "../components/EnrolledStudents";
-import CustomCreativeSpinner from "../components/CustomCreativeSpinner";
+import StudentRankings from "../components/StudentRankings";
+import ContestQuestions from "../components/ContestQuestions";
+// Components
 
 const ContestDetails = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { colorMode } = useColorMode();
-  const [elapsedTime, setElapsedTime] = useState({});
-  const [showSpinner, setShowSpinner] = useState(true); // New state to manage spinner visibility
+  const [showSpinner, setShowSpinner] = useState(true);
 
   // Combined selector to access the necessary store data in one go
-  const { solvedQuestions, contest, user, solvedLoading, contestLoading } = useSelector((store) => ({
+  const {
+    solvedQuestions,
+    contest,
+    user,
+    contestAttempts,
+    solvedLoading,
+    contestLoading,
+    attemptsLoading,
+  } = useSelector((store) => ({
     solvedQuestions: store.solved.solvedQuestions,
     contest: store.contest.contest,
     user: store.data.user,
+    contestAttempts: store.contestAttempt.contestAttempts,
     solvedLoading: store.solved.loading,
     contestLoading: store.contest.loading,
+    attemptsLoading: store.contestAttempt.loading.fetchAll,
   }));
 
-  // Fetch contest data and solved questions only if `id` changes
+  // Fetch contest data, solved questions, and contest attempts
   useEffect(() => {
     if (id) {
       dispatch(fetchSolvedQuestionsByContestId(id));
       dispatch(getContestById(id));
+      dispatch(fetchContestAttemptsByContestId(id));
     }
   }, [dispatch, id]);
 
@@ -52,7 +63,7 @@ const ContestDetails = () => {
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowSpinner(false);
-    }, 1500); // Show spinner for 2 seconds
+    }, 1500); // Show spinner for 1.5 seconds
 
     return () => clearTimeout(timer);
   }, []);
@@ -73,16 +84,8 @@ const ContestDetails = () => {
     return rankings.sort((a, b) => b.totalMarks - a.totalMarks);
   }, [solvedQuestions]);
 
-  // Memoize elapsedTime setter function to avoid unnecessary re-renders of child components
-  const handleSetElapsedTime = useCallback((questionId, startTime) => {
-    setElapsedTime((prev) => ({
-      ...prev,
-      [questionId]: startTime,
-    }));
-  }, []);
-
   // Show spinner initially or if the contest is still loading
-  if (showSpinner || contestLoading) {
+  if (showSpinner || contestLoading || attemptsLoading) {
     return <CustomCreativeSpinner />;
   }
 
@@ -102,7 +105,6 @@ const ContestDetails = () => {
         solvedQuestions={solvedQuestions}
         user={user}
         colorMode={colorMode}
-        setElapsedTime={handleSetElapsedTime}
       />
       <StudentRankings
         studentRankings={studentRankings}
@@ -111,7 +113,10 @@ const ContestDetails = () => {
         colorMode={colorMode}
       />
       {(user.role === "ADMIN" || user.role === "SUPERADMIN") && (
-        <EnrolledStudents contest={contest} colorMode={colorMode} />
+        <>
+          <ContestAttemptingDetails contestAttempts={contestAttempts} />
+          <EnrolledStudents contest={contest} colorMode={colorMode} />
+        </>
       )}
     </Box>
   );

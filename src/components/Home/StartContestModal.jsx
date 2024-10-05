@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Modal,
   ModalOverlay,
@@ -15,13 +15,50 @@ import {
   Icon,
   HStack,
   VStack,
+  Spinner,
+  Alert,
+  AlertIcon,
 } from "@chakra-ui/react";
 import { CalendarIcon, InfoOutlineIcon } from "@chakra-ui/icons";
 import { FaFlagCheckered } from "react-icons/fa";
 import { MdEventAvailable, MdRule } from "react-icons/md";
 import dayjs from "dayjs";
+import { useDispatch } from "react-redux";
+import { startContestAttempt } from "../../redux/contestAttemptSlice";
+import { useNavigate } from "react-router-dom";
 
-const StartContestModal = ({ isOpen, onClose, contest, onProceed }) => {
+const StartContestModal = ({ isOpen, onClose, contest, user }) => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const handleProceed = async () => {
+    setLoading(true);
+    setError(null);
+
+    console.log("Starting contest with:", {
+      contestId: contest.id,
+      studentId: user.id,
+    });
+
+    try {
+      const resultAction = await dispatch(
+        startContestAttempt({ contestId: contest.id, studentId: user.id })
+      ).unwrap();
+
+      console.log("Contest started successfully:", resultAction);
+      onClose(); // Close the modal after success
+      navigate(`/contest/${contest.id}`); // Redirect to contest details page
+    } catch (err) {
+      navigate(`/contest/${contest.id}`);
+      console.error("Failed to start contest attempt:", err);
+      setError(err.message || "An unexpected error occurred.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
       <ModalOverlay />
@@ -47,13 +84,16 @@ const StartContestModal = ({ isOpen, onClose, contest, onProceed }) => {
           </HStack>
           <VStack align="start" spacing={2}>
             <Text fontSize="sm">
-              <Icon as={CalendarIcon} mr={2} color="teal.500" /> Start Time: {dayjs(contest.startTime).format("YYYY-MM-DD hh:mm A")}
+              <Icon as={CalendarIcon} mr={2} color="teal.500" /> Start Time:{" "}
+              {dayjs(contest.startTime).format("YYYY-MM-DD hh:mm A")}
             </Text>
             <Text fontSize="sm">
-              <Icon as={FaFlagCheckered} mr={2} color="red.500" /> End Time: {dayjs(contest.endTime).format("YYYY-MM-DD hh:mm A")}
+              <Icon as={FaFlagCheckered} mr={2} color="red.500" /> End Time:{" "}
+              {dayjs(contest.endTime).format("YYYY-MM-DD hh:mm A")}
             </Text>
             <Text fontSize="sm">
-              <Icon as={MdEventAvailable} mr={2} color="cyan.500" /> Participation: Open to all registered students
+              <Icon as={MdEventAvailable} mr={2} color="cyan.500" />{" "}
+              Participation: Open to all registered students
             </Text>
           </VStack>
           <Divider my={4} />
@@ -66,19 +106,33 @@ const StartContestModal = ({ isOpen, onClose, contest, onProceed }) => {
           <VStack align="start" spacing={2} pl={6}>
             <Text fontSize="sm">1. Be respectful to other participants.</Text>
             <Text fontSize="sm">2. Do not engage in any form of cheating.</Text>
-            <Text fontSize="sm">3. Complete the contest within the given time frame.</Text>
-            <Text fontSize="sm">4. Do not close the browser during the contest.</Text>
+            <Text fontSize="sm">
+              3. Complete the contest within the given time frame.
+            </Text>
+            <Text fontSize="sm">
+              4. Do not close the browser during the contest.
+            </Text>
           </VStack>
           <Divider my={4} />
           <Text fontSize="md" fontWeight="bold" color="teal.500" mt={4}>
             Good Luck!
           </Text>
+          {error && (
+            <Alert status="error" mt={4}>
+              <AlertIcon />
+              {error}
+            </Alert>
+          )}
         </ModalBody>
         <ModalFooter>
-          <Button colorScheme="teal" onClick={onProceed}>
-            Proceed
+          <Button
+            colorScheme="teal"
+            onClick={handleProceed}
+            isDisabled={loading}
+          >
+            {loading ? <Spinner size="sm" /> : "Proceed"}
           </Button>
-          <Button variant="ghost" onClick={onClose} ml={3}>
+          <Button variant="ghost" onClick={onClose} ml={3} isDisabled={loading}>
             Cancel
           </Button>
         </ModalFooter>
