@@ -34,23 +34,23 @@ const Sidebar = ({ isAdmin, isSuperAdmin }) => {
           Admin Dashboard
         </Heading>
         <VStack align="start" spacing={4}>
-          {(isAdmin || isSuperAdmin) && (
-            <>
-              <Button
-                w="full"
-                colorScheme="blue"
-                onClick={() => handleOpenModal("user")}
-              >
-                Create User
-              </Button>
-              <Button
-                w="full"
-                colorScheme="blue"
-                onClick={() => handleOpenModal("student")}
-              >
-                Create Student
-              </Button>
-            </>
+          {isSuperAdmin && (
+            <Button
+              w="full"
+              colorScheme="blue"
+              onClick={() => handleOpenModal("user")}
+            >
+              Create User
+            </Button>
+          )}
+          {isAdmin && (
+            <Button
+              w="full"
+              colorScheme="blue"
+              onClick={() => handleOpenModal("student")}
+            >
+              Create Student
+            </Button>
           )}
         </VStack>
       </Box>

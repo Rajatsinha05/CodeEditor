@@ -13,15 +13,18 @@ import Rankings from "./Rankings";
 import Students from "./Students";
 import Users from "./Users";
 
-const ProfileTabs = ({ user, isAdmin, isSuperAdmin }) => {
+const ProfileTabs = ({ user }) => {
+  const isAdmin = user?.role === "ADMIN";
+  const isSuperAdmin = user?.role === "SUPERADMIN";
+
   return (
     <Tabs colorScheme="blue">
       <TabList>
         <Tab>Profile</Tab>
         {(isAdmin || isSuperAdmin) && <Tab>Rankings</Tab>}
         {user?.role === "STUDENT" && <Tab>Stats</Tab>}
-        <Tab>Students</Tab>
-        {isSuperAdmin && <Tab>Users</Tab>}
+        {(isAdmin || isSuperAdmin) && <Tab>Students</Tab>}
+        {(isAdmin || isSuperAdmin) && <Tab>Users</Tab>}
       </TabList>
       <TabPanels>
         {/* Profile Tab */}
@@ -46,20 +49,22 @@ const ProfileTabs = ({ user, isAdmin, isSuperAdmin }) => {
           </TabPanel>
         )}
 
-        {/* Students Management Tab */}
-        <TabPanel>
-          <VStack spacing={4}>
-            <Heading size="md">Students Management</Heading>
-            <Students branchCode={isAdmin ? user.branchCode : ""} />
-          </VStack>
-        </TabPanel>
+        {/* Students Management Tab for Admins and Superadmins */}
+        {(isAdmin || isSuperAdmin) && (
+          <TabPanel>
+            <VStack spacing={4}>
+              <Heading size="md">Students Management</Heading>
+              <Students branchCode={isAdmin ? user.branchCode : "SUPERADMIN"} />
+            </VStack>
+          </TabPanel>
+        )}
 
-        {/* Users Management Tab for Superadmins */}
-        {isSuperAdmin && (
+        {/* Users Management Tab for Admins and Superadmins */}
+        {(isAdmin || isSuperAdmin) && (
           <TabPanel>
             <VStack spacing={4}>
               <Heading size="md">Users Management</Heading>
-              <Users branchCode={isAdmin ? user.branchCode : ""} />
+              <Users branchCode={isAdmin ? user.branchCode : "SUPERADMIN"} />
             </VStack>
           </TabPanel>
         )}

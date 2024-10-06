@@ -11,7 +11,6 @@ import {
   Th,
   Td,
   TableContainer,
-  Button,
   Select,
   Flex,
   Text,
@@ -22,7 +21,7 @@ import { ArrowUpIcon, ArrowDownIcon } from "@chakra-ui/icons";
 import { FaSortAlphaDown, FaSortAlphaUpAlt } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
-const Students = () => {
+const Students = ({ branchCode }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { students } = useSelector((store) => store.data);
@@ -43,13 +42,22 @@ const Students = () => {
 
   // Filter and sort students
   const filteredStudents = students
+    .filter((student) => {
+      // If branchCode is "SUPERADMIN", allow filtering by branch code
+      if (branchCode === "SUPERADMIN") {
+        return branchFilter ? student.branchCode === branchFilter : true;
+      }
+      // For admins, filter by their specific branch code
+      return student.branchCode === branchCode;
+    })
     .filter(
       (student) =>
         student.name.toLowerCase().includes(search.toLowerCase()) ||
         student.email.toLowerCase().includes(search.toLowerCase())
     )
-    .filter((student) => (courseFilter ? student.course === courseFilter : true))
-    .filter((student) => (branchFilter ? student.branchCode === branchFilter : true))
+    .filter((student) =>
+      courseFilter ? student.course === courseFilter : true
+    )
     .sort((a, b) => {
       if (!sortOrder.key) return 0;
       if (sortOrder.order === "asc") {
@@ -73,7 +81,14 @@ const Students = () => {
   };
 
   return (
-    <Box p={5} borderWidth="1px" borderRadius="lg" bg={bgColor} color={textColor} boxShadow="lg">
+    <Box
+      p={5}
+      borderWidth="1px"
+      borderRadius="lg"
+      bg={bgColor}
+      color={textColor}
+      boxShadow="lg"
+    >
       <Text fontSize="2xl" mb={4} fontWeight="bold">
         Students Management
       </Text>
@@ -105,24 +120,28 @@ const Students = () => {
           <option value="frontend Developer">Frontend Developer</option>
           <option value="C">C</option>
         </Select>
-        <Select
-          placeholder="Filter by branch"
-          value={branchFilter}
-          onChange={(e) => setBranchFilter(e.target.value)}
-          width="20%"
-          bg={tableBgColor}
-          borderRadius="md"
-          boxShadow="sm"
-        >
-          <option value="rw1">Branch RW1</option>
-          <option value="rw2">Branch RW2</option>
-          <option value="rw3">Branch RW3</option>
-          <option value="rw4">Branch RW4</option>
-          <option value="rw5">Branch RW5</option>
-          <option value="rw6">Branch RW6</option>
-          <option value="rw7">Branch RW7</option>
-          <option value="rw8">Branch RW8</option>
-        </Select>
+
+        {/* Branch filter visible only to SUPERADMIN */}
+        {branchCode === "SUPERADMIN" && (
+          <Select
+            placeholder="Filter by branch"
+            value={branchFilter}
+            onChange={(e) => setBranchFilter(e.target.value)}
+            width="20%"
+            bg={tableBgColor}
+            borderRadius="md"
+            boxShadow="sm"
+          >
+            <option value="rw1">Branch RW1</option>
+            <option value="rw2">Branch RW2</option>
+            <option value="rw3">Branch RW3</option>
+            <option value="rw4">Branch RW4</option>
+            <option value="rw5">Branch RW5</option>
+            <option value="rw6">Branch RW6</option>
+            <option value="rw7">Branch RW7</option>
+            <option value="rw8">Branch RW8</option>
+          </Select>
+        )}
       </Flex>
 
       {/* Students Table */}
@@ -136,7 +155,13 @@ const Students = () => {
                   size="xs"
                   ml={2}
                   onClick={() => handleSort("id")}
-                  icon={sortOrder.key === "id" && sortOrder.order === "asc" ? <ArrowUpIcon /> : <ArrowDownIcon />}
+                  icon={
+                    sortOrder.key === "id" && sortOrder.order === "asc" ? (
+                      <ArrowUpIcon />
+                    ) : (
+                      <ArrowDownIcon />
+                    )
+                  }
                   variant="ghost"
                   colorScheme="teal"
                   _hover={{ bg: hoverColor }}
@@ -148,7 +173,13 @@ const Students = () => {
                   size="xs"
                   ml={2}
                   onClick={() => handleSort("name")}
-                  icon={sortOrder.key === "name" && sortOrder.order === "asc" ? <FaSortAlphaUpAlt /> : <FaSortAlphaDown />}
+                  icon={
+                    sortOrder.key === "name" && sortOrder.order === "asc" ? (
+                      <FaSortAlphaUpAlt />
+                    ) : (
+                      <FaSortAlphaDown />
+                    )
+                  }
                   variant="ghost"
                   colorScheme="teal"
                   _hover={{ bg: hoverColor }}
@@ -162,7 +193,13 @@ const Students = () => {
                   size="xs"
                   ml={2}
                   onClick={() => handleSort("course")}
-                  icon={sortOrder.key === "course" && sortOrder.order === "asc" ? <ArrowUpIcon /> : <ArrowDownIcon />}
+                  icon={
+                    sortOrder.key === "course" && sortOrder.order === "asc" ? (
+                      <ArrowUpIcon />
+                    ) : (
+                      <ArrowDownIcon />
+                    )
+                  }
                   variant="ghost"
                   colorScheme="teal"
                   _hover={{ bg: hoverColor }}

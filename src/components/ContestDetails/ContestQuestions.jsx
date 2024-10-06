@@ -1,24 +1,39 @@
 import React from "react";
-import { Box, VStack, Text, HStack, Button, Icon, Badge, Tooltip } from "@chakra-ui/react";
+import {
+  Box,
+  VStack,
+  Text,
+  HStack,
+  Button,
+  Badge,
+  Tooltip,
+} from "@chakra-ui/react";
 import { ArrowForwardIcon } from "@chakra-ui/icons";
-import { MdTimer, MdCheckCircle, MdWarning, MdError } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
 
-const ContestQuestions = ({ contest, solvedQuestions, user, colorMode, setElapsedTime }) => {
+const ContestQuestions = ({
+  contest,
+  solvedQuestions,
+  user,
+  colorMode,
+  setElapsedTime,
+}) => {
   const navigate = useNavigate(); // Create the navigate function here
 
   const handleAttemptQuestion = (questionId) => {
-    const startTime = new Date();
-    setElapsedTime((prev) => ({
-      ...prev,
-      [questionId]: startTime,
-    }));
+   
+
     navigate(`/contest/${contest.id}/attempt/${questionId}`); // Use the navigate function
   };
 
   return (
     <Box my={6}>
-      <Text fontSize="lg" fontWeight="semibold" mb={4} color={colorMode === "light" ? "teal.600" : "teal.300"}>
+      <Text
+        fontSize="lg"
+        fontWeight="semibold"
+        mb={4}
+        color={colorMode === "light" ? "teal.600" : "teal.300"}
+      >
         Questions
       </Text>
       <VStack spacing={4} align="stretch">
@@ -99,7 +114,10 @@ const ContestQuestions = ({ contest, solvedQuestions, user, colorMode, setElapse
                     </Badge>
                   )}
 
-                  <Tooltip label="Attempt Question" aria-label="Attempt Question">
+                  <Tooltip
+                    label="Attempt Question"
+                    aria-label="Attempt Question"
+                  >
                     <Button
                       size="sm"
                       colorScheme="teal"

@@ -11,7 +11,6 @@ import {
   Th,
   Td,
   TableContainer,
-  Button,
   Select,
   Flex,
   Text,
@@ -22,7 +21,7 @@ import { ArrowUpIcon, ArrowDownIcon } from "@chakra-ui/icons";
 import { FaSortAlphaDown, FaSortAlphaUpAlt } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
-const Users = () => {
+const Users = ({ branchCode }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { users } = useSelector((store) => store.data);
@@ -43,6 +42,12 @@ const Users = () => {
 
   // Filter and sort users
   const filteredUsers = users
+    .filter((user) => {
+      if (branchCode === "SUPERADMIN") {
+        return true; // Show all users for SUPERADMIN
+      }
+      return user.branchCode === branchCode; // Only show users with the same branch code
+    })
     .filter(
       (user) =>
         user.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -51,7 +56,11 @@ const Users = () => {
     .filter((user) =>
       departmentFilter ? user.department === departmentFilter : true
     )
-    .filter((user) => (branchFilter ? user.branchCode === branchFilter : true))
+    .filter((user) =>
+      branchCode === "SUPERADMIN" && branchFilter
+        ? user.branchCode === branchFilter
+        : true
+    )
     .sort((a, b) => {
       if (!sortOrder.key) return 0;
       if (sortOrder.order === "asc") {
@@ -118,24 +127,26 @@ const Users = () => {
           <option value="UI/UX Design">UI/UX Design</option>
           <option value="Project Management">Project Management</option>
         </Select>
-        <Select
-          placeholder="Filter by branch"
-          value={branchFilter}
-          onChange={(e) => setBranchFilter(e.target.value)}
-          width="20%"
-          bg={tableBgColor}
-          borderRadius="md"
-          boxShadow="sm"
-        >
-          <option value="rw1">Branch RW1</option>
-          <option value="rw2">Branch RW2</option>
-          <option value="rw3">Branch RW3</option>
-          <option value="rw4">Branch RW4</option>
-          <option value="rw5">Branch RW5</option>
-          <option value="rw6">Branch RW6</option>
-          <option value="rw7">Branch RW7</option>
-          <option value="rw8">Branch RW8</option>
-        </Select>
+        {branchCode === "SUPERADMIN" && (
+          <Select
+            placeholder="Filter by branch"
+            value={branchFilter}
+            onChange={(e) => setBranchFilter(e.target.value)}
+            width="20%"
+            bg={tableBgColor}
+            borderRadius="md"
+            boxShadow="sm"
+          >
+            <option value="rw1">Branch RW1</option>
+            <option value="rw2">Branch RW2</option>
+            <option value="rw3">Branch RW3</option>
+            <option value="rw4">Branch RW4</option>
+            <option value="rw5">Branch RW5</option>
+            <option value="rw6">Branch RW6</option>
+            <option value="rw7">Branch RW7</option>
+            <option value="rw8">Branch RW8</option>
+          </Select>
+        )}
       </Flex>
 
       {/* Users Table */}
