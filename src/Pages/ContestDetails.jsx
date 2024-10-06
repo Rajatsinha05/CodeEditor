@@ -8,13 +8,14 @@ import { groupBy } from "lodash";
 import { getContestById } from "../redux/contestSlice";
 import { fetchSolvedQuestionsByContestId } from "../redux/QuestionSolvedSplice";
 import { fetchContestAttemptsByContestId } from "../redux/contestAttemptSlice";
-import CustomCreativeSpinner from "../components/CustomCreativeSpinner";
-import ContestHeader from "../components/ContestHeader";
-import ContestDetailsSection from "../components/ContestDetailsSection";
-import ContestAttemptingDetails from "../components/Home/ContestAttemptingDetails ";
-import EnrolledStudents from "../components/EnrolledStudents";
-import StudentRankings from "../components/StudentRankings";
-import ContestQuestions from "../components/ContestQuestions";
+import CustomCreativeSpinner from "../components/Spinner/CustomCreativeSpinner";
+import ContestHeader from "../components/ContestDetails/ContestHeader";
+import ContestDetailsSection from "../components/ContestDetails/ContestDetailsSection";
+import ContestQuestions from "../components/ContestDetails/ContestQuestions";
+import StudentRankings from "../components/ContestDetails/StudentRankings";
+import EnrolledStudents from "../components/ContestDetails/EnrolledStudents";
+import ContestAttemptingDetails from "../components/ContestDetails/ContestAttemptingDetails ";
+
 // Components
 
 const ContestDetails = () => {

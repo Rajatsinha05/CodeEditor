@@ -113,6 +113,7 @@ export const login = createAsyncThunk(
   }
 );
 
+
 // Async thunk for getting students
 export const getStudents = createAsyncThunk(
   "api/getStudents",
@@ -127,6 +128,8 @@ export const getStudents = createAsyncThunk(
     }
   }
 );
+
+// Async thunk for getting students
 
 // Async thunk to create a new student
 export const createStudent = createAsyncThunk(
@@ -167,7 +170,7 @@ export const createUser = createAsyncThunk(
   "api/createUser",
   async (user, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.post("/users/signup", user);
+      const response = await axiosInstance.post("/users/createUser", user);
       return response.data;
     } catch (error) {
       return rejectWithValue(
