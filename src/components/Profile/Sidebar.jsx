@@ -1,7 +1,8 @@
 import React from "react";
 import { Box, Heading, VStack, Button } from "@chakra-ui/react";
 import { useColorModeValue, useDisclosure } from "@chakra-ui/react";
-import CreateUserStudentModal from "./CreateUserStudentModal";
+import CreateUserModal from "./CreateUserModal";
+import CreateStudentModal from "./CreateStudentModal";
 
 const Sidebar = ({ isAdmin, isSuperAdmin }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -35,10 +36,18 @@ const Sidebar = ({ isAdmin, isSuperAdmin }) => {
         <VStack align="start" spacing={4}>
           {(isAdmin || isSuperAdmin) && (
             <>
-              <Button w="full" colorScheme="blue" onClick={() => handleOpenModal("user")}>
+              <Button
+                w="full"
+                colorScheme="blue"
+                onClick={() => handleOpenModal("user")}
+              >
                 Create User
               </Button>
-              <Button w="full" colorScheme="blue" onClick={() => handleOpenModal("student")}>
+              <Button
+                w="full"
+                colorScheme="blue"
+                onClick={() => handleOpenModal("student")}
+              >
                 Create Student
               </Button>
             </>
@@ -46,12 +55,13 @@ const Sidebar = ({ isAdmin, isSuperAdmin }) => {
         </VStack>
       </Box>
 
-      {/* Modal for Creating User/Student */}
-      <CreateUserStudentModal
-        isOpen={isOpen}
-        onClose={onClose}
-        formType={formType}
-      />
+      {/* Modal for Creating User or Student */}
+      {formType === "user" && (
+        <CreateUserModal isOpen={isOpen} onClose={onClose} />
+      )}
+      {formType === "student" && (
+        <CreateStudentModal isOpen={isOpen} onClose={onClose} />
+      )}
     </>
   );
 };

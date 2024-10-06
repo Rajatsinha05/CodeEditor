@@ -78,17 +78,16 @@ const ExcelUpload = ({ setCreateButtonVisible, setUploadedData }) => {
         </Button>
       </Tooltip>
       <Tooltip label="Upload Excel File" aria-label="Upload Excel Tooltip">
-        <Button as="label" colorScheme="blue" leftIcon={<FaUpload />}>
-          Upload File
+        <Button colorScheme="blue" leftIcon={<FaUpload />}>
           <Input
             type="file"
             accept=".xlsx, .xls"
             onChange={handleFileUpload}
             position="absolute"
             opacity="0"
-            top="0"
-            left="0"
+            aria-hidden="true"
           />
+          Upload File
         </Button>
       </Tooltip>
     </HStack>

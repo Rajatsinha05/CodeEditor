@@ -18,12 +18,12 @@ import {
   useToast,
 } from "@chakra-ui/react";
 import { FaFileExcel, FaPlusCircle } from "react-icons/fa";
-import CreateForm from "./CreateForm";
-import ExcelUpload from "./ExcelUpload";
 import { useDispatch } from "react-redux";
 import { createStudent } from "../../redux/apiSlice";
+import CreateStudentForm from "./CreateStudentForm";
+import ExcelUpload from "./ExcelUpload";
 
-const CreateUserStudentModal = ({ isOpen, onClose, formType }) => {
+const CreateStudentModal = ({ isOpen, onClose }) => {
   const [studentData, setStudentData] = useState({
     name: "",
     email: "",
@@ -37,7 +37,6 @@ const CreateUserStudentModal = ({ isOpen, onClose, formType }) => {
   const dispatch = useDispatch();
   const toast = useToast();
 
-  // Theme Colors
   const modalBgColor = useColorModeValue("white", "gray.800");
   const headerTextColor = useColorModeValue("blue.600", "blue.300");
   const footerBgColor = useColorModeValue("gray.100", "gray.700");
@@ -64,42 +63,29 @@ const CreateUserStudentModal = ({ isOpen, onClose, formType }) => {
       });
       return;
     }
-  
+
     try {
-      await dispatch(createStudent(studentData)).unwrap(); // unwrap to get the error response
+      await dispatch(createStudent(studentData)).unwrap();
       toast({
-        title: `${formType === "user" ? "User" : "Student"} created successfully.`,
+        title: "Student created successfully.",
         status: "success",
         duration: 3000,
         isClosable: true,
       });
-      onClose(); // Close the modal after successful creation
+      onClose();
     } catch (error) {
-      if (error.response && error.response.data) {
-        // Check if the error response contains specific information about duplicates
-        const errorMessage = error.response.data.message;
-  
-        if (errorMessage && (errorMessage.includes("email already exists") || errorMessage.includes("grid already exists"))) {
-          toast({
-            title: "Duplicate Entry",
-            description: "A student with the same email or grid already exists. Please use a different value.",
-            status: "error",
-            duration: 5000,
-            isClosable: true,
-          });
-        } else {
-          toast({
-            title: "Error",
-            description: "An error occurred while creating the student. Please try again.",
-            status: "error",
-            duration: 3000,
-            isClosable: true,
-          });
-        }
+      if (error.response && error.response.data.message.includes("email already exists")) {
+        toast({
+          title: "Duplicate Entry",
+          description: "A student with the same email already exists. Please use a different email.",
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        });
       } else {
         toast({
           title: "Error",
-          description: "An unexpected error occurred. Please try again.",
+          description: "An error occurred while creating the student. Please try again.",
           status: "error",
           duration: 3000,
           isClosable: true,
@@ -108,7 +94,7 @@ const CreateUserStudentModal = ({ isOpen, onClose, formType }) => {
       console.error("Error creating student:", error);
     }
   };
-  
+
   const handleBulkCreate = async () => {
     if (uploadedData.length === 0) {
       toast({
@@ -120,7 +106,7 @@ const CreateUserStudentModal = ({ isOpen, onClose, formType }) => {
       });
       return;
     }
-  
+
     try {
       const promises = uploadedData.map(async (student) => {
         try {
@@ -128,7 +114,7 @@ const CreateUserStudentModal = ({ isOpen, onClose, formType }) => {
         } catch (error) {
           if (error.response && error.response.data) {
             const errorMessage = error.response.data.message;
-  
+
             if (errorMessage && (errorMessage.includes("email already exists") || errorMessage.includes("grid already exists"))) {
               toast({
                 title: `Duplicate Entry for ${student.email}`,
@@ -145,9 +131,9 @@ const CreateUserStudentModal = ({ isOpen, onClose, formType }) => {
           }
         }
       });
-  
+
       await Promise.all(promises);
-  
+
       toast({
         title: "Bulk Upload Complete",
         description: "All valid students have been created successfully.",
@@ -155,7 +141,7 @@ const CreateUserStudentModal = ({ isOpen, onClose, formType }) => {
         duration: 3000,
         isClosable: true,
       });
-      onClose(); // Close the modal after successful creation
+      onClose();
     } catch (error) {
       toast({
         title: "Error Creating Students",
@@ -167,13 +153,13 @@ const CreateUserStudentModal = ({ isOpen, onClose, formType }) => {
       console.error("Error creating students:", error);
     }
   };
-  
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="2xl">
       <ModalOverlay />
       <ModalContent bg={modalBgColor}>
         <ModalHeader color={headerTextColor} textAlign="center">
-          {formType === "user" ? "Create User" : "Create Student"}
+          Create Student
         </ModalHeader>
         <ModalCloseButton />
         <ModalBody>
@@ -191,14 +177,10 @@ const CreateUserStudentModal = ({ isOpen, onClose, formType }) => {
             {/* Create Form Section */}
             <Box>
               <Heading size="md" mb={2} color={headerTextColor}>
-                Create {formType === "user" ? "User" : "Student"} Manually
+                Create Student Manually
               </Heading>
               <Divider mb={4} />
-              <CreateForm
-                formType={formType}
-                studentData={studentData}
-                setStudentData={setStudentData}
-              />
+              <CreateStudentForm studentData={studentData} setStudentData={setStudentData} />
             </Box>
           </VStack>
         </ModalBody>
@@ -210,7 +192,7 @@ const CreateUserStudentModal = ({ isOpen, onClose, formType }) => {
                 leftIcon={<FaPlusCircle />}
                 onClick={handleCreate}
               >
-                Create {formType === "user" ? "User" : "Student"}
+                Create Student
               </Button>
             </Tooltip>
             {isCreateButtonVisible && (
@@ -237,4 +219,4 @@ const CreateUserStudentModal = ({ isOpen, onClose, formType }) => {
   );
 };
 
-export default CreateUserStudentModal;
+export default CreateStudentModal;
