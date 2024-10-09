@@ -21,10 +21,10 @@ const ContestQuestions = ({
   const navigate = useNavigate(); // Create the navigate function here
 
   const handleAttemptQuestion = (questionId) => {
-   
-
     navigate(`/contest/${contest.id}/attempt/${questionId}`); // Use the navigate function
   };
+  
+  
 
   return (
     <Box my={6}>

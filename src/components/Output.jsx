@@ -26,6 +26,7 @@ import {
   saveOrUpdateSolvedQuestion,
   updateObtainedMarks,
 } from "../redux/QuestionSolvedSplice";
+import { MdTimer } from "react-icons/md";
 
 const Output = ({
   editorRef,
@@ -52,11 +53,40 @@ const Output = ({
   const [testResults, setTestResults] = useState([]);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [token, setToken] = useState("");
+  const [remainingTime, setRemainingTime] = useState("");
 
   useEffect(() => {
     const fetchedToken = Cookie.get("token");
     setToken(fetchedToken || "");
   }, []);
+
+  // Timer logic
+  useEffect(() => {
+    if (contest?.endTime) {
+      const calculateRemainingTime = () => {
+        const endTime = new Date(contest.endTime).getTime();
+        const currentTime = new Date().getTime();
+        const difference = endTime - currentTime;
+
+        if (difference <= 0) {
+          setRemainingTime("Contest Ended");
+          return;
+        }
+
+        const hours = Math.floor((difference / (1000 * 60 * 60)) % 24);
+        const minutes = Math.floor((difference / (1000 * 60)) % 60);
+        const seconds = Math.floor((difference / 1000) % 60);
+
+        setRemainingTime(
+          `${hours > 0 ? `${hours}h ` : ""}${minutes}m ${seconds}s`
+        );
+      };
+
+      const interval = setInterval(calculateRemainingTime, 1000);
+
+      return () => clearInterval(interval); // Clean up interval on unmount
+    }
+  }, [contest?.endTime]);
 
   const handleInputChange = useCallback((e) => {
     setInput(e.target.value);
@@ -183,48 +213,38 @@ const Output = ({
     setOutput(null);
 
     try {
-     
-        const result = await executeCode(
-          language,
-          sourceCode,
-          inputData.trim()
-        );
-        const resultOutput =
-          result.output?.split("\n").filter((line) => line.trim() !== "") || [];
+      const result = await executeCode(language, sourceCode, inputData.trim());
+      const resultOutput =
+        result.output?.split("\n").filter((line) => line.trim() !== "") || [];
 
-        setOutput(resultOutput);
+      setOutput(resultOutput);
 
-        const expectedOutputs = expectedOutput
-          .split("\n")
-          .filter((line) => line.trim() !== "");
+      const expectedOutputs = expectedOutput
+        .split("\n")
+        .filter((line) => line.trim() !== "");
 
-        // Ensure both arrays have the same length
-        const totalTests = Math.max(
-          resultOutput.length,
-          expectedOutputs.length
-        );
+      // Ensure both arrays have the same length
+      const totalTests = Math.max(resultOutput.length, expectedOutputs.length);
 
-        // Determine if each test case passes
-        const results = Array.from({ length: totalTests }, (_, index) => ({
-          output: resultOutput[index] || "null",
-          expected: expectedOutputs[index] || "null",
-          passed: resultOutput[index] === expectedOutputs[index],
-        }));
+      // Determine if each test case passes
+      const results = Array.from({ length: totalTests }, (_, index) => ({
+        output: resultOutput[index] || "null",
+        expected: expectedOutputs[index] || "null",
+        passed: resultOutput[index] === expectedOutputs[index],
+      }));
 
-        setTestResults(results);
+      setTestResults(results);
 
-        // Calculate the number of passed test cases
+      // Calculate the number of passed test cases
+      const passedTests = results.filter((test) => test.passed).length;
+      const percentagePassed = (passedTests / totalTests) * 100;
 
-        const passedTests = results.filter((test) => test.passed).length;
-        const percentagePassed = (passedTests / totalTests) * 100;
-
-        // Get marks from contest question and calculate obtained marks
-        if (type == "contest") {
+      // Get marks from contest question and calculate obtained marks
+      if (contestId) {
         const marks = contest?.contestQuestions.find(
           (que) => que.questionId == questionId
         );
         const totalMarks = marks?.marks || 0;
-        console.log("totalMarks: ", totalMarks);
         const obtainedMarks = Math.round((percentagePassed / 100) * totalMarks);
 
         // Check if this question has already been solved by this student in this contest
@@ -235,40 +255,59 @@ const Output = ({
             sq.studentId == studentId
         );
 
-        if (existingSolvedQuestion) {
-          // Update the obtained marks if the question is already solved
-          await dispatch(
-            updateObtainedMarks({
-              id: existingSolvedQuestion.id,
-              questionId,
-              contestId,
-              studentId,
-              obtainedMarks,
-              contestQuestionId: marks?.id || 1,
-            })
-          );
+        try {
+          if (existingSolvedQuestion) {
+            // Compare current obtained marks with previous marks
+            if (existingSolvedQuestion.obtainedMarks >= obtainedMarks) {
+              toast({
+                title: "No Update Needed",
+                description: `Your previous score of ${existingSolvedQuestion.obtainedMarks} is higher or equal to the current score of ${obtainedMarks}.`,
+                status: "info",
+                duration: 5000,
+                isClosable: true,
+              });
+              setIsLoading(false);
+              return; // Do not update if the previous marks are greater or equal
+            }
+
+            // Update obtained marks if the current obtained marks are higher
+            await dispatch(
+              updateObtainedMarks({
+                id: existingSolvedQuestion.id,
+                questionId,
+                contestId,
+                studentId,
+                obtainedMarks,
+                contestQuestionId: marks?.id || 1,
+              })
+            ).unwrap(); // Ensure that errors are caught
+          } else {
+            // Save or create new solved question if no previous record exists
+            await dispatch(
+              saveOrUpdateSolvedQuestion({
+                questionId,
+                contestId,
+                studentId,
+                obtainedMarks,
+                contestQuestionId: marks?.id || 1,
+              })
+            ).unwrap();
+          }
+
           toast({
-            title: "Updated Successfully",
-            description: `You have updated your submission. You now have ${obtainedMarks} out of ${totalMarks} marks.`,
+            title: "Submission Successful",
+            description: `You have obtained ${obtainedMarks} out of ${totalMarks} marks.`,
             status: "success",
             duration: 6000,
             isClosable: true,
           });
-        } else {
-          // Create a new solved question if not already solved
-          await dispatch(
-            saveOrUpdateSolvedQuestion({
-              questionId,
-              contestId,
-              studentId,
-              obtainedMarks,
-              contestQuestionId: marks?.id || 1,
-            })
-          );
+        } catch (error) {
           toast({
-            title: "Submitted Successfully",
-            description: `You have obtained ${obtainedMarks} out of ${totalMarks} marks.`,
-            status: "success",
+            title: "Submission Failed",
+            description:
+              error.message ||
+              "Something went wrong while saving the submission.",
+            status: "error",
             duration: 6000,
             isClosable: true,
           });
@@ -355,6 +394,13 @@ const Output = ({
           Submit
         </Button>
       </HStack>
+
+      {/* Timer Display */}
+      <HStack spacing={2} mt={4}>
+        <MdTimer color="teal" />
+        <Text>{remainingTime}</Text>
+      </HStack>
+
       {/* Drawer Component */}
       <Drawer
         placement="right"

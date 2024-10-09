@@ -10,6 +10,8 @@ export const saveOrUpdateSolvedQuestion = createAsyncThunk(
         "/solved-questions/save",
         solvedQuestionData
       );
+      console.log("Solved Question", response.data);
+
       return response.data;
     } catch (error) {
       return rejectWithValue(
@@ -29,6 +31,8 @@ export const updateObtainedMarks = createAsyncThunk(
         "/solved-questions/update-marks",
         solvedQuestionData
       );
+      console.log("update marks", response.data);
+
       return response.data;
     } catch (error) {
       return rejectWithValue(
@@ -120,20 +124,20 @@ export const fetchTop20RankedStudents = createAsyncThunk(
       return response.data;
     } catch (error) {
       return rejectWithValue(
-        error.response?.data || "An error occurred while fetching the top 20 ranked students."
+        error.response?.data ||
+          "An error occurred while fetching the top 20 ranked students."
       );
     }
   }
 );
 
-
 // Define the initial state for solved questions
 const initialSolvedQuestionsState = {
-  solvedQuestions: [], 
-  solvedQuestion: {}, 
+  solvedQuestions: [],
+  solvedQuestion: {},
   loading: false,
   error: null,
-  topRankedStudents: []
+  topRankedStudents: [],
 };
 
 // Create the slice for solved questions
@@ -247,20 +251,19 @@ export const solvedQuestionSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-            // Fetch Top 20 Ranked Students Reducers
-            .addCase(fetchTop20RankedStudents.pending, (state) => {
-              state.loading = true;
-              state.error = null;
-            })
-            .addCase(fetchTop20RankedStudents.fulfilled, (state, action) => {
-              state.topRankedStudents = action.payload;
-              state.loading = false;
-            })
-            .addCase(fetchTop20RankedStudents.rejected, (state, action) => {
-              state.loading = false;
-              state.error = action.payload;
-            })
-      
+      // Fetch Top 20 Ranked Students Reducers
+      .addCase(fetchTop20RankedStudents.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchTop20RankedStudents.fulfilled, (state, action) => {
+        state.topRankedStudents = action.payload;
+        state.loading = false;
+      })
+      .addCase(fetchTop20RankedStudents.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      });
   },
 });
 

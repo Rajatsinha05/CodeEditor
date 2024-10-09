@@ -16,7 +16,8 @@ export const startContestAttempt = createAsyncThunk(
     } catch (error) {
       console.log("Error starting contest attempt: ", error);
       return rejectWithValue(
-        error.response?.data || "An error occurred while starting the contest attempt."
+        error.response?.data ||
+          "An error occurred while starting the contest attempt."
       );
     }
   }
@@ -26,14 +27,18 @@ export const startContestAttempt = createAsyncThunk(
 export const endContestAttempt = createAsyncThunk(
   "contestAttempts/end",
   async ({ attemptId, totalMarks }, { rejectWithValue }) => {
+    console.log("attemptId, totalMarks:", attemptId, totalMarks);
+
     try {
+      // Sending data as query parameters in the POST request
       const response = await axiosInstance.post("/contest-attempts/end", null, {
-        params: { attemptId, totalMarks },
+        params: { attemptId, totalMarks }, // These will be sent as query parameters
       });
-      console.log("End Contest Attempt Response: ", response.data);
+
+      console.log("End Contest Attempt Response:", response.data);
       return response.data;
     } catch (error) {
-      console.log("Error ending contest attempt: ", error);
+      console.log("Error ending contest attempt:", error);
       return rejectWithValue(
         error.response?.data || "An error occurred while ending the contest attempt."
       );
@@ -41,21 +46,24 @@ export const endContestAttempt = createAsyncThunk(
   }
 );
 
-// Other thunks and the contestAttemptSlice remain unchanged
 
+// Other thunks and the contestAttemptSlice remain unchanged
 
 // Async thunk to fetch a specific contest attempt by ID
 export const fetchContestAttemptById = createAsyncThunk(
   "contestAttempts/fetchById",
   async (attemptId, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.get(`/contest-attempts/${attemptId}`);
+      const response = await axiosInstance.get(
+        `/contest-attempts/${attemptId}`
+      );
       console.log("Fetch Specific Contest Attempt Response: ", response.data);
       return response.data;
     } catch (error) {
       console.log("Error fetching contest attempt: ", error);
       return rejectWithValue(
-        error.response?.data || "An error occurred while fetching the contest attempt by ID."
+        error.response?.data ||
+          "An error occurred while fetching the contest attempt by ID."
       );
     }
   }
@@ -66,13 +74,19 @@ export const fetchContestAttemptsByContestId = createAsyncThunk(
   "contestAttempts/fetchByContestId",
   async (contestId, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.get(`/contest-attempts/by-contest/${contestId}`);
-      console.log("Fetch All Contest Attempts by Contest ID Response: ", response.data);
+      const response = await axiosInstance.get(
+        `/contest-attempts/by-contest/${contestId}`
+      );
+      console.log(
+        "Fetch All Contest Attempts by Contest ID Response: ",
+        response.data
+      );
       return response.data;
     } catch (error) {
       console.log("Error fetching all contest attempts: ", error);
       return rejectWithValue(
-        error.response?.data || "An error occurred while fetching the contest attempts by contest ID."
+        error.response?.data ||
+          "An error occurred while fetching the contest attempts by contest ID."
       );
     }
   }

@@ -1,37 +1,44 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { Flex, Text, HStack } from "@chakra-ui/react";
 import { MdTimer } from "react-icons/md";
 
 const ContestHeader = ({ contest, colorMode }) => {
   const [remainingTime, setRemainingTime] = useState("");
 
+  // Memoized calculation of remaining time
+  const calculateRemainingTime = useCallback(() => {
+    if (!contest?.endTime) return;
+
+    const endTime = new Date(contest.endTime).getTime();
+    const currentTime = new Date().getTime();
+    const difference = endTime - currentTime;
+
+    if (difference <= 0) {
+      setRemainingTime("Contest Ended");
+      return;
+    }
+
+    const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((difference / (1000 * 60 * 60)) % 24);
+    const minutes = Math.floor((difference / (1000 * 60)) % 60);
+    const seconds = Math.floor((difference / 1000) % 60);
+
+    const newRemainingTime = `${
+      days > 0 ? `${days}d ` : ""
+    }${hours > 0 ? `${hours}h ` : ""}${minutes}m ${seconds}s`;
+
+    setRemainingTime((prevTime) =>
+      prevTime === newRemainingTime ? prevTime : newRemainingTime
+    );
+  }, [contest?.endTime]);
+
   useEffect(() => {
     if (contest?.endTime) {
-      const calculateRemainingTime = () => {
-        const endTime = new Date(contest.endTime).getTime();
-        const currentTime = new Date().getTime();
-        const difference = endTime - currentTime;
-
-        if (difference <= 0) {
-          setRemainingTime("Contest Ended");
-          return;
-        }
-
-        const hours = Math.floor((difference / (1000 * 60 * 60)) % 24);
-        const minutes = Math.floor((difference / (1000 * 60)) % 60);
-        const seconds = Math.floor((difference / 1000) % 60);
-
-        setRemainingTime(
-          `${hours > 0 ? `${hours}h ` : ""}${minutes}m ${seconds}s`
-        );
-      };
-
-      // Update the remaining time every second
       const interval = setInterval(calculateRemainingTime, 1000);
 
-      return () => clearInterval(interval); // Clean up the interval on component unmount
+      return () => clearInterval(interval); // Clear interval on unmount
     }
-  }, [contest?.endTime]);
+  }, [contest?.endTime, calculateRemainingTime]);
 
   return (
     <Flex justify="space-between" align="center" mb={6}>
