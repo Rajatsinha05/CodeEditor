@@ -67,7 +67,7 @@ const dsaTopics = [
 const AddQuestions = () => {
   const dispatch = useDispatch();
   const toast = useToast();
-  const { user } = useSelector((store) => store.data);
+  const { user } = useSelector((state) => state.data);
 
   const [formData, setFormData] = useState({
     title: "",
@@ -76,7 +76,8 @@ const AddQuestions = () => {
     constraintValue: "",
     input: "",
     expectedOutput: "",
-    tag: "", // Updated for single tag selection
+    tag: "",
+    userId: user?.id,
   });
 
   const [examples, setExamples] = useState([]);
@@ -169,6 +170,7 @@ const AddQuestions = () => {
         input: "",
         expectedOutput: "",
         tag: "",
+        userId: user?.id,
       });
       setExamples([]);
 

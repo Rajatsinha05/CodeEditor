@@ -47,7 +47,7 @@ const StudentRankings = ({ studentRankings, contest, user, colorMode }) => (
                 Total Marks: {ranking.totalMarks}
               </Tag>
             </HStack>
-            <Tooltip label="Rank One" aria-label="Rank One">
+            <Tooltip label={"Rank"  } aria-label="Rank One">
               <Icon as={StarIcon} color={index === 0 ? "yellow.400" : "gray.400"} />
             </Tooltip>
           </HStack>

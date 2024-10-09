@@ -20,6 +20,9 @@ import {
   MenuButton,
   MenuList,
   MenuItem,
+  HStack,
+  Text,
+  useColorModeValue,
 } from "@chakra-ui/react";
 import {
   FaHome,
@@ -34,12 +37,10 @@ import {
 } from "react-icons/fa";
 import "../CSS/Navbar.css";
 import Login from "../Pages/Login";
-import { useSelector, useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
 import Cookie from "js-cookie";
-import { logout } from "../redux/apiSlice";
 
 const Navbar = () => {
-  const dispatch = useDispatch();
   const { colorMode, toggleColorMode } = useColorMode();
   const iconSize = "1.5rem";
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -50,42 +51,70 @@ const Navbar = () => {
   useEffect(() => {
     if (!isLogin) {
       onOpen();
-    } else {
-      onClose();
     }
-  }, [isLogin, onOpen, onClose]);
+  }, [isLogin, onOpen]);
 
   const handleLogOut = () => {
     Cookie.remove("token");
-    dispatch(logout());
     window.location.reload();
   };
-  
   const handleDrawerOpen = () => setIsDrawerOpen(true);
   const handleDrawerClose = () => setIsDrawerOpen(false);
 
   const renderNavLinks = () => (
     <>
-      <NavLink exact to="/" className="nav-link" activeClassName="active" zIndex="10">
-        <Tooltip label="Home" placement="right">
-          <IconButton icon={<FaHome size={iconSize} />} aria-label="Home" />
+      <NavLink exact to="/" className="nav-link" activeClassName="active">
+        <Tooltip label="Home" placement="bottom">
+          <IconButton
+            icon={<FaHome size={iconSize} />}
+            aria-label="Home"
+            variant="ghost"
+            _hover={{ color: "teal.400", bg: "gray.200" }}
+            transition="all 0.3s"
+          />
         </Tooltip>
       </NavLink>
       <NavLink to="/problems" className="nav-link" activeClassName="active">
-        <Tooltip label="Problems" placement="right">
-          <IconButton icon={<FaCode size={iconSize} />} aria-label="Problems" />
+        <Tooltip label="Problems" placement="bottom">
+          <IconButton
+            icon={<FaCode size={iconSize} />}
+            aria-label="Problems"
+            variant="ghost"
+            _hover={{ color: "teal.400", bg: "gray.200" }}
+            transition="all 0.3s"
+          />
         </Tooltip>
       </NavLink>
       {isLogin && (user?.role === "ADMIN" || user?.role === "SUPERADMIN") && (
         <>
-          <NavLink to="/addQuestion" className="nav-link" activeClassName="active">
-            <Tooltip label="Add Question" placement="right">
-              <IconButton icon={<FaPlus size={iconSize} />} aria-label="Add Question" />
+          <NavLink
+            to="/addQuestion"
+            className="nav-link"
+            activeClassName="active"
+          >
+            <Tooltip label="Add Question" placement="bottom">
+              <IconButton
+                icon={<FaPlus size={iconSize} />}
+                aria-label="Add Question"
+                variant="ghost"
+                _hover={{ color: "teal.400", bg: "gray.200" }}
+                transition="all 0.3s"
+              />
             </Tooltip>
           </NavLink>
-          <NavLink to="/createContest" className="nav-link" activeClassName="active">
-            <Tooltip label="Create Contest" placement="right">
-              <IconButton icon={<FaPlus size={iconSize} />} aria-label="Create Contest" />
+          <NavLink
+            to="/createContest"
+            className="nav-link"
+            activeClassName="active"
+          >
+            <Tooltip label="Create Contest" placement="bottom">
+              <IconButton
+                icon={<FaPlus size={iconSize} />}
+                aria-label="Create Contest"
+                variant="ghost"
+                _hover={{ color: "teal.400", bg: "gray.200" }}
+                transition="all 0.3s"
+              />
             </Tooltip>
           </NavLink>
         </>
@@ -94,128 +123,171 @@ const Navbar = () => {
   );
 
   return (
-    <Box position="relative" zIndex="10" bg={isOpen ? "rgba(0, 0, 0, 0.5)" : "transparent"}>
-      <nav className="navbar">
+    <Box
+      position="relative"
+      zIndex="10"
+      bg={useColorModeValue("gray.50", "gray.900")}
+      boxShadow="sm"
+      px={4}
+    >
+      <Flex h={16} alignItems="center" justifyContent="space-between">
         {isMobileOrTablet ? (
-          <Flex alignItems="center" justifyContent="flex-end">
-            <IconButton
-              icon={<FaBars size={iconSize} />}
-              aria-label="Open Drawer"
-              onClick={handleDrawerOpen}
-              ml={4}
-            />
-          </Flex>
+          <IconButton
+            icon={<FaBars size={iconSize} />}
+            aria-label="Open Drawer"
+            onClick={handleDrawerOpen}
+            variant="ghost"
+            _hover={{ color: "teal.400", bg: "gray.200" }}
+            transition="all 0.3s"
+          />
         ) : (
-          <Flex alignItems="center" justifyContent="space-between">
-            <Box>{renderNavLinks()}</Box>
-            <Flex alignItems="center">
-              <Tooltip label={`${colorMode === "light" ? "Dark" : "Light"}`} placement="right">
-                <IconButton
-                  icon={colorMode === "light" ? <FaMoon size={iconSize} /> : <FaSun size={iconSize} />}
-                  onClick={toggleColorMode}
-                  aria-label="Toggle Color Mode"
-                />
-              </Tooltip>
-              {isLogin ? (
-                <>
-                  <Menu>
-                    <MenuButton as={Button} ml={4} variant="link">
-                      Hello, {user.name}
-                    </MenuButton>
-                    <MenuList>
-                      <MenuItem onClick={handleLogOut}>
-                        <FaSignOutAlt /> Log Out
-                      </MenuItem>
-                    </MenuList>
-                  </Menu>
-                  <Button ml={4}>
-                    <NavLink to="/profile">
-                      <Tooltip label="Profile" placement="left">
-                        <IconButton icon={<FaUser />} aria-label="Profile" />
-                      </Tooltip>
-                    </NavLink>
-                  </Button>
-                </>
-              ) : (
-                <Button ml={4} onClick={onOpen}>
-                  <FaSignInAlt size={iconSize} /> Login
-                </Button>
-              )}
-            </Flex>
-          </Flex>
+          <HStack spacing={4}>{renderNavLinks()}</HStack>
         )}
-        <Drawer placement="left" onClose={handleDrawerClose} isOpen={isDrawerOpen}>
-          <DrawerOverlay />
-          <DrawerContent>
-            <DrawerCloseButton />
-            <DrawerHeader>Menu</DrawerHeader>
-            <DrawerBody>
-              <VStack spacing={4}>
-                <NavLink
-                  exact
-                  to="/"
-                  className="nav-link"
-                  activeClassName="active"
-                  onClick={handleDrawerClose}
+
+        <Flex alignItems="center">
+          <Tooltip
+            label={`${colorMode === "light" ? "Dark Mode" : "Light Mode"}`}
+            placement="bottom"
+          >
+            <IconButton
+              icon={
+                colorMode === "light" ? (
+                  <FaMoon size={iconSize} />
+                ) : (
+                  <FaSun size={iconSize} />
+                )
+              }
+              onClick={toggleColorMode}
+              aria-label="Toggle Color Mode"
+              variant="ghost"
+              _hover={{ color: "teal.400", bg: "gray.200" }}
+              transition="all 0.3s"
+            />
+          </Tooltip>
+          {isLogin ? (
+            <>
+              <Menu>
+                <MenuButton
+                  as={Button}
+                  ml={4}
+                  variant="ghost"
+                  colorScheme="teal"
                 >
-                  Home
-                </NavLink>
-                <NavLink
-                  to="/problems"
-                  className="nav-link"
-                  activeClassName="active"
-                  onClick={handleDrawerClose}
-                >
-                  Problems
-                </NavLink>
-                {isLogin && (
-                  <>
-                    <NavLink
-                      to="/profile"
-                      className="nav-link"
-                      activeClassName="active"
-                      onClick={handleDrawerClose}
-                    >
-                      Profile
-                    </NavLink>
-                    {user?.role === "ADMIN" || user?.role === "SUPERADMIN" ? (
-                      <>
-                        <NavLink
-                          to="/addQuestion"
-                          className="nav-link"
-                          activeClassName="active"
-                          onClick={handleDrawerClose}
-                        >
-                          Add Question
-                        </NavLink>
-                        <NavLink
-                          to="/createContest"
-                          className="nav-link"
-                          activeClassName="active"
-                          onClick={handleDrawerClose}
-                        >
-                          Create Contest
-                        </NavLink>
-                      </>
-                    ) : null}
-                  </>
-                )}
-                {!isLogin && (
+                  <Text fontWeight="bold">Hello, {user.name}</Text>
+                </MenuButton>
+                <MenuList>
+                  <MenuItem onClick={handleLogOut}>
+                    <FaSignOutAlt style={{ marginRight: "8px" }} /> Log Out
+                  </MenuItem>
+                </MenuList>
+              </Menu>
+              <NavLink
+                to="/profile"
+                className="nav-link"
+                activeClassName="active"
+              >
+                <Tooltip label="Profile" placement="bottom">
+                  <IconButton
+                    icon={<FaUser size={iconSize} />}
+                    aria-label="Profile"
+                    ml={4}
+                    variant="ghost"
+                    _hover={{ color: "teal.400", bg: "gray.200" }}
+                    transition="all 0.3s"
+                  />
+                </Tooltip>
+              </NavLink>
+            </>
+          ) : (
+            <Button
+              ml={4}
+              variant="solid"
+              colorScheme="teal"
+              leftIcon={<FaSignInAlt size={iconSize} />}
+              onClick={onOpen}
+            >
+              Login
+            </Button>
+          )}
+        </Flex>
+      </Flex>
+
+      <Drawer
+        placement="left"
+        onClose={handleDrawerClose}
+        isOpen={isDrawerOpen}
+      >
+        <DrawerOverlay />
+        <DrawerContent>
+          <DrawerCloseButton />
+          <DrawerHeader>Menu</DrawerHeader>
+          <DrawerBody>
+            <VStack spacing={4}>
+              <NavLink
+                exact
+                to="/"
+                className="nav-link"
+                activeClassName="active"
+                onClick={handleDrawerClose}
+              >
+                Home
+              </NavLink>
+              <NavLink
+                to="/problems"
+                className="nav-link"
+                activeClassName="active"
+                onClick={handleDrawerClose}
+              >
+                Problems
+              </NavLink>
+              {isLogin && (
+                <>
                   <NavLink
-                    to="/login"
+                    to="/profile"
                     className="nav-link"
                     activeClassName="active"
                     onClick={handleDrawerClose}
                   >
-                    Login
+                    Profile
                   </NavLink>
-                )}
-              </VStack>
-            </DrawerBody>
-          </DrawerContent>
-        </Drawer>
-      </nav>
-      <Login isOpen={isOpen} onClosed={onClose} />
+                  {user?.role === "ADMIN" || user?.role === "SUPERADMIN" ? (
+                    <>
+                      <NavLink
+                        to="/addQuestion"
+                        className="nav-link"
+                        activeClassName="active"
+                        onClick={handleDrawerClose}
+                      >
+                        Add Question
+                      </NavLink>
+                      <NavLink
+                        to="/createContest"
+                        className="nav-link"
+                        activeClassName="active"
+                        onClick={handleDrawerClose}
+                      >
+                        Create Contest
+                      </NavLink>
+                    </>
+                  ) : null}
+                </>
+              )}
+              {!isLogin && (
+                <NavLink
+                  to="/login"
+                  className="nav-link"
+                  activeClassName="active"
+                  onClick={handleDrawerClose}
+                >
+                  Login
+                </NavLink>
+              )}
+            </VStack>
+          </DrawerBody>
+        </DrawerContent>
+      </Drawer>
+
+      {!isLogin && <Login isOpen={isOpen} onClose={onClose} />}
     </Box>
   );
 };

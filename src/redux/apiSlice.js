@@ -1,7 +1,20 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import Cookies from "js-cookie";
 import axiosInstance from "../config/axiosConfig";
-
+// Async thunk to get users
+export const getUsers = createAsyncThunk(
+  "api/getUsers",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.get("/users");
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || "An error occurred while fetching users."
+      );
+    }
+  }
+);
 // Async thunk to post a question
 export const postQuestion = createAsyncThunk(
   "api/postQuestion",
@@ -128,6 +141,8 @@ export const getStudents = createAsyncThunk(
   }
 );
 
+// Async thunk for getting students
+
 // Async thunk to create a new student
 export const createStudent = createAsyncThunk(
   "api/createStudent",
@@ -166,6 +181,7 @@ export const createStudentsFromFile = createAsyncThunk(
 export const createUser = createAsyncThunk(
   "api/createUser",
   async (user, { rejectWithValue }) => {
+    console.log("user", user);
     try {
       const response = await axiosInstance.post("/users/signup", user);
       return response.data;
@@ -198,7 +214,6 @@ const stringToObject = (str) => {
   return obj;
 };
 
-
 // Define the initial state
 const initialState = {
   questions: [],
@@ -208,6 +223,7 @@ const initialState = {
     ? stringToObject(Cookies.get("userToken"))
     : null,
   students: [],
+  users: [], // Add a new array for storing users
   isLogin: !!Cookies.get("token"),
   token: Cookies.get("token") || null,
   error: null,
@@ -321,7 +337,7 @@ const apiSlice = createSlice({
       })
       .addCase(createUser.fulfilled, (state, action) => {
         state.loading = false;
-        state.user = action.payload;
+        // state.user = action.payload;
       })
       .addCase(createUser.rejected, (state, action) => {
         state.loading = false;
@@ -378,6 +394,18 @@ const apiSlice = createSlice({
         state.loading = false;
       })
       .addCase(createStudentsFromFile.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(getUsers.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getUsers.fulfilled, (state, action) => {
+        state.users = action.payload; // Update the users list in state
+        state.loading = false;
+      })
+      .addCase(getUsers.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });
