@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getUsers } from "../../redux/apiSlice";
+import { getUsers, assignPermission, revokePermission } from "../../redux/apiSlice";
 import { useDispatch, useSelector } from "react-redux";
 import {
   Box,
@@ -16,6 +16,12 @@ import {
   Text,
   useColorModeValue,
   IconButton,
+  Button,
+  CheckboxGroup,
+  Checkbox,
+  Stack,
+  VStack,
+  useBreakpointValue,
 } from "@chakra-ui/react";
 import { ArrowUpIcon, ArrowDownIcon } from "@chakra-ui/icons";
 import { FaSortAlphaDown, FaSortAlphaUpAlt } from "react-icons/fa";
@@ -30,15 +36,44 @@ const Users = ({ branchCode }) => {
   const [departmentFilter, setDepartmentFilter] = useState("");
   const [branchFilter, setBranchFilter] = useState("");
   const [sortOrder, setSortOrder] = useState({ key: "", order: "" });
+  const [selectedPermissions, setSelectedPermissions] = useState({});
+  const [action, setAction] = useState("assign");
 
   const bgColor = useColorModeValue("gray.50", "gray.800");
   const textColor = useColorModeValue("gray.900", "gray.100");
   const hoverColor = useColorModeValue("teal.100", "teal.700");
   const tableBgColor = useColorModeValue("white", "gray.700");
 
+  // Breakpoints for responsiveness
+  const isMobile = useBreakpointValue({ base: true, md: false });
+
   useEffect(() => {
     dispatch(getUsers());
   }, [dispatch]);
+
+  // Handle permission changes for each user
+  const handlePermissionChange = (userId, permissions) => {
+    setSelectedPermissions((prev) => ({
+      ...prev,
+      [userId]: permissions,
+    }));
+  };
+
+  // Handle permission action (assign/revoke)
+  const handlePermissionAction = (userId) => {
+    const permissions = selectedPermissions[userId];
+    if (!permissions || permissions.length === 0) return;
+
+    if (action === "assign") {
+      permissions.forEach((permission) => {
+        dispatch(assignPermission({ userId, permission }));
+      });
+    } else {
+      permissions.forEach((permission) => {
+        dispatch(revokePermission({ userId, permission }));
+      });
+    }
+  };
 
   // Filter and sort users
   const filteredUsers = users
@@ -86,23 +121,30 @@ const Users = ({ branchCode }) => {
   return (
     <Box
       p={5}
+      maxWidth="100%"
       borderWidth="1px"
       borderRadius="lg"
       bg={bgColor}
       color={textColor}
       boxShadow="lg"
+      overflowX="auto"
     >
-      <Text fontSize="2xl" mb={4} fontWeight="bold">
+      <Text fontSize="2xl" mb={4} fontWeight="bold" textAlign="center">
         Users Management
       </Text>
 
       {/* Search and Filter Section */}
-      <Flex mb={4} gap={4} alignItems="center">
+      <Flex
+        mb={4}
+        gap={4}
+        flexDirection={isMobile ? "column" : "row"}
+        alignItems={isMobile ? "stretch" : "center"}
+      >
         <Input
           placeholder="Search by name or email"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          width="30%"
+          width={isMobile ? "100%" : "30%"}
           bg={tableBgColor}
           borderRadius="md"
           boxShadow="sm"
@@ -111,7 +153,7 @@ const Users = ({ branchCode }) => {
           placeholder="Filter by department"
           value={departmentFilter}
           onChange={(e) => setDepartmentFilter(e.target.value)}
-          width="20%"
+          width={isMobile ? "100%" : "20%"}
           bg={tableBgColor}
           borderRadius="md"
           boxShadow="sm"
@@ -132,7 +174,7 @@ const Users = ({ branchCode }) => {
             placeholder="Filter by branch"
             value={branchFilter}
             onChange={(e) => setBranchFilter(e.target.value)}
-            width="20%"
+            width={isMobile ? "100%" : "20%"}
             bg={tableBgColor}
             borderRadius="md"
             boxShadow="sm"
@@ -147,6 +189,18 @@ const Users = ({ branchCode }) => {
             <option value="rw8">Branch RW8</option>
           </Select>
         )}
+        <Select
+          placeholder="Action"
+          value={action}
+          onChange={(e) => setAction(e.target.value)}
+          width={isMobile ? "100%" : "20%"}
+          bg={tableBgColor}
+          borderRadius="md"
+          boxShadow="sm"
+        >
+          <option value="assign">Assign Permission</option>
+          <option value="revoke">Revoke Permission</option>
+        </Select>
       </Flex>
 
       {/* Users Table */}
@@ -212,21 +266,47 @@ const Users = ({ branchCode }) => {
                 />
               </Th>
               <Th>Role</Th>
+              <Th>Permissions</Th>
+              <Th>Action</Th>
             </Tr>
           </Thead>
           <Tbody>
             {filteredUsers.map((user) => (
-              <Tr
-                key={user.id}
-                _hover={{ bg: hoverColor, cursor: "pointer" }}
-                onClick={() => handleRowClick(user.id)}
-              >
+              <Tr key={user.id} _hover={{ bg: hoverColor, cursor: "pointer" }}>
                 <Td>{user.id}</Td>
                 <Td>{user.name}</Td>
                 <Td>{user.email}</Td>
                 <Td>{user.department}</Td>
                 <Td>{user.branchCode}</Td>
                 <Td>{user.role}</Td>
+                <Td>
+                  <CheckboxGroup
+                    value={selectedPermissions[user.id] || []}
+                    onChange={(permissions) =>
+                      handlePermissionChange(user.id, permissions)
+                    }
+                  >
+                    <Stack
+                      direction={isMobile ? "column" : "row"}
+                      wrap="wrap"
+                      spacing={2}
+                    >
+                      <Checkbox value="CREATE_CONTEST">Create Contest</Checkbox>
+                      <Checkbox value="VIEW_CONTEST">View Contest</Checkbox>
+                      <Checkbox value="EDIT_CONTEST">Edit Contest</Checkbox>
+                      <Checkbox value="DELETE_CONTEST">Delete Contest</Checkbox>
+                      <Checkbox value="MANAGE_USERS">Manage Users</Checkbox>
+                    </Stack>
+                  </CheckboxGroup>
+                </Td>
+                <Td>
+                  <Button
+                    colorScheme="blue"
+                    onClick={() => handlePermissionAction(user.id)}
+                  >
+                    {action === "assign" ? "Assign" : "Revoke"}
+                  </Button>
+                </Td>
               </Tr>
             ))}
           </Tbody>
