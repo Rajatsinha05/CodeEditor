@@ -193,6 +193,55 @@ export const createUser = createAsyncThunk(
   }
 );
 
+// permission
+// Async thunk to assign a permission to a user
+export const assignPermission = createAsyncThunk(
+  "api/assignPermission",
+  async ({ userId, permissions }, { rejectWithValue }) => {
+    console.log("userId, permissions: ", userId, permissions);
+
+    try {
+      const response = await axiosInstance.put(
+        `/users/${userId}/permissions/add`,
+        {
+          permissions,  // Send as an array
+        }
+      );
+
+      console.log("res", response.data);
+
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data ||
+          "An error occurred while assigning the permission."
+      );
+    }
+  }
+);
+
+
+// Async thunk to revoke a permission from a user
+export const revokePermission = createAsyncThunk(
+  "api/revokePermission",
+  async ({ userId, permission }, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.put(
+        `/users/${userId}/permissions/remove`,
+        {
+          permission,
+        }
+      );
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data ||
+          "An error occurred while revoking the permission."
+      );
+    }
+  }
+);
+
 // Custom function to parse non-standard format string into an object
 const stringToObject = (str) => {
   if (typeof str !== "string" || str.trim() === "") {
@@ -406,6 +455,44 @@ const apiSlice = createSlice({
         state.loading = false;
       })
       .addCase(getUsers.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(assignPermission.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(assignPermission.fulfilled, (state, action) => {
+        const updatedUser = action.payload;
+        const userIndex = state.users.findIndex(
+          (user) => user.id === updatedUser.id
+        );
+        if (userIndex !== -1) {
+          state.users[userIndex] = updatedUser; // Update user permissions
+        }
+        state.loading = false;
+      })
+      .addCase(assignPermission.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      // Handle revoking a permission
+      .addCase(revokePermission.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(revokePermission.fulfilled, (state, action) => {
+        const updatedUser = action.payload;
+        const userIndex = state.users.findIndex(
+          (user) => user.id === updatedUser.id
+        );
+        if (userIndex !== -1) {
+          state.users[userIndex] = updatedUser; // Update user permissions
+        }
+        state.loading = false;
+      })
+      .addCase(revokePermission.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });
