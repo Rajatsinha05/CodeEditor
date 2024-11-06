@@ -18,15 +18,16 @@ import {
   Flex,
 } from "@chakra-ui/react";
 import { CheckCircleIcon, WarningIcon } from "@chakra-ui/icons";
-import { executeCode, getCodeResult } from "../api";
+import { executeCode, getCodeResult } from "../../api";
 import Cookie from "js-cookie";
 import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
   saveOrUpdateSolvedQuestion,
   updateObtainedMarks,
-} from "../redux/QuestionSolvedSplice";
+} from "../../redux/QuestionSolvedSplice";
 import { MdTimer } from "react-icons/md";
+import TimerDisplay from "./TimerDisplay";
 
 const Output = ({
   editorRef,
@@ -59,34 +60,6 @@ const Output = ({
     const fetchedToken = Cookie.get("token");
     setToken(fetchedToken || "");
   }, []);
-
-  // Timer logic
-  useEffect(() => {
-    if (contest?.endTime) {
-      const calculateRemainingTime = () => {
-        const endTime = new Date(contest.endTime).getTime();
-        const currentTime = new Date().getTime();
-        const difference = endTime - currentTime;
-
-        if (difference <= 0) {
-          setRemainingTime("Contest Ended");
-          return;
-        }
-
-        const hours = Math.floor((difference / (1000 * 60 * 60)) % 24);
-        const minutes = Math.floor((difference / (1000 * 60)) % 60);
-        const seconds = Math.floor((difference / 1000) % 60);
-
-        setRemainingTime(
-          `${hours > 0 ? `${hours}h ` : ""}${minutes}m ${seconds}s`
-        );
-      };
-
-      const interval = setInterval(calculateRemainingTime, 1000);
-
-      return () => clearInterval(interval); // Clean up interval on unmount
-    }
-  }, [contest?.endTime]);
 
   const handleInputChange = useCallback((e) => {
     setInput(e.target.value);
@@ -131,7 +104,6 @@ const Output = ({
       const res = await executeCode(language, sourceCode, input.trim());
       console.log("result: ", result);
       const result = await getCodeResult(res.requestId);
-      
 
       const resultOutput =
         result.output?.split("\n").filter((line) => line.trim() !== "") || [];
@@ -405,10 +377,6 @@ const Output = ({
       </HStack>
 
       {/* Timer Display */}
-      <HStack spacing={2} mt={4}>
-        <MdTimer color="teal" />
-        <Text>{remainingTime}</Text>
-      </HStack>
 
       {/* Drawer Component */}
       <Drawer

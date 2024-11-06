@@ -17,11 +17,12 @@ import { useDispatch, useSelector } from "react-redux";
 import { getQuestionById } from "../redux/apiSlice";
 import LanguageSelector from "./LanguageSelector";
 import { CODE_SNIPPETS } from "../constants";
-import Output from "./Output";
-import TestResultsDrawer from "./TestResultsDrawer";
+import Output from "./Result/Output";
+import TestResultsDrawer from "./Result/TestResultsDrawer";
 import CustomSelect from "./CustomSelect";
 import CameraDisplay from "./CameraDisplay";
 import CodeSuggestions from "./CodeSuggestions";
+import TimerDisplay from "./Result/TimerDisplay";
 
 const CodeEditor = ({ problemId }) => {
   const editorRef = useRef();
@@ -146,7 +147,7 @@ const CodeEditor = ({ problemId }) => {
   };
 
   const toggleDrawer = () => setIsDrawerOpen(!isDrawerOpen);
-
+  const { contest } = useSelector((store) => store.contest);
   return (
     <Box p={4} position="relative" bg={bgColor} color={textColor}>
       <CameraDisplay videoBoxSize={videoBoxSize} />
@@ -181,18 +182,39 @@ const CodeEditor = ({ problemId }) => {
             {data.question?.description}
           </Text>
 
-          <Tag size="lg" colorScheme={data.question?.difficultLevel === "EASY" ? "green" : data.question?.difficultLevel === "MEDIUM" ? "yellow" : "red"}>
+          <Tag
+            size="lg"
+            colorScheme={
+              data.question?.difficultLevel === "EASY"
+                ? "green"
+                : data.question?.difficultLevel === "MEDIUM"
+                ? "yellow"
+                : "red"
+            }
+          >
             Difficulty: {data.question?.difficultLevel}
           </Tag>
 
           <VStack align="stretch" mt={4}>
             <Text fontWeight="bold">Input:</Text>
-            <Box bg={boxBg} p={2} borderRadius="md" border={`1px solid ${borderColor}`} width="100%">
+            <Box
+              bg={boxBg}
+              p={2}
+              borderRadius="md"
+              border={`1px solid ${borderColor}`}
+              width="100%"
+            >
               <Text>{data.question?.input}</Text>
             </Box>
 
             <Text fontWeight="bold">Expected Output:</Text>
-            <Box bg={boxBg} p={2} borderRadius="md" border={`1px solid ${borderColor}`} width="100%">
+            <Box
+              bg={boxBg}
+              p={2}
+              borderRadius="md"
+              border={`1px solid ${borderColor}`}
+              width="100%"
+            >
               <Text whiteSpace="pre-wrap">{data.question?.expectedOutput}</Text>
             </Box>
           </VStack>
@@ -229,7 +251,10 @@ const CodeEditor = ({ problemId }) => {
         <Box flex={1} width="auto">
           <VStack spacing={4} align="stretch">
             <HStack flexWrap="wrap">
-              <LanguageSelector language={language} onSelect={handleLanguageChange} />
+              <LanguageSelector
+                language={language}
+                onSelect={handleLanguageChange}
+              />
               <CustomSelect
                 value={theme}
                 onChange={(e) => setTheme(e.target.value)}
@@ -249,6 +274,7 @@ const CodeEditor = ({ problemId }) => {
                 ]}
                 width="120px"
               />
+              <TimerDisplay endTime={contest?.endTime} />
             </HStack>
 
             <Box bg="gray.800" borderRadius="md" p={4} position="relative">
