@@ -102,7 +102,7 @@ const Output = ({
 
     try {
       const res = await executeCode(language, sourceCode, input.trim());
-      console.log("result: ", result);
+
       const result = await getCodeResult(res.requestId);
 
       const resultOutput =

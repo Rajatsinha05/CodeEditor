@@ -1,13 +1,13 @@
-import React from 'react'
-
-import { Box, Text, Spinner, VStack, Icon, keyframes, useColorModeValue } from "@chakra-ui/react";
+import React from 'react';
+import { Box, Text, Spinner, VStack, Icon, useColorModeValue } from "@chakra-ui/react";
 import { FaBolt, FaPuzzlePiece, FaBrain } from "react-icons/fa";
+import { keyframes } from '@emotion/react'; // Corrected import
 
 const ProblemsLoadSpinner = () => {
   const bounceAnimation = keyframes`
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
-`;
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  `;
   const textColor = useColorModeValue("blue.600", "yellow.300");
 
   return (
@@ -21,7 +21,7 @@ const ProblemsLoadSpinner = () => {
             as={FaPuzzlePiece}
             boxSize={12}
             color="purple.400"
-            animation={`${bounceAnimation} 1.5s ease-in-out infinite`}
+            css={{ animation: `${bounceAnimation} 1.5s ease-in-out infinite` }}
           />
           <Spinner
             thickness="6px"
@@ -34,13 +34,13 @@ const ProblemsLoadSpinner = () => {
             as={FaBolt}
             boxSize={12}
             color="orange.400"
-            animation={`${bounceAnimation} 2s ease-in-out infinite`}
+            css={{ animation: `${bounceAnimation} 2s ease-in-out infinite` }}
           />
           <Icon
             as={FaBrain}
             boxSize={12}
             color="pink.400"
-            animation={`${bounceAnimation} 2.5s ease-in-out infinite`}
+            css={{ animation: `${bounceAnimation} 2.5s ease-in-out infinite` }}
           />
         </VStack>
         <Text fontSize="lg" color={useColorModeValue("gray.600", "gray.400")}>
@@ -49,6 +49,6 @@ const ProblemsLoadSpinner = () => {
       </VStack>
     </Box>
   );
-}
+};
 
-export default ProblemsLoadSpinner
+export default ProblemsLoadSpinner;

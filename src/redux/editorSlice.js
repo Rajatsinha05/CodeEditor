@@ -1,5 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { CODE_SNIPPETS } from "../constants";
+import { CODE_SNIPPETS } from "../components/Editor/constants";
+
 
 export const editorSlice = createSlice({
   name: "editor",

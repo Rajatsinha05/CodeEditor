@@ -1,7 +1,13 @@
 import React from "react";
-import { Box, Text, Spinner, HStack, VStack, Icon, keyframes } from "@chakra-ui/react";
-import { FaCode, FaBrain, FaRocket, FaMountain, FaLightbulb } from "react-icons/fa";
-
+import { Box, Text, Spinner, HStack, VStack, Icon } from "@chakra-ui/react";
+import {
+  FaCode,
+  FaBrain,
+  FaRocket,
+  FaMountain,
+  FaLightbulb,
+} from "react-icons/fa";
+import { keyframes } from "@emotion/react";
 const spinAnimation = keyframes`
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
@@ -64,8 +70,14 @@ const CustomCreativeSpinner = () => {
           animation={`${bounceAnimation} 2s ease-in-out infinite`}
         />
       </HStack>
-      <Text fontSize="lg" fontWeight="medium" color="gray.600" textAlign="center">
-        Sit tight! Your adventure into solving problems and conquering challenges is almost ready!
+      <Text
+        fontSize="lg"
+        fontWeight="medium"
+        color="gray.600"
+        textAlign="center"
+      >
+        Sit tight! Your adventure into solving problems and conquering
+        challenges is almost ready!
       </Text>
     </VStack>
   );
