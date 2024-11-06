@@ -1,6 +1,7 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import Cookies from "js-cookie";
 import axiosInstance from "../config/axiosConfig";
+import { generateLongIdFromUUID } from "../utils/idHelper";
 // Async thunk to get users
 export const getUsers = createAsyncThunk(
   "api/getUsers",
@@ -20,6 +21,7 @@ export const postQuestion = createAsyncThunk(
   "api/postQuestion",
   async (data, { rejectWithValue }) => {
     try {
+      data.id = generateLongIdFromUUID();
       const response = await axiosInstance.post("/questions", data);
       return response.data;
     } catch (error) {
@@ -147,7 +149,12 @@ export const getStudents = createAsyncThunk(
 export const createStudent = createAsyncThunk(
   "api/createStudent",
   async (student, { rejectWithValue }) => {
+    console.log("st", student, generateLongIdFromUUID());
+
     try {
+      student.id = generateLongIdFromUUID();
+      console.log("student: ", student);
+
       const response = await axiosInstance.post("/students", student);
       return response.data;
     } catch (error) {
@@ -162,6 +169,7 @@ export const createStudent = createAsyncThunk(
 export const createStudentsFromFile = createAsyncThunk(
   "api/createStudentsFromFile",
   async (formData, { rejectWithValue }) => {
+    formData.id = generateLongIdFromUUID();
     try {
       const response = await axiosInstance.post("/students/upload", formData, {
         headers: {
@@ -183,6 +191,7 @@ export const createUser = createAsyncThunk(
   async (user, { rejectWithValue }) => {
     console.log("user", user);
     try {
+      user.id = generateLongIdFromUUID();
       const response = await axiosInstance.post("/users/signup", user);
       return response.data;
     } catch (error) {
@@ -204,7 +213,7 @@ export const assignPermission = createAsyncThunk(
       const response = await axiosInstance.put(
         `/users/${userId}/permissions/add`,
         {
-          permissions,  // Send as an array
+          permissions, // Send as an array
         }
       );
 
@@ -219,7 +228,6 @@ export const assignPermission = createAsyncThunk(
     }
   }
 );
-
 
 // Async thunk to revoke a permission from a user
 export const revokePermission = createAsyncThunk(

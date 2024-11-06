@@ -18,7 +18,7 @@ import {
   Flex,
 } from "@chakra-ui/react";
 import { CheckCircleIcon, WarningIcon } from "@chakra-ui/icons";
-import { executeCode } from "../api";
+import { executeCode, getCodeResult } from "../api";
 import Cookie from "js-cookie";
 import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -128,7 +128,11 @@ const Output = ({
     setOutput(null);
 
     try {
-      const result = await executeCode(language, sourceCode, input.trim());
+      const res = await executeCode(language, sourceCode, input.trim());
+      console.log("result: ", result);
+      const result = await getCodeResult(res.requestId);
+      
+
       const resultOutput =
         result.output?.split("\n").filter((line) => line.trim() !== "") || [];
 
@@ -213,7 +217,11 @@ const Output = ({
     setOutput(null);
 
     try {
-      const result = await executeCode(language, sourceCode, inputData.trim());
+      const res = await executeCode(language, sourceCode, inputData.trim());
+
+      const result = await getCodeResult(res.requestId);
+
+      console.log("result: ", result);
       const resultOutput =
         result.output?.split("\n").filter((line) => line.trim() !== "") || [];
 
@@ -237,6 +245,7 @@ const Output = ({
 
       // Calculate the number of passed test cases
       const passedTests = results.filter((test) => test.passed).length;
+      console.log("passedTests: ", passedTests);
       const percentagePassed = (passedTests / totalTests) * 100;
 
       // Get marks from contest question and calculate obtained marks

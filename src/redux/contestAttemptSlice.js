@@ -8,6 +8,7 @@ export const startContestAttempt = createAsyncThunk(
     console.log("Start Contest Attempt Payload: ", { contestId, studentId });
     try {
       const response = await axiosInstance.post("/contest-attempts/start", {
+        id: generateLongIdFromUUID(),
         contestId,
         studentId,
       });
@@ -40,12 +41,12 @@ export const endContestAttempt = createAsyncThunk(
     } catch (error) {
       console.log("Error ending contest attempt:", error);
       return rejectWithValue(
-        error.response?.data || "An error occurred while ending the contest attempt."
+        error.response?.data ||
+          "An error occurred while ending the contest attempt."
       );
     }
   }
 );
-
 
 // Other thunks and the contestAttemptSlice remain unchanged
 

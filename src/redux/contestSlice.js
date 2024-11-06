@@ -1,11 +1,13 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axiosInstance from "../config/axiosConfig";
+import { generateLongIdFromUUID } from "../utils/idHelper";
 
 // Async thunk to create a contest
 export const createContest = createAsyncThunk(
   "contests/createContest",
   async (contestData, { rejectWithValue }) => {
     try {
+      contestData.id=generateLongIdFromUUID();
       const response = await axiosInstance.post("/contests", contestData);
 
       return response.data;
