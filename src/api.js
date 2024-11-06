@@ -1,5 +1,5 @@
 import axios from "axios";
-import { LANGUAGE_VERSIONS } from "./constants";
+import { LANGUAGE_VERSIONS } from "./components/Editor/constants";
 import Cookie from "js-cookie";
 import axiosInstance from "./config/axiosConfig";
 
@@ -24,7 +24,10 @@ export const getCodeResult = async (requestId) => {
     console.log("Fetched result: ", response.data);
     return response.data;
   } catch (error) {
-    console.error("Error fetching result: ", error.response?.data || error.message);
+    console.error(
+      "Error fetching result: ",
+      error.response?.data || error.message
+    );
     throw error;
   }
 };

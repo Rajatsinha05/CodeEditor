@@ -14,15 +14,15 @@ import { Editor } from "@monaco-editor/react";
 import * as monaco from "monaco-editor";
 
 import { useDispatch, useSelector } from "react-redux";
-import { getQuestionById } from "../redux/apiSlice";
+import { getQuestionById } from "../../redux/apiSlice";
 import LanguageSelector from "./LanguageSelector";
-import { CODE_SNIPPETS } from "../constants";
-import Output from "./Result/Output";
-import TestResultsDrawer from "./Result/TestResultsDrawer";
+import { CODE_SNIPPETS } from "./constants";
+import Output from "../Result/Output";
+import TestResultsDrawer from "../Result/TestResultsDrawer";
 import CustomSelect from "./CustomSelect";
 import CameraDisplay from "./CameraDisplay";
 import CodeSuggestions from "./CodeSuggestions";
-import TimerDisplay from "./Result/TimerDisplay";
+import TimerDisplay from "../Result/TimerDisplay";
 
 const CodeEditor = ({ problemId }) => {
   const editorRef = useRef();
