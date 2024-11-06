@@ -1,7 +1,8 @@
 import { Box } from "@chakra-ui/react";
 import React from "react";
-import CodeEditor from "../components/CodeEditor";
+
 import { useParams } from "react-router-dom";
+import CodeEditor from "../components/Editor/CodeEditor";
 
 const SingleProblem = () => {
   const { questionId } = useParams();

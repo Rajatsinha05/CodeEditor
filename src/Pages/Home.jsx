@@ -20,14 +20,14 @@ const Home = () => {
   const [selectedContest, setSelectedContest] = useState(null);
   const [loading, setLoading] = useState(true); // Loading state
 
-  // Get the user and contests from the Redux store
+  // Select user and contests from the Redux store
   const { user, contests, isFetched } = useSelector((store) => ({
     user: store.data.user,
     contests: store.contest.contests,
     isFetched: store.contest.isFetched,
   }));
 
-  // Fetch contests only if they haven't been fetched yet
+  // Fetch contests only once if they haven't been fetched yet
   useEffect(() => {
     if (!isFetched) {
       if (user?.role === "STUDENT") {
@@ -38,21 +38,22 @@ const Home = () => {
     }
   }, [dispatch, user, isFetched]);
 
-  // Set loading to false after a few seconds (e.g., 2 seconds)
+  // Timer to control loading state, runs only on the initial mount
   useEffect(() => {
     const timer = setTimeout(() => {
       setLoading(false);
-    }, 1000); // 2 seconds delay
+    }, 1000); // 1-second delay
 
     return () => clearTimeout(timer);
   }, []);
 
+  // Handler for starting a contest
   const handleStartContestClick = (contest) => {
     setSelectedContest(contest);
     onOpen();
   };
 
-  // Memoize filtered contests to avoid recalculating on every render
+  // Memoized filtered contests list
   const filteredContests = useMemo(() => {
     if (!contests || contests.length === 0) return [];
 
@@ -77,7 +78,7 @@ const Home = () => {
     });
   }, [contests, filter]);
 
-  // Display the motivational loader for the first few seconds
+  // Display loading spinner initially
   if (loading) {
     return <MotivationalLoadingSpinner />;
   }
@@ -101,7 +102,7 @@ const Home = () => {
           isOpen={isOpen}
           onClose={onClose}
           contest={selectedContest}
-          user={user} // Pass the user object to the StartContestModal component
+          user={user}
           onProceed={() => navigate(`/contest/${selectedContest.id}`)}
         />
       )}

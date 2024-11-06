@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, useMemo } from "react";
 import {
   Box,
   HStack,
@@ -14,14 +14,15 @@ import { Editor } from "@monaco-editor/react";
 import * as monaco from "monaco-editor";
 
 import { useDispatch, useSelector } from "react-redux";
-import { getQuestionById } from "../redux/apiSlice";
+import { getQuestionById } from "../../redux/apiSlice";
 import LanguageSelector from "./LanguageSelector";
-import { CODE_SNIPPETS } from "../constants";
-import Output from "./Output";
-import TestResultsDrawer from "./TestResultsDrawer";
+import { CODE_SNIPPETS } from "./constants";
+import Output from "../Result/Output";
+import TestResultsDrawer from "../Result/TestResultsDrawer";
 import CustomSelect from "./CustomSelect";
 import CameraDisplay from "./CameraDisplay";
 import CodeSuggestions from "./CodeSuggestions";
+import TimerDisplay from "../Result/TimerDisplay";
 
 const CodeEditor = ({ problemId }) => {
   const editorRef = useRef();
@@ -29,12 +30,10 @@ const CodeEditor = ({ problemId }) => {
   const [language, setLanguage] = useState("java"); // Default language set to Java
   const [theme, setTheme] = useState("vs-dark");
   const [fontSize, setFontSize] = useState(14);
-
   const [inactiveTime, setInactiveTime] = useState(0);
-  const [tabChangeCount, setTabChangeCount] = useState(0); // Define tabChangeCount state
+  const [tabChangeCount, setTabChangeCount] = useState(0);
   const [intervalId, setIntervalId] = useState(null);
   const [isScreenBlurred, setIsScreenBlurred] = useState(false);
-  const [contests, setContests] = useState([]);
   const [testResults, setTestResults] = useState([]);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -43,6 +42,7 @@ const CodeEditor = ({ problemId }) => {
   const dispatch = useDispatch();
   const { colorMode } = useColorMode();
   const { data } = useSelector((store) => store);
+  const { question } = data;
 
   // Color mode dependent values
   const bgColor = useColorModeValue("gray.100", "gray.800");
@@ -57,9 +57,12 @@ const CodeEditor = ({ problemId }) => {
     setTheme(colorMode === "dark" ? "vs-dark" : "vs-light");
   }, [colorMode]);
 
+  // Fetch question data if not already present
   useEffect(() => {
-    dispatch(getQuestionById(problemId));
-  }, [dispatch, problemId]);
+    if (!question || question.id !== problemId) {
+      dispatch(getQuestionById(problemId));
+    }
+  }, [dispatch, problemId, question]);
 
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -142,7 +145,7 @@ const CodeEditor = ({ problemId }) => {
 
   const handleLanguageChange = (newLanguage) => {
     setLanguage(newLanguage);
-    setValue(CODE_SNIPPETS[newLanguage]); // Update code snippet based on the selected language
+    setValue(CODE_SNIPPETS[newLanguage]);
   };
 
   const toggleDrawer = () => setIsDrawerOpen(!isDrawerOpen);
@@ -174,33 +177,54 @@ const CodeEditor = ({ problemId }) => {
         {/* Left side: Question details */}
         <VStack align="stretch" flex={1}>
           <Text fontSize="2xl" fontWeight="bold">
-            {data.question?.title}
+            {question?.title}
           </Text>
 
           <Text fontSize="lg" color="gray.600">
-            {data.question?.description}
+            {question?.description}
           </Text>
 
-          <Tag size="lg" colorScheme={data.question?.difficultLevel === "EASY" ? "green" : data.question?.difficultLevel === "MEDIUM" ? "yellow" : "red"}>
-            Difficulty: {data.question?.difficultLevel}
+          <Tag
+            size="lg"
+            colorScheme={
+              question?.difficultLevel === "EASY"
+                ? "green"
+                : question?.difficultLevel === "MEDIUM"
+                ? "yellow"
+                : "red"
+            }
+          >
+            Difficulty: {question?.difficultLevel}
           </Tag>
 
           <VStack align="stretch" mt={4}>
             <Text fontWeight="bold">Input:</Text>
-            <Box bg={boxBg} p={2} borderRadius="md" border={`1px solid ${borderColor}`} width="100%">
-              <Text>{data.question?.input}</Text>
+            <Box
+              bg={boxBg}
+              p={2}
+              borderRadius="md"
+              border={`1px solid ${borderColor}`}
+              width="100%"
+            >
+              <Text>{question?.input}</Text>
             </Box>
 
             <Text fontWeight="bold">Expected Output:</Text>
-            <Box bg={boxBg} p={2} borderRadius="md" border={`1px solid ${borderColor}`} width="100%">
-              <Text whiteSpace="pre-wrap">{data.question?.expectedOutput}</Text>
+            <Box
+              bg={boxBg}
+              p={2}
+              borderRadius="md"
+              border={`1px solid ${borderColor}`}
+              width="100%"
+            >
+              <Text whiteSpace="pre-wrap">{question?.expectedOutput}</Text>
             </Box>
           </VStack>
 
-          {data.question?.examples?.length > 0 && (
+          {question?.examples?.length > 0 && (
             <VStack align="stretch" mt={4}>
               <Text fontWeight="bold">Examples:</Text>
-              {data.question.examples.map((example) => (
+              {question.examples.map((example) => (
                 <Box
                   key={example.id}
                   p={3}
@@ -229,7 +253,10 @@ const CodeEditor = ({ problemId }) => {
         <Box flex={1} width="auto">
           <VStack spacing={4} align="stretch">
             <HStack flexWrap="wrap">
-              <LanguageSelector language={language} onSelect={handleLanguageChange} />
+              <LanguageSelector
+                language={language}
+                onSelect={handleLanguageChange}
+              />
               <CustomSelect
                 value={theme}
                 onChange={(e) => setTheme(e.target.value)}
@@ -249,6 +276,7 @@ const CodeEditor = ({ problemId }) => {
                 ]}
                 width="120px"
               />
+              <TimerDisplay endTime={data.contest?.endTime} />
             </HStack>
 
             <Box bg="gray.800" borderRadius="md" p={4} position="relative">
@@ -273,9 +301,8 @@ const CodeEditor = ({ problemId }) => {
               <Output
                 editorRef={editorRef}
                 language={language}
-                inputData={data?.question?.input}
-                expectedOutput={data?.question?.expectedOutput}
-                contests={contests}
+                inputData={question?.input}
+                expectedOutput={question?.expectedOutput}
               />
               <TestResultsDrawer
                 isLoading={isLoading}

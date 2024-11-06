@@ -1,11 +1,13 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axiosInstance from "../config/axiosConfig";
+import { generateLongIdFromUUID } from "../utils/idHelper";
 
 // Async thunk to save or update a solved question
 export const saveOrUpdateSolvedQuestion = createAsyncThunk(
   "solvedQuestions/saveOrUpdate",
   async (solvedQuestionData, { rejectWithValue }) => {
     try {
+      solvedQuestionData.id = generateLongIdFromUUID();
       const response = await axiosInstance.post(
         "/solved-questions/save",
         solvedQuestionData

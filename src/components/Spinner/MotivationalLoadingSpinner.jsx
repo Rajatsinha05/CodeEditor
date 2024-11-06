@@ -5,12 +5,12 @@ import {
   Spinner,
   VStack,
   Icon,
-  keyframes,
+
   useColorModeValue,
   HStack,
 } from "@chakra-ui/react";
 import { FaBolt, FaRocket, FaMedal, FaSmileBeam } from "react-icons/fa";
-
+import { keyframes } from '@emotion/react';
 const bounceAnimation = keyframes`
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-15px); }
