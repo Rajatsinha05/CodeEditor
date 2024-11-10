@@ -1,4 +1,11 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+  useMemo,
+  memo,
+} from "react";
 import {
   Box,
   Button,
@@ -11,90 +18,50 @@ import {
   useColorModeValue,
 } from "@chakra-ui/react";
 import { useDispatch, useSelector } from "react-redux";
-import { postQuestion } from "../redux/apiSlice";
 
 import ExampleInputs from "../components/Problems/ExampleInputs";
 import { formDataValidator } from "../components/Problems/formDataValidator";
-
-const dsaTopics = [
-  { value: "array", label: "Array" },
-  { value: "linked-list", label: "Linked List" },
-  { value: "stack", label: "Stack" },
-  { value: "queue", label: "Queue" },
-  { value: "tree", label: "Tree" },
-  { value: "graph", label: "Graph" },
-  { value: "hashing", label: "Hashing" },
-  { value: "dynamic-programming", label: "Dynamic Programming" },
-  { value: "greedy", label: "Greedy" },
-  { value: "recursion", label: "Recursion" },
-  { value: "sorting", label: "Sorting" },
-  { value: "searching", label: "Searching" },
-  { value: "two-pointer", label: "Two Pointer" },
-  { value: "sliding-window", label: "Sliding Window" },
-  { value: "bit-manipulation", label: "Bit Manipulation" },
-  { value: "divide-and-conquer", label: "Divide and Conquer" },
-  { value: "backtracking", label: "Backtracking" },
-  { value: "mathematics", label: "Mathematics" },
-  { value: "number-theory", label: "Number Theory" },
-  { value: "graph-traversal", label: "Graph Traversal (BFS/DFS)" },
-  { value: "minimum-spanning-tree", label: "Minimum Spanning Tree" },
-  { value: "shortest-path", label: "Shortest Path" },
-  { value: "binary-search", label: "Binary Search" },
-  { value: "heap", label: "Heap" },
-  { value: "trie", label: "Trie" },
-  { value: "floyd-warshall", label: "Floyd-Warshall Algorithm" },
-  { value: "bellman-ford", label: "Bellman-Ford Algorithm" },
-  { value: "kmp", label: "KMP String Matching Algorithm" },
-  { value: "dp-on-trees", label: "Dynamic Programming on Trees" },
-  { value: "tree-traversal", label: "Tree Traversal (Pre/In/Post Order)" },
-  { value: "prime-numbers", label: "Prime Numbers (Sieve of Eratosthenes)" },
-  { value: "recursion-vs-iteration", label: "Recursion vs Iteration" },
-  { value: "memoization", label: "Memoization" },
-  { value: "knapsack", label: "Knapsack Problem" },
-  { value: "game-theory", label: "Game Theory" },
-  { value: "geometry", label: "Computational Geometry" },
-  { value: "probability", label: "Probability & Combinatorics" },
-  { value: "conditionals", label: "Conditionals (If/Else)" },
-  { value: "loops", label: "Loops (For/While)" },
-  { value: "functions", label: "Functions" },
-  { value: "variables", label: "Variables" },
-  { value: "pointers", label: "Pointers" },
-  { value: "object-oriented", label: "Object-Oriented Programming" },
-  { value: "functional-programming", label: "Functional Programming" },
-  { value: "complexity-analysis", label: "Complexity Analysis (Big O)" },
-];
+import { postQuestion } from "../redux/Question/questionApi";
+import { Topics } from "../components/data/Dsa"; // Import the Topics function
 
 const AddQuestions = () => {
   const dispatch = useDispatch();
   const toast = useToast();
   const { user } = useSelector((state) => state.data);
 
-  const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    difficultLevel: "",
-    constraintValue: "",
-    input: "",
-    expectedOutput: "",
-    tag: "",
-    userId: user?.id,
-  });
+  // Directly call the Topics function to get the array
+  const dsaTopics = useMemo(() => Topics(), []); // Corrected: Now inside the component
 
+  const initialFormData = useMemo(
+    () => ({
+      title: "",
+      description: "",
+      difficultLevel: "",
+      constraintValue: "",
+      input: "",
+      expectedOutput: "",
+      tag: "",
+      userId: user?.id,
+    }),
+    [user?.id]
+  );
+
+  const [formData, setFormData] = useState(initialFormData);
   const [examples, setExamples] = useState([]);
   const [newExample, setNewExample] = useState({
     input: "",
     output: "",
     explanation: "",
   });
-
   const [errors, setErrors] = useState({});
+
   const textAreaRefs = {
     description: useRef(null),
     input: useRef(null),
     expectedOutput: useRef(null),
   };
 
-  const handleChange = (e) => {
+  const handleChange = useCallback((e) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({
       ...prevData,
@@ -106,9 +73,9 @@ const AddQuestions = () => {
       ...prevErrors,
       [name]: false,
     }));
-  };
+  }, []);
 
-  const handleTagChange = (e) => {
+  const handleTagChange = useCallback((e) => {
     const { value } = e.target;
     setFormData((prevData) => ({
       ...prevData,
@@ -118,7 +85,7 @@ const AddQuestions = () => {
       ...prevErrors,
       tag: false,
     }));
-  };
+  }, []);
 
   useEffect(() => {
     const adjustTextareaHeight = (ref) => {
@@ -133,71 +100,61 @@ const AddQuestions = () => {
     adjustTextareaHeight(textAreaRefs.expectedOutput);
   }, [formData]);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = useCallback(
+    async (e) => {
+      e.preventDefault();
 
-    // Form validation
-    const validationErrors = formDataValidator(formData);
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      toast({
-        title: "Failed to Add Question",
-        description: "Please fill all fields correctly.",
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-        position: "top",
-      });
-      return;
-    }
+      const validationErrors = formDataValidator(formData);
+      if (Object.keys(validationErrors).length > 0) {
+        setErrors(validationErrors);
+        toast({
+          title: "Failed to Add Question",
+          description: "Please fill all fields correctly.",
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+          position: "top",
+        });
+        return;
+      }
 
-    try {
-      await dispatch(
-        postQuestion({
-          ...formData,
-          user: {
-            id: Number(user.id),
-          },
-          examples,
-        })
-      ).unwrap();
+      try {
+        await dispatch(
+          postQuestion({
+            ...formData,
+            user: {
+              id: Number(user.id),
+            },
+            examples,
+          })
+        ).unwrap();
 
-      setFormData({
-        title: "",
-        description: "",
-        difficultLevel: "",
-        constraintValue: "",
-        input: "",
-        expectedOutput: "",
-        tag: "",
-        userId: user?.id,
-      });
-      setExamples([]);
+        setFormData(initialFormData);
+        setExamples([]);
 
-      // Show success toast
-      toast({
-        title: "Question Added",
-        description: "Your question has been successfully added!",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-        position: "top",
-      });
-    } catch (err) {
-      // Handle errors when the API request fails
-      toast({
-        title: "Failed to Add Question",
-        description:
-          err.message || "An error occurred while adding the question.",
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-        position: "top",
-      });
-    }
-  };
+        toast({
+          title: "Question Added",
+          description: "Your question has been successfully added!",
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+          position: "top",
+        });
+      } catch (err) {
+        toast({
+          title: "Failed to Add Question",
+          description:
+            err.message || "An error occurred while adding the question.",
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+          position: "top",
+        });
+      }
+    },
+    [dispatch, formData, examples, initialFormData, toast, user?.id]
+  );
 
-  // Using color modes to enhance UI
   const bgColor = useColorModeValue("white", "gray.700");
   const textColor = useColorModeValue("gray.800", "gray.200");
   const formLabelColor = useColorModeValue("teal.600", "teal.200");
@@ -310,4 +267,4 @@ const AddQuestions = () => {
   );
 };
 
-export default AddQuestions;
+export default React.memo(AddQuestions);

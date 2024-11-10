@@ -6,7 +6,6 @@ import CodeEditor from "../components/Editor/CodeEditor";
 
 const SingleProblem = () => {
   const { questionId } = useParams();
-  
 
   return (
     <Box minH="100vh" bg="#0f0a19" color="gray.500" px={6} py={8}>

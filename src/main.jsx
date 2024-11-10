@@ -9,14 +9,12 @@ import { BrowserRouter } from "react-router-dom";
 import { HashRouter as Router } from "react-router-dom";
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-
-      <BrowserRouter>
-        <Provider store={store}>
-          <ChakraProvider theme={theme}>
-            <App />
-          </ChakraProvider>
-        </Provider>
-      </BrowserRouter>
- 
+    <BrowserRouter>
+      <Provider store={store}>
+        <ChakraProvider theme={theme}>
+          <App />
+        </ChakraProvider>
+      </Provider>
+    </BrowserRouter>
   </React.StrictMode>
 );

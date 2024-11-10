@@ -14,11 +14,13 @@ import {
   useToast,
 } from "@chakra-ui/react";
 import { useDispatch, useSelector } from "react-redux";
-import { getStudents, fetchQuestions } from "../redux/apiSlice";
+import { getStudents } from "../redux/apiSlice";
 import { createContest } from "../redux/contestSlice";
+import { fetchQuestions } from "../redux/Question/questionApi";
 
 const CreateContest = ({ onCreate }) => {
-  const { user, questions } = useSelector((store) => store.data);
+  const { user, question } = useSelector((store) => store.data);
+  const { questions } = useSelector((store) => store.question);
   const toast = useToast();
   const { colorMode } = useColorMode();
   const theme = useTheme();
@@ -352,12 +354,15 @@ const CreateContest = ({ onCreate }) => {
           {contestData.contestQuestions.map((question, index) => (
             <Box key={index} mt={2}>
               <FormLabel color={textColor}>
-                Marks for Question "{questions.find((q) => q.id === question.questionId)?.title}"
+                Marks for Question "
+                {questions.find((q) => q.id === question.questionId)?.title}"
               </FormLabel>
               <NumberInput
                 min={0}
                 value={question.marks}
-                onChange={(valueString) => handleMarksChange(index, valueString)}
+                onChange={(valueString) =>
+                  handleMarksChange(index, valueString)
+                }
               >
                 <NumberInputField
                   bg={primaryColor}

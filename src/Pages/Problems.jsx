@@ -10,9 +10,10 @@ import {
   useColorModeValue,
 } from "@chakra-ui/react";
 import { FaFilter } from "react-icons/fa";
-import { fetchQuestions } from "../redux/apiSlice";
+
 import ProblemItem from "../components/Problems/ProblemItem";
 import ProblemsLoadSpinner from "../components/Spinner/ProblemsLoadSpinner";
+import { fetchQuestions } from "../redux/Question/questionApi";
 
 const dsaTopics = [
   { value: "array", label: "Array" },
@@ -58,17 +59,17 @@ const Problems = () => {
     return () => clearTimeout(timer);
   }, [dispatch]);
 
-  const { data } = useSelector((store) => store);
+  const { data, question } = useSelector((store) => store);
 
-  if (loading || data.loading) {
+  if (loading || data.loading || question.loading) {
     return <ProblemsLoadSpinner />;
   }
 
   // Filter the questions based on the selected topic
   const filteredQuestions =
     selectedTopic === ""
-      ? data.questions
-      : data.questions.filter((question) =>
+      ? question.questions
+      : question.questions.filter((question) =>
           question.tag?.toLowerCase().includes(selectedTopic.toLowerCase())
         );
 
