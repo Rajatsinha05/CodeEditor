@@ -14,7 +14,7 @@ import { Editor } from "@monaco-editor/react";
 import * as monaco from "monaco-editor";
 
 import { useDispatch, useSelector } from "react-redux";
-import { getQuestionById } from "../../redux/apiSlice";
+
 import LanguageSelector from "./LanguageSelector";
 import { CODE_SNIPPETS } from "./constants";
 import Output from "../Result/Output";
@@ -23,6 +23,7 @@ import CustomSelect from "./CustomSelect";
 import CameraDisplay from "./CameraDisplay";
 import CodeSuggestions from "./CodeSuggestions";
 import TimerDisplay from "../Result/TimerDisplay";
+import { getQuestionById } from "../../redux/Question/questionApi";
 
 const CodeEditor = ({ problemId }) => {
   const editorRef = useRef();
@@ -41,8 +42,9 @@ const CodeEditor = ({ problemId }) => {
   const toast = useToast();
   const dispatch = useDispatch();
   const { colorMode } = useColorMode();
-  const { data } = useSelector((store) => store);
-  const { question } = data;
+  const { data } = useSelector((store) => store.test)||{}
+
+  const { question } = useSelector((store) => store.question);
 
   // Color mode dependent values
   const bgColor = useColorModeValue("gray.100", "gray.800");
@@ -58,11 +60,17 @@ const CodeEditor = ({ problemId }) => {
   }, [colorMode]);
 
   // Fetch question data if not already present
+  const shouldFetchQuestion = useMemo(
+    () => !question || question.id !== problemId,
+    [question, problemId]
+  );
+
   useEffect(() => {
-    if (!question || question.id !== problemId) {
+    if (shouldFetchQuestion) {
       dispatch(getQuestionById(problemId));
     }
-  }, [dispatch, problemId, question]);
+  }, [dispatch, problemId, shouldFetchQuestion]);
+
 
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -276,7 +284,7 @@ const CodeEditor = ({ problemId }) => {
                 ]}
                 width="120px"
               />
-              <TimerDisplay endTime={data.contest?.endTime} />
+              <TimerDisplay endTime={data?.contest?.endTime} />
             </HStack>
 
             <Box bg="gray.800" borderRadius="md" p={4} position="relative">
