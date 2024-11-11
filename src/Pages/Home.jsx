@@ -96,6 +96,7 @@ const Home = () => {
       <ContestList
         contests={filteredContests}
         onStartContestClick={handleStartContestClick}
+        user={user}
       />
       {selectedContest && (
         <StartContestModal

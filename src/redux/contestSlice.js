@@ -7,7 +7,7 @@ export const createContest = createAsyncThunk(
   "contests/createContest",
   async (contestData, { rejectWithValue }) => {
     try {
-      contestData.id=generateLongIdFromUUID();
+      contestData.id = generateLongIdFromUUID();
       const response = await axiosInstance.post("/contests", contestData);
 
       return response.data;

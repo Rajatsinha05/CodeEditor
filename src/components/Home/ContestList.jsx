@@ -6,7 +6,7 @@ import ContestCard from "./ContestCard";
 
 dayjs.extend(duration);
 
-const ContestList = ({ contests, onStartContestClick }) => {
+const ContestList = ({ contests, onStartContestClick, onEditContestClick, user }) => {
   return (
     <VStack spacing={4} align="stretch">
       {contests.length > 0 ? (
@@ -14,7 +14,9 @@ const ContestList = ({ contests, onStartContestClick }) => {
           <ContestCard
             key={contest.id}
             contest={contest}
+            user={user}
             onStartClick={onStartContestClick}
+            onEditClick={() => onEditContestClick(contest)}
           />
         ))
       ) : (
@@ -27,3 +29,4 @@ const ContestList = ({ contests, onStartContestClick }) => {
 };
 
 export default ContestList;
+

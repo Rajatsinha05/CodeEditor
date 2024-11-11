@@ -18,7 +18,7 @@ import { getStudents } from "../redux/apiSlice";
 import { createContest } from "../redux/contestSlice";
 import { fetchQuestions } from "../redux/Question/questionApi";
 
-const CreateContest = ({ onCreate }) => {
+const CreateContest = ({ onCreate, initialData = {}, onClose, isEditing }) => {
   const { user, question } = useSelector((store) => store.data);
   const { questions } = useSelector((store) => store.question);
   const toast = useToast();
@@ -48,21 +48,20 @@ const CreateContest = ({ onCreate }) => {
     : theme.colors.gray[200];
 
   const [contestData, setContestData] = useState({
-    title: "",
-    description: "",
-    startTime: "",
-    endTime: "",
-    totalMarks: "",
-    difficultyLevel: "",
-    contestQuestions: [],
-    enrolledStudents: [],
+    title: initialData.title || "",
+    description: initialData.description || "",
+    startTime: initialData.startTime || "",
+    endTime: initialData.endTime || "",
+    totalMarks: initialData.totalMarks || "",
+    difficultyLevel: initialData.difficultyLevel || "",
+    contestQuestions: initialData.contestQuestions || [],
+    enrolledStudents: initialData.enrolledStudents || [],
   });
 
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredStudents, setFilteredStudents] = useState([]);
 
   const { students } = useSelector((store) => store.data);
-  console.log("students: ", students);
 
   useEffect(() => {
     dispatch(getStudents());
@@ -177,35 +176,35 @@ const CreateContest = ({ onCreate }) => {
     };
 
     try {
-      await dispatch(createContest(contestPayload)).unwrap();
-      setContestData({
-        title: "",
-        description: "",
-        startTime: "",
-        endTime: "",
-        totalMarks: "",
-        difficultyLevel: "",
-        contestQuestions: [],
-        enrolledStudents: [],
-      });
-      toast({
-        title: "Contest Created",
-        description: "The contest has been successfully created.",
-        status: "success",
-        duration: 5000,
-        isClosable: true,
-        position: "top-center",
-      });
-      onCreate && onCreate(); // Callback for additional actions
+      if (isEditing) {
+        await dispatch(updateContest(contestPayload)).unwrap();
+        toast({
+          title: "Contest Updated",
+          description: "The contest has been successfully updated.",
+          status: "success",
+          duration: 5000,
+          isClosable: true,
+        });
+      } else {
+        await dispatch(createContest(contestPayload)).unwrap();
+        toast({
+          title: "Contest Created",
+          description: "The contest has been successfully created.",
+          status: "success",
+          duration: 5000,
+          isClosable: true,
+        });
+      }
+      if (onClose) {
+        onClose();
+      }
     } catch (error) {
       toast({
-        title: "Error Creating Contest",
-        description:
-          error.message || "Failed to create contest due to an error.",
+        title: "Error",
+        description: error.message || "An error occurred.",
         status: "error",
         duration: 5000,
         isClosable: true,
-        position: "top-center",
       });
     }
   };

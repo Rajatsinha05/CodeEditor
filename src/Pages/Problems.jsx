@@ -14,35 +14,9 @@ import { FaFilter } from "react-icons/fa";
 import ProblemItem from "../components/Problems/ProblemItem";
 import ProblemsLoadSpinner from "../components/Spinner/ProblemsLoadSpinner";
 import { fetchQuestions } from "../redux/Question/questionApi";
+import { Topics } from "../components/data/Dsa";
 
-const dsaTopics = [
-  { value: "array", label: "Array" },
-  { value: "linked-list", label: "Linked List" },
-  { value: "stack", label: "Stack" },
-  { value: "queue", label: "Queue" },
-  { value: "tree", label: "Tree" },
-  { value: "graph", label: "Graph" },
-  { value: "hashing", label: "Hashing" },
-  { value: "dynamic-programming", label: "Dynamic Programming" },
-  { value: "greedy", label: "Greedy" },
-  { value: "recursion", label: "Recursion" },
-  { value: "sorting", label: "Sorting" },
-  { value: "searching", label: "Searching" },
-  { value: "two-pointer", label: "Two Pointer" },
-  { value: "sliding-window", label: "Sliding Window" },
-  { value: "bit-manipulation", label: "Bit Manipulation" },
-  { value: "divide-and-conquer", label: "Divide and Conquer" },
-  { value: "backtracking", label: "Backtracking" },
-  { value: "mathematics", label: "Mathematics" },
-  { value: "number-theory", label: "Number Theory" },
-  { value: "graph-traversal", label: "Graph Traversal (BFS/DFS)" },
-  { value: "minimum-spanning-tree", label: "Minimum Spanning Tree" },
-  { value: "shortest-path", label: "Shortest Path" },
-  { value: "binary-search", label: "Binary Search" },
-  { value: "heap", label: "Heap" },
-  { value: "trie", label: "Trie" },
-  // Add more topics as needed
-];
+const dsaTopics = Topics();
 
 const Problems = () => {
   const dispatch = useDispatch();
@@ -60,6 +34,10 @@ const Problems = () => {
   }, [dispatch]);
 
   const { data, question } = useSelector((store) => store);
+  const { user } = data;
+
+  const currentUserId = user?.id;
+  const currentUserRole = user?.role;
 
   if (loading || data.loading || question.loading) {
     return <ProblemsLoadSpinner />;
@@ -110,7 +88,12 @@ const Problems = () => {
       </HStack>
       <List spacing={4}>
         {filteredQuestions.map((question, index) => (
-          <ProblemItem key={index} question={question} />
+          <ProblemItem
+            key={index}
+            question={question}
+            currentUserId={currentUserId}
+            currentUserRole={currentUserRole}
+          />
         ))}
       </List>
       {filteredQuestions.length === 0 && (

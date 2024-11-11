@@ -1,9 +1,23 @@
 // ExampleInputs.jsx
 import React from "react";
-import { Box, FormControl, FormLabel, Input, Textarea, IconButton, Button } from "@chakra-ui/react";
+import {
+  Box,
+  FormControl,
+  FormLabel,
+  Input,
+  Textarea,
+  IconButton,
+  Button,
+} from "@chakra-ui/react";
 import { CloseIcon } from "@chakra-ui/icons";
 
-const ExampleInputs = ({ examples, newExample, setExamples, setNewExample, toast }) => {
+const ExampleInputs = ({
+  examples,
+  newExample,
+  setExamples,
+  setNewExample,
+  toast,
+}) => {
   // Handle adding a new example
   const handleAddExample = () => {
     if (
@@ -22,6 +36,8 @@ const ExampleInputs = ({ examples, newExample, setExamples, setNewExample, toast
     }
 
     setExamples([...examples, newExample]);
+    console.log("examples, newExample: ", examples, newExample);
+
     setNewExample({
       input: "",
       output: "",
@@ -102,7 +118,9 @@ const ExampleInputs = ({ examples, newExample, setExamples, setNewExample, toast
         <Input
           name="newInput"
           value={newExample.input}
-          onChange={(e) => setNewExample({ ...newExample, input: e.target.value })}
+          onChange={(e) =>
+            setNewExample({ ...newExample, input: e.target.value })
+          }
           placeholder="Input"
         />
       </FormControl>
@@ -110,7 +128,9 @@ const ExampleInputs = ({ examples, newExample, setExamples, setNewExample, toast
         <Textarea
           name="newOutput"
           value={newExample.output}
-          onChange={(e) => setNewExample({ ...newExample, output: e.target.value })}
+          onChange={(e) =>
+            setNewExample({ ...newExample, output: e.target.value })
+          }
           placeholder="Output"
           style={{ minHeight: "100px", resize: "none" }}
         />
@@ -119,7 +139,9 @@ const ExampleInputs = ({ examples, newExample, setExamples, setNewExample, toast
         <Textarea
           name="newExplanation"
           value={newExample.explanation}
-          onChange={(e) => setNewExample({ ...newExample, explanation: e.target.value })}
+          onChange={(e) =>
+            setNewExample({ ...newExample, explanation: e.target.value })
+          }
           placeholder="Explanation"
           style={{ minHeight: "100px", resize: "none" }}
         />

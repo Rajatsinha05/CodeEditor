@@ -61,6 +61,10 @@ const Navbar = () => {
   const handleDrawerOpen = () => setIsDrawerOpen(true);
   const handleDrawerClose = () => setIsDrawerOpen(false);
 
+  // Define hover styles based on color mode
+  const hoverColor = useColorModeValue('#f44336', 'teal.400');
+  const hoverBg = useColorModeValue('white', 'gray.200');
+
   const renderNavLinks = () => (
     <>
       <NavLink exact to="/" className="nav-link" activeClassName="active">
@@ -69,7 +73,7 @@ const Navbar = () => {
             icon={<FaHome size={iconSize} />}
             aria-label="Home"
             variant="ghost"
-            _hover={{ color: "teal.400", bg: "gray.200" }}
+            _hover={{ color: hoverColor, bg: hoverBg }}
             transition="all 0.3s"
           />
         </Tooltip>
@@ -80,7 +84,7 @@ const Navbar = () => {
             icon={<FaCode size={iconSize} />}
             aria-label="Problems"
             variant="ghost"
-            _hover={{ color: "teal.400", bg: "gray.200" }}
+            _hover={{ color: hoverColor, bg: hoverBg }}
             transition="all 0.3s"
           />
         </Tooltip>
@@ -97,7 +101,7 @@ const Navbar = () => {
                 icon={<FaPlus size={iconSize} />}
                 aria-label="Add Question"
                 variant="ghost"
-                _hover={{ color: "teal.400", bg: "gray.200" }}
+                _hover={{ color: hoverColor, bg: hoverBg }}
                 transition="all 0.3s"
               />
             </Tooltip>
@@ -112,7 +116,7 @@ const Navbar = () => {
                 icon={<FaPlus size={iconSize} />}
                 aria-label="Create Contest"
                 variant="ghost"
-                _hover={{ color: "teal.400", bg: "gray.200" }}
+                _hover={{ color: hoverColor, bg: hoverBg }}
                 transition="all 0.3s"
               />
             </Tooltip>
@@ -137,7 +141,7 @@ const Navbar = () => {
             aria-label="Open Drawer"
             onClick={handleDrawerOpen}
             variant="ghost"
-            _hover={{ color: "teal.400", bg: "gray.200" }}
+            _hover={{ color: hoverColor, bg: hoverBg }}
             transition="all 0.3s"
           />
         ) : (
@@ -160,7 +164,7 @@ const Navbar = () => {
               onClick={toggleColorMode}
               aria-label="Toggle Color Mode"
               variant="ghost"
-              _hover={{ color: "teal.400", bg: "gray.200" }}
+              _hover={{ color: hoverColor, bg: hoverBg }}
               transition="all 0.3s"
             />
           </Tooltip>
@@ -192,7 +196,7 @@ const Navbar = () => {
                     aria-label="Profile"
                     ml={4}
                     variant="ghost"
-                    _hover={{ color: "teal.400", bg: "gray.200" }}
+                    _hover={{ color: hoverColor, bg: hoverBg }}
                     transition="all 0.3s"
                   />
                 </Tooltip>

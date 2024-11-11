@@ -9,13 +9,27 @@ import {
   Tooltip,
   Icon,
   useColorModeValue,
+  useDisclosure,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalCloseButton,
+  ModalBody,
 } from "@chakra-ui/react";
 import { CalendarIcon } from "@chakra-ui/icons";
 import { FaFlagCheckered } from "react-icons/fa";
-import { MdPlayArrow } from "react-icons/md";
+import { MdPlayArrow, MdEdit, MdDelete } from "react-icons/md";
 import dayjs from "dayjs";
+import { useDispatch } from "react-redux";
+import { deleteContest } from "../../redux/contestSlice";
+import CreateContest from "../../Pages/CreateContest";
 
-const ContestCard = ({ contest, onStartClick }) => {
+const ContestCard = ({ contest, user, onStartClick }) => {
+  console.log('user: ', user);
+  const dispatch = useDispatch();
+  const { isOpen, onOpen, onClose } = useDisclosure();
+
   const currentTime = dayjs();
   const contestActive =
     currentTime.isAfter(dayjs(contest.startTime)) &&
@@ -32,6 +46,14 @@ const ContestCard = ({ contest, onStartClick }) => {
   const textColor = useColorModeValue("gray.700", "gray.100");
   const dividerColor = useColorModeValue("gray.200", "gray.600");
 
+  const isEditableOrDeletable =
+    user?.role === "SUPERADMIN" || contest.createdBy === user?.id;
+  console.log("isEditableOrDeletable", isEditableOrDeletable);
+
+  const handleDelete = () => {
+    dispatch(deleteContest(contest.id));
+  };
+
   return (
     <Box
       borderWidth="1px"
@@ -40,7 +62,11 @@ const ContestCard = ({ contest, onStartClick }) => {
       p={6}
       bg={cardBgColor}
       shadow="md"
-      _hover={{ transform: "scale(1.02)", transition: "0.3s", cursor: "pointer" }}
+      _hover={{
+        transform: "scale(1.02)",
+        transition: "0.3s",
+        cursor: "pointer",
+      }}
     >
       <Text fontSize="xl" fontWeight="bold" color={titleColor}>
         {contest.title}
@@ -86,6 +112,43 @@ const ContestCard = ({ contest, onStartClick }) => {
           Contest has ended
         </Text>
       )}
+
+      {isEditableOrDeletable && (
+        <HStack mt={4} spacing={3}>
+          <Tooltip label="Edit Contest" aria-label="Edit Contest">
+            <Button
+              leftIcon={<MdEdit />}
+              colorScheme="blue"
+              onClick={() => onOpen}
+            >
+              Edit
+            </Button>
+          </Tooltip>
+          <Tooltip label="Delete Contest" aria-label="Delete Contest">
+            <Button
+              leftIcon={<MdDelete />}
+              colorScheme="red"
+              onClick={handleDelete}
+            >
+              Delete
+            </Button>
+          </Tooltip>
+        </HStack>
+      )}
+      <Modal isOpen={isOpen} onClose={onClose} size="xl">
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Edit Contest</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <CreateContest
+              initialData={contest}
+              onClose={onClose}
+              isEditing={true}
+            />
+          </ModalBody>
+        </ModalContent>
+      </Modal>
     </Box>
   );
 };

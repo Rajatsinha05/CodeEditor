@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   Box,
   Button,
@@ -14,21 +14,21 @@ import {
   useToast,
   useDisclosure,
   VStack,
-} from '@chakra-ui/react';
+} from "@chakra-ui/react";
 
 const ContestCreation = ({ addContest }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [contestName, setContestName] = useState('');
-  const [startTime, setStartTime] = useState('');
-  const [endTime, setEndTime] = useState('');
+  const [contestName, setContestName] = useState("");
+  const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
   const toast = useToast();
 
   const createContest = () => {
     if (!contestName || !startTime || !endTime) {
       toast({
-        title: 'Missing information',
-        description: 'Please fill out all fields to create a contest.',
-        status: 'error',
+        title: "Missing information",
+        description: "Please fill out all fields to create a contest.",
+        status: "error",
         duration: 6000,
       });
       return;
@@ -41,9 +41,9 @@ const ContestCreation = ({ addContest }) => {
     };
     addContest(newContest);
     toast({
-      title: 'Contest created',
+      title: "Contest created",
       description: `Contest "${contestName}" created successfully.`,
-      status: 'success',
+      status: "success",
       duration: 6000,
     });
     onClose();
