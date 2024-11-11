@@ -6,7 +6,9 @@ const LOCAL_URL = "http://localhost:8091";
 const PRODUCTION_URL = "http://95.216.138.63:8090";
 
 const baseURL =
-  window.location.hostname === "127.0.0.1" ? LOCAL_URL : PRODUCTION_URL;
+  window.location.hostname === "localhost" ? LOCAL_URL : PRODUCTION_URL;
+
+console.log("baseURL: ", baseURL, window.location.hostname);
 
 // Create an axios instance with the dynamic baseURL
 const axiosInstance = axios.create({

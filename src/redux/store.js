@@ -5,6 +5,7 @@ import { contestReducer } from "./contestSlice";
 import { solvedQuestionReducer } from "./QuestionSolvedSplice";
 import { contestAttemptReducer } from "./contestAttemptSlice";
 import { questionsReducer } from "./Question/questionsSlice";
+import { themeReducer } from "./Theme/themeSlice";
 
 // Configure the store with the different reducers
 export const store = configureStore({
@@ -15,5 +16,6 @@ export const store = configureStore({
     solved: solvedQuestionReducer,
     contestAttempt: contestAttemptReducer,
     question: questionsReducer,
+    theme: themeReducer,
   },
 });

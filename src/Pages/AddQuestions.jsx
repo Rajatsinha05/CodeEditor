@@ -21,29 +21,32 @@ import { useDispatch, useSelector } from "react-redux";
 
 import ExampleInputs from "../components/Problems/ExampleInputs";
 import { formDataValidator } from "../components/Problems/formDataValidator";
-import { postQuestion } from "../redux/Question/questionApi";
+import { postQuestion, updateQuestion } from "../redux/Question/questionApi";
 import { Topics } from "../components/data/Dsa"; // Import the Topics function
+import { generateLongIdFromUUID } from "../utils/idHelper";
 
-const AddQuestions = () => {
+const AddQuestions = ({ isOpen, onClose, initialData, isEditing }) => {
+  // Component logic
+
   const dispatch = useDispatch();
   const toast = useToast();
   const { user } = useSelector((state) => state.data);
 
   // Directly call the Topics function to get the array
-  const dsaTopics = useMemo(() => Topics(), []); // Corrected: Now inside the component
+  const dsaTopics = useMemo(() => Topics(), []);
 
   const initialFormData = useMemo(
     () => ({
-      title: "",
-      description: "",
-      difficultLevel: "",
-      constraintValue: "",
-      input: "",
-      expectedOutput: "",
-      tag: "",
+      title: initialData?.title || "",
+      description: initialData?.description || "",
+      difficultLevel: initialData?.difficultLevel || "",
+      constraintValue: initialData?.constraintValue || "",
+      input: initialData?.input || "",
+      expectedOutput: initialData?.expectedOutput || "",
+      tag: initialData?.tag || "",
       userId: user?.id,
     }),
-    [user?.id]
+    [initialData, user?.id]
   );
 
   const [formData, setFormData] = useState(initialFormData);
@@ -77,6 +80,7 @@ const AddQuestions = () => {
 
   const handleTagChange = useCallback((e) => {
     const { value } = e.target;
+    console.log("value: ", value);
     setFormData((prevData) => ({
       ...prevData,
       tag: value,
@@ -100,15 +104,53 @@ const AddQuestions = () => {
     adjustTextareaHeight(textAreaRefs.expectedOutput);
   }, [formData]);
 
+  // Update formData when initialData changes
+  useEffect(() => {
+    setFormData((prevData) => ({
+      ...prevData,
+      title: initialData?.title || "",
+      description: initialData?.description || "",
+      difficultLevel: initialData?.difficultLevel || "",
+      constraintValue: initialData?.constraintValue || "",
+      input: initialData?.input || "",
+      expectedOutput: initialData?.expectedOutput || "",
+      tag: initialData?.tag || "",
+      userId: user?.id,
+    }));
+  }, [initialData, user?.id]);
+
+  // Update examples when initialData changes
+  useEffect(() => {
+    if (initialData?.examples) {
+      setExamples(initialData.examples);
+    }
+  }, [initialData]);
+
   const handleSubmit = useCallback(
     async (e) => {
       e.preventDefault();
+
+      if (
+        newExample.input.trim() !== "" ||
+        newExample.output.trim() !== "" ||
+        newExample.explanation.trim() !== ""
+      ) {
+        // Add the newExample to examples array
+
+        setExamples((prevExamples) => [...prevExamples, newExample]);
+        // Reset newExample
+        setNewExample({
+          input: "",
+          output: "",
+          explanation: "",
+        });
+      }
 
       const validationErrors = formDataValidator(formData);
       if (Object.keys(validationErrors).length > 0) {
         setErrors(validationErrors);
         toast({
-          title: "Failed to Add Question",
+          title: `Failed to ${isEditing ? "Update" : "Add"} Question`,
           description: "Please fill all fields correctly.",
           status: "error",
           duration: 5000,
@@ -119,32 +161,52 @@ const AddQuestions = () => {
       }
 
       try {
-        await dispatch(
-          postQuestion({
-            ...formData,
-            user: {
-              id: Number(user.id),
-            },
-            examples,
-          })
-        ).unwrap();
+        if (isEditing) {
+          await dispatch(
+            updateQuestion({
+              questionId: initialData.id,
+              data: {
+                ...formData,
+                examples,
+              },
+            })
+          ).unwrap();
+        } else {
+          await dispatch(
+            postQuestion({
+              ...formData,
+              user: {
+                id: Number(user.id),
+              },
+              examples,
+            })
+          ).unwrap();
+        }
 
         setFormData(initialFormData);
         setExamples([]);
 
         toast({
-          title: "Question Added",
-          description: "Your question has been successfully added!",
+          title: `Question ${isEditing ? "Updated" : "Added"}`,
+          description: `Your question has been successfully ${
+            isEditing ? "updated" : "added"
+          }!`,
           status: "success",
           duration: 3000,
           isClosable: true,
           position: "top",
         });
+        if (onClose) {
+          onClose();
+        } // Close the modal after submission
       } catch (err) {
         toast({
-          title: "Failed to Add Question",
+          title: `Failed to ${isEditing ? "Update" : "Add"} Question`,
           description:
-            err.message || "An error occurred while adding the question.",
+            err.message ||
+            `An error occurred while ${
+              isEditing ? "updating" : "adding"
+            } the question.`,
           status: "error",
           duration: 5000,
           isClosable: true,
@@ -152,7 +214,17 @@ const AddQuestions = () => {
         });
       }
     },
-    [dispatch, formData, examples, initialFormData, toast, user?.id]
+    [
+      dispatch,
+      formData,
+      examples,
+      initialFormData,
+      toast,
+      user?.id,
+      isEditing,
+      initialData?.id,
+      onClose,
+    ]
   );
 
   const bgColor = useColorModeValue("white", "gray.700");
@@ -252,6 +324,7 @@ const AddQuestions = () => {
             ))}
           </Select>
         </FormControl>
+        {/* Include the ExampleInputs component */}
         <ExampleInputs
           examples={examples}
           newExample={newExample}
@@ -260,7 +333,7 @@ const AddQuestions = () => {
           toast={toast}
         />
         <Button type="submit" colorScheme="teal" mt={4}>
-          Submit
+          {isEditing ? "Update" : "Submit"}
         </Button>
       </form>
     </Box>

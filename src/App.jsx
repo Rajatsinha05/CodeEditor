@@ -1,4 +1,4 @@
-import { Box, Button, Text, useColorMode } from "@chakra-ui/react";
+import { Box, Button, Text, useColorMode, useColorModeValue } from "@chakra-ui/react";
 import Navbar from "./components/Navbar";
 import AllRoutes from "./Routes/AllRoutes";
 import { useSelector } from "react-redux";
@@ -10,6 +10,11 @@ function App() {
   const { isLogin } = useSelector((store) => store.data);
   const { colorMode } = useColorMode();
   const handleDrawerClose = () => setIsDrawerOpen(false);
+
+  // Define hover styles based on color mode
+  const hoverBg = useColorModeValue('#f44336', 'blue.600');
+  const hoverColor = useColorModeValue('white', 'white');
+
   return (
     <>
       <Navbar />
@@ -52,6 +57,7 @@ function App() {
               colorScheme="blue"
               size="lg"
               onClick={() => window.location.reload()}
+              _hover={{ bg: hoverBg, color: hoverColor }}
             >
               Login
             </Button>

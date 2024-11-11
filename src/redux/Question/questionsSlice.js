@@ -4,6 +4,8 @@ import {
   getQuestionById,
   fetchQuestions,
   solvedQuestions,
+  deleteQuestion,
+  updateQuestion,
 } from "./questionApi";
 
 // Initial state for the questions slice
@@ -65,6 +67,49 @@ const questionsSlice = createSlice({
         state.loading = false;
       })
       .addCase(solvedQuestions.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(updateQuestion.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateQuestion.fulfilled, (state, action) => {
+        state.loading = false;
+        // Update the question in the questions array
+        const index = state.questions.findIndex(
+          (question) => question.id === action.payload.id
+        );
+        if (index !== -1) {
+          state.questions[index] = action.payload;
+        }
+        // If the updated question is the currently selected question
+        if (state.question?.id === action.payload.id) {
+          state.question = action.payload;
+        }
+      })
+      .addCase(updateQuestion.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      // Handle deleteQuestion actions
+      .addCase(deleteQuestion.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(deleteQuestion.fulfilled, (state, action) => {
+        state.loading = false;
+        // Remove the question from the questions array
+        state.questions = state.questions.filter(
+          (question) => question.id !== action.payload
+        );
+        // If the deleted question is the currently selected question
+        if (state.question?.id === action.payload) {
+          state.question = null;
+        }
+      })
+      .addCase(deleteQuestion.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

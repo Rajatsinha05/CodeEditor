@@ -95,7 +95,7 @@ const ContestDetails = () => {
       0
     );
 
-    console.log("Total marks:", totalMarks, contestAttempts, user);
+    
 
     // Ensure contest attempts are loaded
     if (!contestAttempts || contestAttempts.length === 0) {
@@ -113,7 +113,7 @@ const ContestDetails = () => {
     const currentAttempt = contestAttempts.filter((attempt) => attempt.studentId == user.id
     );
 
-    console.log("currentAttempt:", currentAttempt);
+    
 
     if (currentAttempt) {
       try {

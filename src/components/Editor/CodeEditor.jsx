@@ -42,7 +42,7 @@ const CodeEditor = ({ problemId }) => {
   const toast = useToast();
   const dispatch = useDispatch();
   const { colorMode } = useColorMode();
-  const { data } = useSelector((store) => store.test)||{}
+  const { data } = useSelector((store) => store.test) || {};
 
   const { question } = useSelector((store) => store.question);
 
@@ -70,7 +70,6 @@ const CodeEditor = ({ problemId }) => {
       dispatch(getQuestionById(problemId));
     }
   }, [dispatch, problemId, shouldFetchQuestion]);
-
 
   useEffect(() => {
     const handleVisibilityChange = () => {
