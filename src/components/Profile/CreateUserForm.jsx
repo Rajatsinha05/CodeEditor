@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+// CreateUserForm.js
+import React, { useState, useEffect } from "react";
 import {
   VStack,
   FormControl,
@@ -34,35 +35,6 @@ const CreateUserForm = ({ userData, setUserData }) => {
     }));
   };
 
-  const validateFields = () => {
-    if (!userData.name) {
-      setValidationMessage("User Name is required");
-      setSnackbarOpen(true);
-      return false;
-    }
-    if (!userData.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userData.email)) {
-      setValidationMessage("A valid email is required");
-      setSnackbarOpen(true);
-      return false;
-    }
-    if (userData.password.length < 8) {
-      setValidationMessage("Password must be at least 8 characters");
-      setSnackbarOpen(true);
-      return false;
-    }
-    if (!userData.department) {
-      setValidationMessage("Please select a department");
-      setSnackbarOpen(true);
-      return false;
-    }
-    if (!userData.branchCode) {
-      setValidationMessage("Please select a branch code");
-      setSnackbarOpen(true);
-      return false;
-    }
-    return true;
-  };
-
   const inputBgColor = useColorModeValue("white", "gray.700");
   const labelColor = useColorModeValue("red.600", "red.300");
 
@@ -74,7 +46,7 @@ const CreateUserForm = ({ userData, setUserData }) => {
           <Input
             type="text"
             name="name"
-            value={userData.name}
+            value={userData.name || ""}
             onChange={handleChange}
             bg={inputBgColor}
           />
@@ -87,7 +59,7 @@ const CreateUserForm = ({ userData, setUserData }) => {
           <Input
             type="email"
             name="email"
-            value={userData.email}
+            value={userData.email || ""}
             onChange={handleChange}
             bg={inputBgColor}
           />
@@ -95,14 +67,17 @@ const CreateUserForm = ({ userData, setUserData }) => {
       </FormControl>
 
       <FormControl isRequired>
-        <FormLabel color={labelColor}>Password (min. 8 characters)</FormLabel>
+        <FormLabel color={labelColor}>
+          Password {userData.id ? "(Leave blank to keep current)" : "(min. 8 characters)"}
+        </FormLabel>
         <Box>
           <Input
             type="password"
             name="password"
-            value={userData.password}
+            value={userData.password || ""}
             onChange={handleChange}
             bg={inputBgColor}
+            placeholder={userData.id ? "********" : ""}
           />
         </Box>
       </FormControl>
@@ -112,7 +87,7 @@ const CreateUserForm = ({ userData, setUserData }) => {
         <Box>
           <Select
             name="department"
-            value={userData.department}
+            value={userData.department || ""}
             onChange={handleChange}
             bg={inputBgColor}
           >
@@ -131,7 +106,7 @@ const CreateUserForm = ({ userData, setUserData }) => {
         <Box>
           <Select
             name="branchCode"
-            value={userData.branchCode}
+            value={userData.branchCode || ""}
             onChange={handleChange}
             bg={inputBgColor}
           >

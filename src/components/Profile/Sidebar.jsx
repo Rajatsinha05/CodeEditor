@@ -1,3 +1,4 @@
+// Sidebar.js
 import React from "react";
 import {
   Box,
@@ -75,7 +76,12 @@ const Sidebar = ({ isAdmin, isSuperAdmin }) => {
 
       {/* Modals for Creating User or Student */}
       {formType === "user" ? (
-        <CreateUserModal isOpen={isOpen} onClose={onClose} mode="Create" />
+        <CreateUserModal
+          isOpen={isOpen}
+          onClose={onClose}
+          mode="Create"
+          // No need to pass refreshUsers or userData here
+        />
       ) : formType === "student" ? (
         <CreateStudentModal isOpen={isOpen} onClose={onClose} />
       ) : null}

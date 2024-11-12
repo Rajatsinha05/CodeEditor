@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+// Users.js
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   Box,
@@ -12,7 +13,6 @@ import {
   TableContainer,
   Select,
   Flex,
-  Text,
   useColorModeValue,
   IconButton,
   Menu,
@@ -39,14 +39,28 @@ import {
 import { useNavigate } from "react-router-dom";
 import { getCourse } from "../data/course";
 import { getBranch } from "../data/branch";
-import { deleteUser, fetchUsers, createUser } from "../../redux/User/userApi";
+import { deleteUser, fetchUsers } from "../../redux/User/userApi";
+import CreateUserModal from "./CreateUserModal";
 
-const Users = ({ branchCode }) => {
+const Users = React.memo(({ branchCode }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { users, user } = useSelector((store) => store.user); // Assuming `user` is the logged-in user
-  const { isOpen, onOpen, onClose } = useDisclosure();
+
+  const {
+    isOpen: isDeleteModalOpen,
+    onOpen: onDeleteModalOpen,
+    onClose: onDeleteModalClose,
+  } = useDisclosure();
+
+  const {
+    isOpen: isUpdateModalOpen,
+    onOpen: onUpdateModalOpen,
+    onClose: onUpdateModalClose,
+  } = useDisclosure();
+
   const [selectedUserId, setSelectedUserId] = useState(null);
+  const [selectedUser, setSelectedUser] = useState(null);
 
   const [search, setSearch] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState("");
@@ -69,61 +83,85 @@ const Users = ({ branchCode }) => {
     dispatch(fetchUsers());
   }, [dispatch]);
 
-  const refreshUsers = () => {
+  const refreshUsers = useCallback(() => {
     dispatch(fetchUsers());
-  };
+  }, [dispatch]);
 
-  const filteredUsers = (users || [])
-    .filter(
-      (userItem) =>
-        branchCode === "SUPERADMIN" || userItem.branchCode === branchCode
-    )
-    .filter(
-      (userItem) =>
-        userItem?.name?.toLowerCase().includes(search.toLowerCase()) ||
-        userItem?.email?.toLowerCase().includes(search.toLowerCase())
-    )
-    .filter((userItem) =>
-      departmentFilter ? userItem.department === departmentFilter : true
-    )
-    .filter((userItem) =>
-      branchCode === "SUPERADMIN" && branchFilter
-        ? userItem.branchCode === branchFilter
-        : true
-    )
-    .sort((a, b) => {
-      if (!sortOrder.key) return 0;
-      return sortOrder.order === "asc"
-        ? a[sortOrder.key] > b[sortOrder.key]
+  const filteredUsers = useMemo(() => {
+    return (users || [])
+      .filter(
+        (userItem) =>
+          branchCode === "SUPERADMIN" || userItem.branchCode === branchCode
+      )
+      .filter(
+        (userItem) =>
+          userItem?.name?.toLowerCase().includes(search.toLowerCase()) ||
+          userItem?.email?.toLowerCase().includes(search.toLowerCase())
+      )
+      .filter((userItem) =>
+        departmentFilter ? userItem.department === departmentFilter : true
+      )
+      .filter((userItem) =>
+        branchCode === "SUPERADMIN" && branchFilter
+          ? userItem.branchCode === branchFilter
+          : true
+      )
+      .sort((a, b) => {
+        if (!sortOrder.key) return 0;
+        return sortOrder.order === "asc"
+          ? a[sortOrder.key] > b[sortOrder.key]
+            ? 1
+            : -1
+          : a[sortOrder.key] < b[sortOrder.key]
           ? 1
-          : -1
-        : a[sortOrder.key] < b[sortOrder.key]
-        ? 1
-        : -1;
-    });
+          : -1;
+      });
+  }, [
+    users,
+    branchCode,
+    search,
+    departmentFilter,
+    branchFilter,
+    sortOrder.key,
+    sortOrder.order,
+  ]);
 
-  const handleSort = (key) => {
+  const handleSort = useCallback((key) => {
     setSortOrder((prev) => ({
       key,
       order: prev.order === "asc" ? "desc" : "asc",
     }));
-  };
+  }, []);
 
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = useCallback(() => {
     dispatch(deleteUser(selectedUserId)).then(() => {
       refreshUsers();
-      onClose();
+      onDeleteModalClose();
     });
-  };
+  }, [dispatch, selectedUserId, refreshUsers, onDeleteModalClose]);
 
-  const handleDelete = (id) => {
-    setSelectedUserId(id);
-    onOpen();
-  };
+  const handleDelete = useCallback(
+    (id) => {
+      setSelectedUserId(id);
+      onDeleteModalOpen();
+    },
+    [onDeleteModalOpen]
+  );
 
-  const handleUserClick = (id) => {
-    navigate(`/user/${id}`);
-  };
+  const handleUpdate = useCallback(
+    (userItem) => {
+      setSelectedUser(userItem);
+      onUpdateModalOpen();
+    },
+    [onUpdateModalOpen]
+  );
+
+  const handleUserClick = useCallback(
+    (id) => {
+      navigate(`/user/${id}`);
+    },
+    [navigate]
+  );
 
   return (
     <Box
@@ -246,6 +284,7 @@ const Users = ({ branchCode }) => {
                           icon={<FaEdit />}
                           onClick={(e) => {
                             e.stopPropagation();
+                            handleUpdate(userItem);
                           }}
                         >
                           Update
@@ -271,7 +310,7 @@ const Users = ({ branchCode }) => {
       </TableContainer>
 
       {/* Custom Confirm Delete Modal */}
-      <Modal isOpen={isOpen} onClose={onClose} isCentered>
+      <Modal isOpen={isDeleteModalOpen} onClose={onDeleteModalClose} isCentered>
         <ModalOverlay />
         <ModalContent>
           <ModalHeader>Confirm Delete</ModalHeader>
@@ -280,14 +319,28 @@ const Users = ({ branchCode }) => {
             <Button colorScheme="red" mr={3} onClick={handleDeleteConfirm}>
               Delete
             </Button>
-            <Button variant="ghost" onClick={onClose}>
+            <Button variant="ghost" onClick={onDeleteModalClose}>
               Cancel
             </Button>
           </ModalFooter>
         </ModalContent>
       </Modal>
+
+      {/* Update User Modal */}
+      {isUpdateModalOpen && (
+        <CreateUserModal
+          isOpen={isUpdateModalOpen}
+          onClose={() => {
+            onUpdateModalClose();
+            setSelectedUser(null);
+          }}
+          refreshUsers={refreshUsers}
+          userData={selectedUser}
+          mode="Update"
+        />
+      )}
     </Box>
   );
-};
+});
 
 export default Users;

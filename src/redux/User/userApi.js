@@ -20,7 +20,8 @@ const createApiThunk = (typePrefix, apiFunction) =>
       let errorMessage = `An error occurred in ${typePrefix}.`;
       if (error.response) {
         // Server responded with a status other than 2xx
-        errorMessage = error.response.data?.message || error.response.data || errorMessage;
+        errorMessage =
+          error.response.data?.message || error.response.data || errorMessage;
       } else if (error.request) {
         // Request was made but no response received
         errorMessage = "No response from server. Please try again later.";
@@ -45,8 +46,13 @@ export const createUser = createApiThunk("user/createUser", (user) => {
 });
 
 // Update User
-export const updateUser = createApiThunk("user/updateUser", ({ id, userData }) =>
-  axiosInstance.put(`/users/${id}`, userData)
+export const updateUser = createApiThunk(
+  "user/updateUser",
+  ({ id, userData }) => {
+    console.log("id, userData: ", id, userData);
+
+    return axiosInstance.put(`/users/${id}`, userData);
+  }
 );
 
 // Delete User

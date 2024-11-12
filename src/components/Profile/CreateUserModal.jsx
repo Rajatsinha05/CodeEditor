@@ -1,3 +1,4 @@
+// CreateUserModal.js
 import React, { useState, useEffect } from "react";
 import {
   Modal,
@@ -15,15 +16,13 @@ import { useDispatch } from "react-redux";
 import CreateUserForm from "./CreateUserForm";
 import { createUser, updateUser } from "../../redux/User/userApi";
 
-const CreateUserModal = ({ isOpen, onClose, refreshUsers, userData, mode }) => {
-  console.log(
-    "isOpen, onClose, refreshUsers, userData, mode: ",
-    isOpen,
-    onClose,
-    refreshUsers,
-    userData,
-    mode
-  );
+const CreateUserModal = ({
+  isOpen,
+  onClose,
+  refreshUsers, // Make sure this is optional
+  userData,
+  mode = "Create",
+}) => {
   const [formData, setFormData] = useState(userData || {});
   const dispatch = useDispatch();
   const toast = useToast();
@@ -46,7 +45,9 @@ const CreateUserModal = ({ isOpen, onClose, refreshUsers, userData, mode }) => {
           position: "top",
         });
       } else {
-        await dispatch(updateUser(formData)).unwrap();
+        await dispatch(
+          updateUser({ id: formData.id, userData: formData })
+        ).unwrap();
         toast({
           title: "User updated successfully.",
           status: "success",
@@ -56,7 +57,11 @@ const CreateUserModal = ({ isOpen, onClose, refreshUsers, userData, mode }) => {
         });
       }
       onClose();
-      refreshUsers();
+
+      // Only call refreshUsers if it's provided
+      if (refreshUsers) {
+        refreshUsers();
+      }
     } catch (error) {
       toast({
         title: "Error",
@@ -84,7 +89,7 @@ const CreateUserModal = ({ isOpen, onClose, refreshUsers, userData, mode }) => {
           <Button colorScheme="red" onClick={handleSave}>
             {mode === "Create" ? "Create" : "Save Changes"}
           </Button>
-          <Button variant="ghost" onClick={onClose}>
+          <Button variant="ghost" onClick={onClose} ml={3}>
             Cancel
           </Button>
         </ModalFooter>
