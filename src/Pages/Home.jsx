@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchContests, fetchContestsByStudent } from "../redux/contestSlice";
 import { Box, useDisclosure, useColorModeValue } from "@chakra-ui/react";
@@ -47,11 +47,14 @@ const Home = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  // Handler for starting a contest
-  const handleStartContestClick = (contest) => {
-    setSelectedContest(contest);
-    onOpen();
-  };
+  // Memoized handler for starting a contest to avoid re-renders
+  const handleStartContestClick = useCallback(
+    (contest) => {
+      setSelectedContest(contest);
+      onOpen();
+    },
+    [onOpen]
+  );
 
   // Memoized filtered contests list
   const filteredContests = useMemo(() => {

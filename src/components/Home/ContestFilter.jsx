@@ -1,51 +1,67 @@
-import React from "react";
-import { HStack, Button, Tooltip, IconButton } from "@chakra-ui/react";
-import { MdEventAvailable, MdFilterListOff } from "react-icons/md";
+import React, { useMemo } from "react";
+import { Stack, Button, Tooltip, useBreakpointValue } from "@chakra-ui/react";
+import { MdEventAvailable } from "react-icons/md";
 import { CalendarIcon, RepeatIcon } from "@chakra-ui/icons";
 import { FaList } from "react-icons/fa";
 
-const ContestFilter = ({ filter, setFilter }) => {
-  return (
-    <HStack justify="flex-start" mb={6} spacing={4}>
-      <Tooltip label="Active Contests" aria-label="Active Contests">
-        <Button
-          leftIcon={<MdEventAvailable />}
-          colorScheme={filter === "active" ? "teal" : "gray"}
-          onClick={() => setFilter("active")}
-        >
-          Active
-        </Button>
-      </Tooltip>
-      <Tooltip label="Upcoming Contests" aria-label="Upcoming Contests">
-        <Button
-          leftIcon={<CalendarIcon />}
-          colorScheme={filter === "upcoming" ? "yellow" : "gray"}
-          onClick={() => setFilter("upcoming")}
-        >
-          Upcoming
-        </Button>
-      </Tooltip>
-      <Tooltip label="Past Contests" aria-label="Past Contests">
-        <Button
-          leftIcon={<RepeatIcon />}
-          colorScheme={filter === "past" ? "red" : "gray"}
-          onClick={() => setFilter("past")}
-        >
-          Past
-        </Button>
-      </Tooltip>
-      <Tooltip label="All Contests" aria-label="All Contests">
-        <Button
-          leftIcon={<FaList />}
-          colorScheme={filter === "all" ? "blue" : "gray"}
-          onClick={() => setFilter("all")}
-        >
-          All
-        </Button>
-      </Tooltip>
+const ContestFilter = React.memo(({ filter, setFilter }) => {
 
-    </HStack>
+  const layout = useBreakpointValue({ base: "column", md: "row" });
+
+  const buttons = useMemo(
+    () => [
+      {
+        label: "Active Contests",
+        icon: <MdEventAvailable />,
+        colorScheme: "teal",
+        filterKey: "active",
+      },
+      {
+        label: "Upcoming Contests",
+        icon: <CalendarIcon />,
+        colorScheme: "yellow",
+        filterKey: "upcoming",
+      },
+      {
+        label: "Past Contests",
+        icon: <RepeatIcon />,
+        colorScheme: "red",
+        filterKey: "past",
+      },
+      {
+        label: "All Contests",
+        icon: <FaList />,
+        colorScheme: "blue",
+        filterKey: "all",
+      },
+    ],
+    []
   );
-};
+
+  return (
+    <Stack
+      direction={layout}
+      spacing={4}
+      align="center"
+      justify="center"
+      mb={6}
+      width="100%"
+    >
+      {buttons.map(({ label, icon, colorScheme, filterKey }) => (
+        <Tooltip key={filterKey} label={label} aria-label={label} hasArrow>
+          <Button
+            leftIcon={icon}
+            colorScheme={filter === filterKey ? colorScheme : "gray"}
+            variant={filter === filterKey ? "solid" : "outline"}
+            onClick={() => setFilter(filterKey)}
+            width={layout === "column" ? "100%" : "auto"}
+          >
+            {filterKey.charAt(0).toUpperCase() + filterKey.slice(1)}
+          </Button>
+        </Tooltip>
+      ))}
+    </Stack>
+  );
+});
 
 export default ContestFilter;

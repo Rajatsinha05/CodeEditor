@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback } from "react";
 import {
   Box,
   Text,
@@ -25,8 +25,7 @@ import { useDispatch } from "react-redux";
 import { deleteContest } from "../../redux/contestSlice";
 import CreateContest from "../../Pages/CreateContest";
 
-const ContestCard = ({ contest, user, onStartClick }) => {
-  console.log('user: ', user);
+const ContestCard = React.memo(({ contest, user, onStartClick }) => {
   const dispatch = useDispatch();
   const { isOpen, onOpen, onClose } = useDisclosure();
 
@@ -48,11 +47,11 @@ const ContestCard = ({ contest, user, onStartClick }) => {
 
   const isEditableOrDeletable =
     user?.role === "SUPERADMIN" || contest.createdBy === user?.id;
-  console.log("isEditableOrDeletable", isEditableOrDeletable);
 
-  const handleDelete = () => {
+  // Memoized delete handler to avoid re-renders
+  const handleDelete = useCallback(() => {
     dispatch(deleteContest(contest.id));
-  };
+  }, [dispatch, contest.id]);
 
   return (
     <Box
@@ -119,7 +118,7 @@ const ContestCard = ({ contest, user, onStartClick }) => {
             <Button
               leftIcon={<MdEdit />}
               colorScheme="blue"
-              onClick={() => onOpen}
+              onClick={onOpen}
             >
               Edit
             </Button>
@@ -151,6 +150,6 @@ const ContestCard = ({ contest, user, onStartClick }) => {
       </Modal>
     </Box>
   );
-};
+});
 
 export default ContestCard;
