@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { VStack, Text, useColorModeValue } from "@chakra-ui/react";
 import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration";
@@ -6,7 +6,7 @@ import ContestCard from "./ContestCard";
 
 dayjs.extend(duration);
 
-const ContestList = ({ contests, onStartContestClick, onEditContestClick, user }) => {
+const ContestList = React.memo(({ contests, onStartContestClick, onEditContestClick, user }) => {
   return (
     <VStack spacing={4} align="stretch">
       {contests.length > 0 ? (
@@ -26,7 +26,6 @@ const ContestList = ({ contests, onStartContestClick, onEditContestClick, user }
       )}
     </VStack>
   );
-};
+});
 
 export default ContestList;
-

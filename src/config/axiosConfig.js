@@ -12,7 +12,7 @@ console.log("baseURL: ", baseURL, window.location.hostname);
 
 // Create an axios instance with the dynamic baseURL
 const axiosInstance = axios.create({
-  baseURL: baseURL,
+  baseURL:" https://demoapi.rnwmultimedia.com",
 });
 
 // Add a request interceptor to attach the token to all requests except login and signup

@@ -5,12 +5,12 @@ import {
   Spinner,
   VStack,
   Icon,
-
   useColorModeValue,
   HStack,
 } from "@chakra-ui/react";
-import { FaBolt, FaRocket, FaMedal, FaSmileBeam } from "react-icons/fa";
-import { keyframes } from '@emotion/react';
+import { FaBolt, FaRocket, FaMedal } from "react-icons/fa";
+import { keyframes } from "@emotion/react";
+
 const bounceAnimation = keyframes`
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-15px); }
@@ -21,7 +21,7 @@ const rotateAnimation = keyframes`
   100% { transform: rotate(360deg); }
 `;
 
-const MotivationalLoadingSpinner = () => {
+const MotivationalLoadingSpinner = React.memo(() => {
   const textColor = useColorModeValue("purple.600", "yellow.300");
   const iconColor = useColorModeValue("orange.400", "teal.300");
 
@@ -70,6 +70,6 @@ const MotivationalLoadingSpinner = () => {
       </VStack>
     </VStack>
   );
-};
+});
 
 export default MotivationalLoadingSpinner;
