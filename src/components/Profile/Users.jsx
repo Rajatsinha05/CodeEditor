@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { getUsers, assignPermission, revokePermission } from "../../redux/apiSlice";
 import { useDispatch, useSelector } from "react-redux";
 import {
   Box,
@@ -16,96 +15,93 @@ import {
   Text,
   useColorModeValue,
   IconButton,
-  Button,
-  CheckboxGroup,
-  Checkbox,
-  Stack,
-  VStack,
+  Menu,
+  MenuButton,
+  MenuItem,
+  MenuList,
   useBreakpointValue,
+  useDisclosure,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  Button,
 } from "@chakra-ui/react";
-import { ArrowUpIcon, ArrowDownIcon } from "@chakra-ui/icons";
-import { FaSortAlphaDown, FaSortAlphaUpAlt } from "react-icons/fa";
+import {
+  FaSortAlphaDown,
+  FaSortAlphaUpAlt,
+  FaEllipsisV,
+  FaTrash,
+  FaEdit,
+} from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import { getCourse } from "../data/course";
+import { getBranch } from "../data/branch";
+import { deleteUser, fetchUsers, createUser } from "../../redux/User/userApi";
 
 const Users = ({ branchCode }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { users } = useSelector((store) => store.data);
+  const { users, user } = useSelector((store) => store.user); // Assuming `user` is the logged-in user
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [selectedUserId, setSelectedUserId] = useState(null);
 
   const [search, setSearch] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState("");
   const [branchFilter, setBranchFilter] = useState("");
   const [sortOrder, setSortOrder] = useState({ key: "", order: "" });
-  const [selectedPermissions, setSelectedPermissions] = useState({});
-  const [action, setAction] = useState("assign");
 
   const bgColor = useColorModeValue("gray.50", "gray.800");
   const textColor = useColorModeValue("gray.900", "gray.100");
-  const hoverColor = useColorModeValue("teal.100", "teal.700");
+  const hoverColor = useColorModeValue("red.100", "teal.600");
   const tableBgColor = useColorModeValue("white", "gray.700");
+  const tableColorScheme = useColorModeValue("red", "teal");
+  const alternateRowBg = useColorModeValue(
+    "rgba(255, 0, 0, 0.05)",
+    "rgba(20, 20, 20, 0.5)"
+  );
 
-  // Breakpoints for responsiveness
   const isMobile = useBreakpointValue({ base: true, md: false });
 
   useEffect(() => {
-    dispatch(getUsers());
+    dispatch(fetchUsers());
   }, [dispatch]);
 
-  // Handle permission changes for each user
-  const handlePermissionChange = (userId, permissions) => {
-    setSelectedPermissions((prev) => ({
-      ...prev,
-      [userId]: permissions,
-    }));
+  const refreshUsers = () => {
+    dispatch(fetchUsers());
   };
 
-  // Handle permission action (assign/revoke)
-  const handlePermissionAction = (userId) => {
-    const permissions = selectedPermissions[userId];
-    if (!permissions || permissions.length === 0) return;
-
-    if (action === "assign") {
-      permissions.forEach((permission) => {
-        dispatch(assignPermission({ userId, permission }));
-      });
-    } else {
-      permissions.forEach((permission) => {
-        dispatch(revokePermission({ userId, permission }));
-      });
-    }
-  };
-
-  // Filter and sort users
-  const filteredUsers = users
-    .filter((user) => {
-      if (branchCode === "SUPERADMIN") {
-        return true; // Show all users for SUPERADMIN
-      }
-      return user.branchCode === branchCode; // Only show users with the same branch code
-    })
+  const filteredUsers = (users || [])
     .filter(
-      (user) =>
-        user.name.toLowerCase().includes(search.toLowerCase()) ||
-        user.email.toLowerCase().includes(search.toLowerCase())
+      (userItem) =>
+        branchCode === "SUPERADMIN" || userItem.branchCode === branchCode
     )
-    .filter((user) =>
-      departmentFilter ? user.department === departmentFilter : true
+    .filter(
+      (userItem) =>
+        userItem?.name?.toLowerCase().includes(search.toLowerCase()) ||
+        userItem?.email?.toLowerCase().includes(search.toLowerCase())
     )
-    .filter((user) =>
+    .filter((userItem) =>
+      departmentFilter ? userItem.department === departmentFilter : true
+    )
+    .filter((userItem) =>
       branchCode === "SUPERADMIN" && branchFilter
-        ? user.branchCode === branchFilter
+        ? userItem.branchCode === branchFilter
         : true
     )
     .sort((a, b) => {
       if (!sortOrder.key) return 0;
-      if (sortOrder.order === "asc") {
-        return a[sortOrder.key] > b[sortOrder.key] ? 1 : -1;
-      } else {
-        return a[sortOrder.key] < b[sortOrder.key] ? 1 : -1;
-      }
+      return sortOrder.order === "asc"
+        ? a[sortOrder.key] > b[sortOrder.key]
+          ? 1
+          : -1
+        : a[sortOrder.key] < b[sortOrder.key]
+        ? 1
+        : -1;
     });
 
-  // Handle sorting
   const handleSort = (key) => {
     setSortOrder((prev) => ({
       key,
@@ -113,8 +109,19 @@ const Users = ({ branchCode }) => {
     }));
   };
 
-  // Handle navigation to user details
-  const handleRowClick = (id) => {
+  const handleDeleteConfirm = () => {
+    dispatch(deleteUser(selectedUserId)).then(() => {
+      refreshUsers();
+      onClose();
+    });
+  };
+
+  const handleDelete = (id) => {
+    setSelectedUserId(id);
+    onOpen();
+  };
+
+  const handleUserClick = (id) => {
     navigate(`/user/${id}`);
   };
 
@@ -129,11 +136,6 @@ const Users = ({ branchCode }) => {
       boxShadow="lg"
       overflowX="auto"
     >
-      <Text fontSize="2xl" mb={4} fontWeight="bold" textAlign="center">
-        Users Management
-      </Text>
-
-      {/* Search and Filter Section */}
       <Flex
         mb={4}
         gap={4}
@@ -158,16 +160,11 @@ const Users = ({ branchCode }) => {
           borderRadius="md"
           boxShadow="sm"
         >
-          <option value="Full Stack Developer">Full Stack Developer</option>
-          <option value="Frontend Developer">Frontend Developer</option>
-          <option value="Backend Developer">Backend Developer</option>
-          <option value="Android Developer">Android Developer</option>
-          <option value="C Programming">C Programming</option>
-          <option value="C++ Programming">C++ Programming</option>
-          <option value="Data Science">Data Science</option>
-          <option value="DevOps">DevOps</option>
-          <option value="UI/UX Design">UI/UX Design</option>
-          <option value="Project Management">Project Management</option>
+          {getCourse().map((course) => (
+            <option key={course} value={course}>
+              {course}
+            </option>
+          ))}
         </Select>
         {branchCode === "SUPERADMIN" && (
           <Select
@@ -179,53 +176,19 @@ const Users = ({ branchCode }) => {
             borderRadius="md"
             boxShadow="sm"
           >
-            <option value="rw1">Branch RW1</option>
-            <option value="rw2">Branch RW2</option>
-            <option value="rw3">Branch RW3</option>
-            <option value="rw4">Branch RW4</option>
-            <option value="rw5">Branch RW5</option>
-            <option value="rw6">Branch RW6</option>
-            <option value="rw7">Branch RW7</option>
-            <option value="rw8">Branch RW8</option>
+            {getBranch().map((branch) => (
+              <option key={branch} value={branch}>
+                {`Branch ${branch.toUpperCase()}`}
+              </option>
+            ))}
           </Select>
         )}
-        <Select
-          placeholder="Action"
-          value={action}
-          onChange={(e) => setAction(e.target.value)}
-          width={isMobile ? "100%" : "20%"}
-          bg={tableBgColor}
-          borderRadius="md"
-          boxShadow="sm"
-        >
-          <option value="assign">Assign Permission</option>
-          <option value="revoke">Revoke Permission</option>
-        </Select>
       </Flex>
 
-      {/* Users Table */}
       <TableContainer>
-        <Table variant="striped" colorScheme="teal">
+        <Table variant="striped" colorScheme={tableColorScheme}>
           <Thead>
             <Tr>
-              <Th>
-                ID
-                <IconButton
-                  size="xs"
-                  ml={2}
-                  onClick={() => handleSort("id")}
-                  icon={
-                    sortOrder.key === "id" && sortOrder.order === "asc" ? (
-                      <ArrowUpIcon />
-                    ) : (
-                      <ArrowDownIcon />
-                    )
-                  }
-                  variant="ghost"
-                  colorScheme="teal"
-                  _hover={{ bg: hoverColor }}
-                />
-              </Th>
               <Th>
                 Name
                 <IconButton
@@ -240,78 +203,89 @@ const Users = ({ branchCode }) => {
                     )
                   }
                   variant="ghost"
-                  colorScheme="teal"
+                  colorScheme={tableColorScheme}
                   _hover={{ bg: hoverColor }}
                 />
               </Th>
               <Th>Email</Th>
               <Th>Department</Th>
-              <Th>
-                Branch Code
-                <IconButton
-                  size="xs"
-                  ml={2}
-                  onClick={() => handleSort("branchCode")}
-                  icon={
-                    sortOrder.key === "branchCode" &&
-                    sortOrder.order === "asc" ? (
-                      <ArrowUpIcon />
-                    ) : (
-                      <ArrowDownIcon />
-                    )
-                  }
-                  variant="ghost"
-                  colorScheme="teal"
-                  _hover={{ bg: hoverColor }}
-                />
-              </Th>
+              <Th>Branch Code</Th>
               <Th>Role</Th>
-              <Th>Permissions</Th>
-              <Th>Action</Th>
+              {user.role === "SUPERADMIN" && <Th>Actions</Th>}
             </Tr>
           </Thead>
           <Tbody>
-            {filteredUsers.map((user) => (
-              <Tr key={user.id} _hover={{ bg: hoverColor, cursor: "pointer" }}>
-                <Td>{user.id}</Td>
-                <Td>{user.name}</Td>
-                <Td>{user.email}</Td>
-                <Td>{user.department}</Td>
-                <Td>{user.branchCode}</Td>
-                <Td>{user.role}</Td>
-                <Td>
-                  <CheckboxGroup
-                    value={selectedPermissions[user.id] || []}
-                    onChange={(permissions) =>
-                      handlePermissionChange(user.id, permissions)
-                    }
-                  >
-                    <Stack
-                      direction={isMobile ? "column" : "row"}
-                      wrap="wrap"
-                      spacing={2}
-                    >
-                      <Checkbox value="CREATE_CONTEST">Create Contest</Checkbox>
-                      <Checkbox value="VIEW_CONTEST">View Contest</Checkbox>
-                      <Checkbox value="EDIT_CONTEST">Edit Contest</Checkbox>
-                      <Checkbox value="DELETE_CONTEST">Delete Contest</Checkbox>
-                      <Checkbox value="MANAGE_USERS">Manage Users</Checkbox>
-                    </Stack>
-                  </CheckboxGroup>
+            {filteredUsers.map((userItem, index) => (
+              <Tr
+                key={userItem.id}
+                _hover={{ bg: hoverColor }}
+                bg={index % 2 === 1 ? alternateRowBg : "transparent"}
+              >
+                <Td
+                  onClick={() => handleUserClick(userItem.id)}
+                  _hover={{ textDecoration: "underline", cursor: "pointer" }}
+                >
+                  {userItem.name}
                 </Td>
-                <Td>
-                  <Button
-                    colorScheme="blue"
-                    onClick={() => handlePermissionAction(user.id)}
-                  >
-                    {action === "assign" ? "Assign" : "Revoke"}
-                  </Button>
-                </Td>
+                <Td>{userItem.email}</Td>
+                <Td>{userItem.department}</Td>
+                <Td>{userItem.branchCode}</Td>
+                <Td>{userItem.role}</Td>
+                {user.role === "SUPERADMIN" && (
+                  <Td>
+                    <Menu>
+                      <MenuButton
+                        as={IconButton}
+                        icon={<FaEllipsisV />}
+                        variant="outline"
+                        aria-label="Options"
+                        _hover={{ bg: hoverColor }}
+                      />
+                      <MenuList>
+                        <MenuItem
+                          icon={<FaEdit />}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                          }}
+                        >
+                          Update
+                        </MenuItem>
+                        <MenuItem
+                          icon={<FaTrash />}
+                          color="red.500"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(userItem.id);
+                          }}
+                        >
+                          Delete
+                        </MenuItem>
+                      </MenuList>
+                    </Menu>
+                  </Td>
+                )}
               </Tr>
             ))}
           </Tbody>
         </Table>
       </TableContainer>
+
+      {/* Custom Confirm Delete Modal */}
+      <Modal isOpen={isOpen} onClose={onClose} isCentered>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Confirm Delete</ModalHeader>
+          <ModalBody>Are you sure you want to delete this user?</ModalBody>
+          <ModalFooter>
+            <Button colorScheme="red" mr={3} onClick={handleDeleteConfirm}>
+              Delete
+            </Button>
+            <Button variant="ghost" onClick={onClose}>
+              Cancel
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </Box>
   );
 };

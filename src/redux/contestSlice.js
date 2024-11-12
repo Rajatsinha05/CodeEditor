@@ -2,18 +2,22 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axiosInstance from "../config/axiosConfig";
 import { generateLongIdFromUUID } from "../utils/idHelper";
 
+// Helper function to handle API errors
+const handleApiError = (error, rejectWithValue) => 
+  rejectWithValue(error.response?.data || "An error occurred");
+
 // Async thunk to create a contest
 export const createContest = createAsyncThunk(
   "contests/createContest",
   async (contestData, { rejectWithValue }) => {
     try {
-      contestData.id = generateLongIdFromUUID();
-      const response = await axiosInstance.post("/contests", contestData);
-
+      const response = await axiosInstance.post("/contests", {
+        ...contestData,
+        id: generateLongIdFromUUID(),
+      });
       return response.data;
     } catch (error) {
-      // Catch and return error
-      return rejectWithValue(error.response?.data || "An error occurred");
+      return handleApiError(error, rejectWithValue);
     }
   }
 );
@@ -24,28 +28,22 @@ export const fetchContests = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await axiosInstance.get("/contests");
-
       return response.data;
     } catch (error) {
-      // Useful for debugging
-      return rejectWithValue(error.response?.data || "An error occurred");
+      return handleApiError(error, rejectWithValue);
     }
   }
 );
 
-// Async thunk to fetch contests by student ID (fix applied here)
+// Async thunk to fetch contests by student ID
 export const fetchContestsByStudent = createAsyncThunk(
   "contests/fetchContestsByStudent",
   async (studentId, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.get(
-        `/contests/student/${studentId}`
-      );
-
+      const response = await axiosInstance.get(`/contests/student/${studentId}`);
       return response.data;
     } catch (error) {
-      // Return error data or a default message
-      return rejectWithValue(error.response?.data || "An error occurred");
+      return handleApiError(error, rejectWithValue);
     }
   }
 );
@@ -56,10 +54,9 @@ export const getContestById = createAsyncThunk(
   async (contestId, { rejectWithValue }) => {
     try {
       const response = await axiosInstance.get(`/contests/${contestId}`);
-
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data || "An error occurred");
+      return handleApiError(error, rejectWithValue);
     }
   }
 );
@@ -69,13 +66,10 @@ export const updateContest = createAsyncThunk(
   "contests/updateContest",
   async ({ contestId, updatedData }, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.put(
-        `/contests/${contestId}`,
-        updatedData
-      );
+      const response = await axiosInstance.put(`/contests/${contestId}`, updatedData);
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data || "An error occurred");
+      return handleApiError(error, rejectWithValue);
     }
   }
 );
@@ -86,27 +80,27 @@ export const deleteContest = createAsyncThunk(
   async (contestId, { rejectWithValue }) => {
     try {
       await axiosInstance.delete(`/contests/${contestId}`);
-      return contestId; // Return the ID so it can be removed in the reducer
+      return contestId;
     } catch (error) {
-      return rejectWithValue(error.response?.data || "An error occurred");
+      return handleApiError(error, rejectWithValue);
     }
   }
 );
 
 // Define the initial state for contests
-const initialContestState = {
-  contests: [], // List of all contests
-  contest: {}, // Specific contest details
-  loading: false, // Loading state for any operation
-  error: null, // Store any error messages
+const initialState = {
+  contests: [],
+  contest: null,
+  loading: false,
+  error: null,
   isFetched: false,
 };
 
 // Create the slice for contests
 export const contestSlice = createSlice({
   name: "contests",
-  initialState: initialContestState,
-  reducers: {}, // No custom reducers needed as of now
+  initialState,
+  reducers: {},
   extraReducers: (builder) => {
     builder
       // Create Contest Reducers
@@ -115,7 +109,7 @@ export const contestSlice = createSlice({
         state.error = null;
       })
       .addCase(createContest.fulfilled, (state, action) => {
-        state.contests.push(action.payload); // Add new contest to list
+        state.contests.push(action.payload);
         state.loading = false;
       })
       .addCase(createContest.rejected, (state, action) => {
@@ -127,11 +121,12 @@ export const contestSlice = createSlice({
       .addCase(fetchContests.pending, (state) => {
         state.loading = true;
         state.error = null;
-        state.isFetched = true;
+        state.isFetched = false;
       })
       .addCase(fetchContests.fulfilled, (state, action) => {
-        state.contests = action.payload; // Update contest list
+        state.contests = action.payload;
         state.loading = false;
+        state.isFetched = true;
       })
       .addCase(fetchContests.rejected, (state, action) => {
         state.loading = false;
@@ -144,7 +139,7 @@ export const contestSlice = createSlice({
         state.error = null;
       })
       .addCase(fetchContestsByStudent.fulfilled, (state, action) => {
-        state.contests = action.payload; // Set contests enrolled by the student
+        state.contests = action.payload;
         state.loading = false;
         state.isFetched = true;
       })
@@ -159,7 +154,7 @@ export const contestSlice = createSlice({
         state.error = null;
       })
       .addCase(getContestById.fulfilled, (state, action) => {
-        state.contest = action.payload; // Set specific contest details
+        state.contest = action.payload;
         state.loading = false;
       })
       .addCase(getContestById.rejected, (state, action) => {
@@ -173,11 +168,9 @@ export const contestSlice = createSlice({
         state.error = null;
       })
       .addCase(updateContest.fulfilled, (state, action) => {
-        const index = state.contests.findIndex(
-          (contest) => contest.id === action.payload.id
-        );
+        const index = state.contests.findIndex(contest => contest.id === action.payload.id);
         if (index !== -1) {
-          state.contests[index] = action.payload; // Update contest in list
+          state.contests[index] = action.payload;
         }
         state.loading = false;
       })
@@ -192,9 +185,7 @@ export const contestSlice = createSlice({
         state.error = null;
       })
       .addCase(deleteContest.fulfilled, (state, action) => {
-        state.contests = state.contests.filter(
-          (contest) => contest.id !== action.payload // Remove contest by ID
-        );
+        state.contests = state.contests.filter(contest => contest.id !== action.payload);
         state.loading = false;
       })
       .addCase(deleteContest.rejected, (state, action) => {

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, useCallback } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { shallowEqual, useDispatch, useSelector } from "react-redux";
 import { fetchContests, fetchContestsByStudent } from "../redux/contestSlice";
 import { Box, useDisclosure, useColorModeValue } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
@@ -21,11 +21,9 @@ const Home = () => {
   const [loading, setLoading] = useState(true); // Loading state
 
   // Select user and contests from the Redux store
-  const { user, contests, isFetched } = useSelector((store) => ({
-    user: store.data.user,
-    contests: store.contest.contests,
-    isFetched: store.contest.isFetched,
-  }));
+  const user = useSelector((store) => store.data.user, shallowEqual);
+  const contests = useSelector((store) => store.contest.contests, shallowEqual);
+  const isFetched = useSelector((store) => store.contest.isFetched, shallowEqual);
 
   // Fetch contests only once if they haven't been fetched yet
   useEffect(() => {

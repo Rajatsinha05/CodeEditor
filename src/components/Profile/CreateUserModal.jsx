@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Modal,
   ModalOverlay,
@@ -8,123 +8,85 @@ import {
   ModalBody,
   ModalFooter,
   Button,
-  useColorModeValue,
   useToast,
-  Grid,
-  Tooltip,
-  Spinner,
+  useColorModeValue,
 } from "@chakra-ui/react";
-import { FaPlusCircle } from "react-icons/fa";
 import { useDispatch } from "react-redux";
-import { createUser } from "../../redux/apiSlice";
 import CreateUserForm from "./CreateUserForm";
+import { createUser, updateUser } from "../../redux/User/userApi";
 
-const CreateUserModal = ({ isOpen, onClose }) => {
-  const [userData, setUserData] = React.useState({
-    name: "",
-    email: "",
-    password: "",
-    department: "",
-    branchCode: "",
-    role: "", // New field for role
-  });
-  const [loading, setLoading] = React.useState(false); // Loading state
+const CreateUserModal = ({ isOpen, onClose, refreshUsers, userData, mode }) => {
+  console.log(
+    "isOpen, onClose, refreshUsers, userData, mode: ",
+    isOpen,
+    onClose,
+    refreshUsers,
+    userData,
+    mode
+  );
+  const [formData, setFormData] = useState(userData || {});
   const dispatch = useDispatch();
   const toast = useToast();
-
   const modalBgColor = useColorModeValue("white", "gray.800");
-  const headerTextColor = useColorModeValue("blue.600", "blue.300");
-  const footerBgColor = useColorModeValue("gray.100", "gray.700");
+  const headerColor = useColorModeValue("red.600", "red.400");
 
-  // Helper function to validate email format
-  const validateEmail = (email) => {
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return re.test(String(email).toLowerCase());
-  };
+  useEffect(() => {
+    setFormData(userData || {});
+  }, [userData]);
 
-  const handleCreate = async () => {
-    // Validation logic
-    if (
-      !userData.name ||
-      !userData.email ||
-      !validateEmail(userData.email) ||
-      userData.password.length < 8 ||
-      !userData.department ||
-      !userData.branchCode ||
-      !userData.role
-    ) {
+  const handleSave = async () => {
+    try {
+      if (mode === "Create") {
+        await dispatch(createUser(formData)).unwrap();
+        toast({
+          title: "User created successfully.",
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+          position: "top",
+        });
+      } else {
+        await dispatch(updateUser(formData)).unwrap();
+        toast({
+          title: "User updated successfully.",
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+          position: "top",
+        });
+      }
+      onClose();
+      refreshUsers();
+    } catch (error) {
       toast({
-        title: "Validation Error",
-        description: "Please correct the highlighted fields.",
+        title: "Error",
+        description: error.message || "An error occurred",
         status: "error",
         duration: 3000,
         isClosable: true,
+        position: "top",
       });
-      return;
-    }
-
-    setLoading(true); // Set loading to true when starting to create a user
-
-    try {
-      await dispatch(createUser(userData)).unwrap();
-      toast({
-        title: "User created successfully.",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
-      onClose(); // Close the modal after successful creation
-    } catch (error) {
-      if (error.response && error.response.data.message.includes("email already exists")) {
-        toast({
-          title: "Duplicate Entry",
-          description: "A user with the same email already exists. Please use a different email.",
-          status: "error",
-          duration: 5000,
-          isClosable: true,
-        });
-      } else {
-        toast({
-          title: "Error",
-          description: "An error occurred while creating the user. Please try again.",
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-        });
-      }
-      console.error("Error creating user:", error);
-    } finally {
-      setLoading(false); // Reset loading to false once operation completes
     }
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="2xl">
+    <Modal isOpen={isOpen} onClose={onClose} size="lg">
       <ModalOverlay />
       <ModalContent bg={modalBgColor}>
-        <ModalHeader color={headerTextColor} textAlign="center">
-          Create User
+        <ModalHeader color={headerColor}>
+          {mode === "Create" ? "Create User" : "Update User"}
         </ModalHeader>
         <ModalCloseButton />
         <ModalBody>
-          <CreateUserForm userData={userData} setUserData={setUserData} />
+          <CreateUserForm userData={formData} setUserData={setFormData} />
         </ModalBody>
-        <ModalFooter bg={footerBgColor}>
-          <Grid templateColumns="repeat(2, 1fr)" gap={4} width="full">
-            <Tooltip label="Create User" aria-label="Create User Tooltip">
-              <Button
-                colorScheme="blue"
-                leftIcon={<FaPlusCircle />}
-                onClick={handleCreate}
-                isDisabled={loading} // Disable button while loading
-              >
-                {loading ? <Spinner size="sm" /> : "Create User"}
-              </Button>
-            </Tooltip>
-            <Button variant="ghost" onClick={onClose} isDisabled={loading}>
-              Cancel
-            </Button>
-          </Grid>
+        <ModalFooter>
+          <Button colorScheme="red" onClick={handleSave}>
+            {mode === "Create" ? "Create" : "Save Changes"}
+          </Button>
+          <Button variant="ghost" onClick={onClose}>
+            Cancel
+          </Button>
         </ModalFooter>
       </ModalContent>
     </Modal>

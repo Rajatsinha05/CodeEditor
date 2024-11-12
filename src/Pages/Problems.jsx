@@ -16,45 +16,40 @@ import ProblemsLoadSpinner from "../components/Spinner/ProblemsLoadSpinner";
 import { fetchQuestions } from "../redux/Question/questionApi";
 import { Topics } from "../components/data/Dsa";
 
-const dsaTopics = Topics();
-
 const Problems = () => {
   const dispatch = useDispatch();
-  const [loading, setLoading] = useState(true); // State to control the spinner
-  const [selectedTopic, setSelectedTopic] = useState(""); // State to control the filter selection
+  const [loading, setLoading] = useState(true);
+  const [selectedTopic, setSelectedTopic] = useState("");
 
+  // Stable selection of user and question data from store without conditional statements
+  const data = useSelector((store) => store.data);
+  const question = useSelector((store) => store.question);
+  const currentUserId = data?.user?.id;
+  const currentUserRole = data?.user?.role;
+
+  // Fetch questions and manage loading
   useEffect(() => {
     dispatch(fetchQuestions());
-    // Show spinner for a short duration
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 1000);
-
+    const timer = setTimeout(() => setLoading(false), 1000);
     return () => clearTimeout(timer);
   }, [dispatch]);
 
-  const { data, question } = useSelector((store) => store);
-  const { user } = data;
+  // Handle filter change for topics
+  const handleTopicChange = (e) => setSelectedTopic(e.target.value);
 
-  const currentUserId = user?.id;
-  const currentUserRole = user?.role;
-
+  // Conditional rendering outside of hooks
   if (loading || data.loading || question.loading) {
     return <ProblemsLoadSpinner />;
   }
 
-  // Filter the questions based on the selected topic
-  const filteredQuestions =
-    selectedTopic === ""
-      ? question.questions
-      : question.questions.filter((question) =>
-          question.tag?.toLowerCase().includes(selectedTopic.toLowerCase())
-        );
+  // Filter questions based on selected topic
+  const filteredQuestions = selectedTopic
+    ? question.questions.filter((q) =>
+        q.tag?.toLowerCase().includes(selectedTopic.toLowerCase())
+      )
+    : question.questions;
 
-  const handleTopicChange = (e) => {
-    setSelectedTopic(e.target.value);
-  };
-
+  // Render component
   return (
     <Box p={4}>
       <HStack justifyContent="space-between" mb={4}>
@@ -78,7 +73,7 @@ const Problems = () => {
             color={useColorModeValue("gray.700", "gray.300")}
             bg={useColorModeValue("gray.50", "gray.700")}
           >
-            {dsaTopics.map((topic) => (
+            {Topics().map((topic) => (
               <option key={topic.value} value={topic.value}>
                 {topic.label}
               </option>

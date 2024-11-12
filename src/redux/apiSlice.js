@@ -3,7 +3,7 @@ import Cookies from "js-cookie";
 import axiosInstance from "../config/axiosConfig";
 import { generateLongIdFromUUID } from "../utils/idHelper";
 
-const stringToObject = (str) => {
+export const stringToObject = (str) => {
   if (typeof str !== "string" || str.trim() === "") return {};
   const obj = {};
   const keyValuePattern = /\b(\w+)=([^,]+)(?=,|$)/g;
