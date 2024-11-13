@@ -1,5 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axiosInstance from "../config/axiosConfig";
+import { generateLongIdFromUUID } from "../utils/idHelper";
 
 // Async thunk to start a contest attempt
 export const startContestAttempt = createAsyncThunk(

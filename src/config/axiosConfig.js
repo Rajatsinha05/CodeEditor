@@ -8,11 +8,11 @@ const PRODUCTION_URL = "https://demoapi.rnwmultimedia.com";
 const baseURL =
   window.location.hostname === "localhost" ? LOCAL_URL : PRODUCTION_URL;
 
-console.log("baseURL: ", baseURL, window.location.hostname);
+
 
 // Create an axios instance with the dynamic baseURL
 const axiosInstance = axios.create({
-  baseURL: PRODUCTION_URL,
+  baseURL: baseURL,
 });
 
 // Add a request interceptor to attach the token to all requests except login and signup

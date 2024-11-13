@@ -30,7 +30,7 @@ import { MdTimer } from "react-icons/md";
 import TimerDisplay from "./TimerDisplay";
 
 import DrawerComponent from "../Editor/Drawer";
-const RATE_LIMIT_INTERVAL = 10000
+const RATE_LIMIT_INTERVAL = 10000;
 const Output = ({
   editorRef,
   language,
@@ -169,22 +169,22 @@ const Output = ({
       });
       return;
     }
-
-    // Check if the contest is currently active
-    const currentTime = new Date();
-    const contestStartTime = new Date(contest.startTime);
-    const contestEndTime = new Date(contest.endTime);
-    if (currentTime < contestStartTime || currentTime > contestEndTime) {
-      toast({
-        title: "Contest Not Active",
-        description: "You can only submit during the contest time.",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-      return;
+    if (contest) {
+      // Check if the contest is currently active
+      const currentTime = new Date();
+      const contestStartTime = new Date(contest?.startTime);
+      const contestEndTime = new Date(contest?.endTime);
+      if (currentTime < contestStartTime || currentTime > contestEndTime) {
+        toast({
+          title: "Contest Not Active",
+          description: "You can only submit during the contest time.",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+        return;
+      }
     }
-
     setIsLoading(true);
     setIsError(false);
     setTestResults([]);
