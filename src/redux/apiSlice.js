@@ -9,16 +9,25 @@ export const stringToObject = (str) => {
   const keyValuePattern = /\b(\w+)=([^,]+)(?=,|$)/g;
   let match;
   while ((match = keyValuePattern.exec(str)) !== null) {
-    obj[match[1].trim()] = match[2].trim().replace(/\)$/, "");
+    let key = match[1].trim();
+    let value = match[2].trim().replace(/\)$/, ""); // Remove trailing parentheses
+    // Manually fix the role field if it ends with '}'
+    if (key === "role" && value.endsWith("}")) {
+      value = value.slice(0, -1); // Remove the trailing '}'
+    }
+    obj[key] = value;
   }
   return obj;
 };
+
 
 const createAsyncThunkHelper = (name, apiCall, transformResponse) =>
   createAsyncThunk(name, async (arg, { rejectWithValue }) => {
     try {
       const response = await apiCall(arg);
-      return transformResponse ? transformResponse(response.data) : response.data;
+      return transformResponse
+        ? transformResponse(response.data)
+        : response.data;
     } catch (error) {
       try {
         console.error(`Error in ${name}:`, error);
@@ -31,9 +40,8 @@ const createAsyncThunkHelper = (name, apiCall, transformResponse) =>
     }
   });
 
-export const getUsers = createAsyncThunkHelper(
-  "api/getUsers",
-  () => axiosInstance.get("/users")
+export const getUsers = createAsyncThunkHelper("api/getUsers", () =>
+  axiosInstance.get("/users")
 );
 
 export const login = createAsyncThunkHelper(
@@ -52,9 +60,8 @@ export const login = createAsyncThunkHelper(
   }
 );
 
-export const getStudents = createAsyncThunkHelper(
-  "api/getStudents",
-  () => axiosInstance.get("/students")
+export const getStudents = createAsyncThunkHelper("api/getStudents", () =>
+  axiosInstance.get("/students")
 );
 
 export const createStudent = createAsyncThunkHelper(
@@ -84,24 +91,23 @@ export const createStudentsFromFile = createAsyncThunkHelper(
   }
 );
 
-export const createUser = createAsyncThunkHelper(
-  "api/createUser",
-  (user) => {
-    try {
-      const userWithId = { ...user, id: generateLongIdFromUUID() };
-      return axiosInstance.post("/users/signup", userWithId);
-    } catch (error) {
-      console.error("Error creating user:", error);
-      throw error;
-    }
+export const createUser = createAsyncThunkHelper("api/createUser", (user) => {
+  try {
+    const userWithId = { ...user, id: generateLongIdFromUUID() };
+    return axiosInstance.post("/users/signup", userWithId);
+  } catch (error) {
+    console.error("Error creating user:", error);
+    throw error;
   }
-);
+});
 
 export const assignPermission = createAsyncThunkHelper(
   "api/assignPermission",
   ({ userId, permissions }) => {
     try {
-      return axiosInstance.put(`/users/${userId}/permissions/add`, { permissions });
+      return axiosInstance.put(`/users/${userId}/permissions/add`, {
+        permissions,
+      });
     } catch (error) {
       console.error("Error assigning permissions:", error);
       throw error;
@@ -113,7 +119,9 @@ export const revokePermission = createAsyncThunkHelper(
   "api/revokePermission",
   ({ userId, permission }) => {
     try {
-      return axiosInstance.put(`/users/${userId}/permissions/remove`, { permission });
+      return axiosInstance.put(`/users/${userId}/permissions/remove`, {
+        permission,
+      });
     } catch (error) {
       console.error("Error revoking permission:", error);
       throw error;
@@ -123,7 +131,9 @@ export const revokePermission = createAsyncThunkHelper(
 
 const initialState = {
   loading: false,
-  user: Cookies.get("userToken") ? stringToObject(Cookies.get("userToken")) : null,
+  user: Cookies.get("userToken")
+    ? stringToObject(Cookies.get("userToken"))
+    : null,
   students: [],
   users: [],
   isLogin: !!Cookies.get("token"),
@@ -170,10 +180,13 @@ const apiSlice = createSlice({
         state.token = action.payload.token;
         state.isLogin = true;
         state.loading = false;
+        // window.location.reload();
       })
       .addCase(login.rejected, handleRejected)
       .addCase(getStudents.pending, handlePending)
-      .addCase(getStudents.fulfilled, (state, action) => handleFulfilled(state, action, "students"))
+      .addCase(getStudents.fulfilled, (state, action) =>
+        handleFulfilled(state, action, "students")
+      )
       .addCase(getStudents.rejected, handleRejected)
       .addCase(createStudent.pending, handlePending)
       .addCase(createStudent.fulfilled, (state, action) => {
@@ -188,12 +201,16 @@ const apiSlice = createSlice({
       .addCase(createStudentsFromFile.fulfilled, handleFulfilled)
       .addCase(createStudentsFromFile.rejected, handleRejected)
       .addCase(getUsers.pending, handlePending)
-      .addCase(getUsers.fulfilled, (state, action) => handleFulfilled(state, action, "users"))
+      .addCase(getUsers.fulfilled, (state, action) =>
+        handleFulfilled(state, action, "users")
+      )
       .addCase(getUsers.rejected, handleRejected)
       .addCase(assignPermission.pending, handlePending)
       .addCase(assignPermission.fulfilled, (state, action) => {
         const updatedUser = action.payload;
-        const index = state.users.findIndex((user) => user.id === updatedUser.id);
+        const index = state.users.findIndex(
+          (user) => user.id === updatedUser.id
+        );
         if (index !== -1) state.users[index] = updatedUser;
         state.loading = false;
       })
@@ -201,7 +218,9 @@ const apiSlice = createSlice({
       .addCase(revokePermission.pending, handlePending)
       .addCase(revokePermission.fulfilled, (state, action) => {
         const updatedUser = action.payload;
-        const index = state.users.findIndex((user) => user.id === updatedUser.id);
+        const index = state.users.findIndex(
+          (user) => user.id === updatedUser.id
+        );
         if (index !== -1) state.users[index] = updatedUser;
         state.loading = false;
       })

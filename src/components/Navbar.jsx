@@ -43,20 +43,25 @@ const Navbar = () => {
   const { colorMode, toggleColorMode } = useColorMode();
   const iconSize = "1.5rem";
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+
   const { isLogin, user } = useSelector((store) => store.data);
   const isMobileOrTablet = useBreakpointValue({ base: true, md: false });
-  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
   useEffect(() => {
     if (!isLogin) {
       setIsLoginModalOpen(true);
+    } else {
+      setIsLoginModalOpen(false); // Ensure modal closes when login succeeds
     }
   }, [isLogin]);
 
   const handleLogOut = () => {
     Cookie.remove("token");
+    Cookie.remove("userToken");
     window.location.reload();
   };
+
   const handleDrawerOpen = () => setIsDrawerOpen(true);
   const handleDrawerClose = () => setIsDrawerOpen(false);
   const handleLoginModalClose = () => setIsLoginModalOpen(false);
@@ -90,11 +95,7 @@ const Navbar = () => {
       </NavLink>
       {isLogin && (user?.role === "ADMIN" || user?.role === "SUPERADMIN") && (
         <>
-          <NavLink
-            to="/addQuestion"
-            className="nav-link"
-            activeClassName="active"
-          >
+          <NavLink to="/addQuestion" className="nav-link" activeClassName="active">
             <Tooltip label="Add Question" placement="bottom">
               <IconButton
                 icon={<FaPlus size={iconSize} />}
@@ -105,11 +106,7 @@ const Navbar = () => {
               />
             </Tooltip>
           </NavLink>
-          <NavLink
-            to="/createContest"
-            className="nav-link"
-            activeClassName="active"
-          >
+          <NavLink to="/createContest" className="nav-link" activeClassName="active">
             <Tooltip label="Create Contest" placement="bottom">
               <IconButton
                 icon={<FaPlus size={iconSize} />}
@@ -148,18 +145,9 @@ const Navbar = () => {
         )}
 
         <Flex alignItems="center">
-          <Tooltip
-            label={`${colorMode === "light" ? "Dark Mode" : "Light Mode"}`}
-            placement="bottom"
-          >
+          <Tooltip label={`${colorMode === "light" ? "Dark Mode" : "Light Mode"}`} placement="bottom">
             <IconButton
-              icon={
-                colorMode === "light" ? (
-                  <FaMoon size={iconSize} />
-                ) : (
-                  <FaSun size={iconSize} />
-                )
-              }
+              icon={colorMode === "light" ? <FaMoon size={iconSize} /> : <FaSun size={iconSize} />}
               onClick={toggleColorMode}
               aria-label="Toggle Color Mode"
               variant="ghost"
@@ -170,12 +158,7 @@ const Navbar = () => {
           {isLogin ? (
             <>
               <Menu>
-                <MenuButton
-                  as={Button}
-                  ml={4}
-                  variant="ghost"
-                  colorScheme="teal"
-                >
+                <MenuButton as={Button} ml={4} variant="ghost" colorScheme="teal">
                   <Text fontWeight="bold">Hello, {user.name}</Text>
                 </MenuButton>
                 <MenuList>
@@ -184,11 +167,7 @@ const Navbar = () => {
                   </MenuItem>
                 </MenuList>
               </Menu>
-              <NavLink
-                to="/profile"
-                className="nav-link"
-                activeClassName="active"
-              >
+              <NavLink to="/profile" className="nav-link" activeClassName="active">
                 <Tooltip label="Profile" placement="bottom">
                   <IconButton
                     icon={<FaUser size={iconSize} />}
@@ -215,42 +194,22 @@ const Navbar = () => {
         </Flex>
       </Flex>
 
-      <Drawer
-        placement="left"
-        onClose={handleDrawerClose}
-        isOpen={isDrawerOpen}
-      >
+      <Drawer placement="left" onClose={handleDrawerClose} isOpen={isDrawerOpen}>
         <DrawerOverlay />
         <DrawerContent>
           <DrawerCloseButton onClick={handleDrawerClose} />
           <DrawerHeader>Menu</DrawerHeader>
           <DrawerBody>
             <VStack spacing={4}>
-              <NavLink
-                exact
-                to="/"
-                className="nav-link"
-                activeClassName="active"
-                onClick={handleDrawerClose}
-              >
+              <NavLink exact to="/" className="nav-link" activeClassName="active" onClick={handleDrawerClose}>
                 Home
               </NavLink>
-              <NavLink
-                to="/problems"
-                className="nav-link"
-                activeClassName="active"
-                onClick={handleDrawerClose}
-              >
+              <NavLink to="/problems" className="nav-link" activeClassName="active" onClick={handleDrawerClose}>
                 Problems
               </NavLink>
               {isLogin && (
                 <>
-                  <NavLink
-                    to="/profile"
-                    className="nav-link"
-                    activeClassName="active"
-                    onClick={handleDrawerClose}
-                  >
+                  <NavLink to="/profile" className="nav-link" activeClassName="active" onClick={handleDrawerClose}>
                     Profile
                   </NavLink>
                   {user?.role === "ADMIN" || user?.role === "SUPERADMIN" ? (
@@ -280,7 +239,7 @@ const Navbar = () => {
                   to="/login"
                   className="nav-link"
                   activeClassName="active"
-                  onClick={handleDrawerClose}
+                  onClick={() => setIsLoginModalOpen(true)}
                 >
                   Login
                 </NavLink>

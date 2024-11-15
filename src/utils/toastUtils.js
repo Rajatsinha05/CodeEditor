@@ -3,7 +3,7 @@ export const showToast = (
   toast,
   description,
   status = "info",
-  duration = 3000
+  duration = 2000
 ) => {
   toast({
     description,

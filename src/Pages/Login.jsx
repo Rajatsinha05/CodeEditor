@@ -17,6 +17,7 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { login } from "../redux/apiSlice";
 import { useNavigate } from "react-router-dom";
+import { showToast } from "../utils/toastUtils";
 
 const Login = ({ isOpen, onClose }) => {
   const dispatch = useDispatch();
@@ -31,6 +32,7 @@ const Login = ({ isOpen, onClose }) => {
 
   const toast = useToast();
   const { isLogin, loginError } = useSelector((store) => store.data);
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -63,10 +65,21 @@ const Login = ({ isOpen, onClose }) => {
       return;
     }
 
-    await dispatch(login(formData));
+    try {
+      const result = await dispatch(login(formData)).unwrap(); // Unwraps the Redux promise
+      showToast(toast, "Login successful", "success");
+      setFormData({ email: "", password: "" });
+      // onClose();
+      navigate("/");
+    } catch (error) {
+      console.log("error: ", error);
+      showToast(
+        toast,
+        error ? error : "An error occurred during login",
+        "error"
+      );
+    }
   };
-
-  const navigate = useNavigate();
 
   useEffect(() => {
     if (isLogin) {
@@ -74,19 +87,10 @@ const Login = ({ isOpen, onClose }) => {
         email: "",
         password: "",
       });
-      onClose();
+      // onClose();
       navigate("/");
-    } else if (loginError) {
-      toast({
-        title: "Login failed",
-        description: "Please check your email and password",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-        position: "top",
-      });
     }
-  }, [isLogin, loginError, toast, onClose]);
+  }, [isLogin, navigate, onClose]);
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="md">
