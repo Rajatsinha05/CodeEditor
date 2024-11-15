@@ -29,15 +29,15 @@ function App() {
           display="flex"
           justifyContent="center"
           alignItems="center"
-          backdropFilter="blur(8px)" // Add backdrop blur effect
-          bg="rgba(0, 0, 0, 0.5)" // Semi-transparent background
+          backdropFilter="blur(8px)" 
+          bg="rgba(0, 0, 0, 0.5)" 
         >
           <Box
             p={8}
             borderRadius="md"
             boxShadow="lg"
             textAlign="center"
-            bg={colorMode === "light" ? "white" : "gray.800"} // Light or dark background based on color mode
+            bg={colorMode === "light" ? "white" : "gray.800"} 
           >
             <Text
               fontSize="xl"

@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { VStack, Text, useColorModeValue } from "@chakra-ui/react";
 import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration";
@@ -6,11 +6,18 @@ import ContestCard from "./ContestCard";
 
 dayjs.extend(duration);
 
-const ContestList = ({ contests, onStartContestClick }) => {
+const ContestList = ({ contests, onStartContestClick, user }) => {
+  console.log("user: ", user);
+  // Filter contests based on the user's role
+  const filteredContests =
+    user.role === "SUPERADMIN" || user.role === "STUDENT"
+      ? contests
+      : contests.filter((contest) => contest.createdBy === user.id);
+
   return (
     <VStack spacing={4} align="stretch">
-      {contests.length > 0 ? (
-        contests.map((contest) => (
+      {filteredContests.length > 0 ? (
+        filteredContests.map((contest) => (
           <ContestCard
             key={contest.id}
             contest={contest}

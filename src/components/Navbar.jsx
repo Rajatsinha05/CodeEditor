@@ -15,7 +15,6 @@ import {
   DrawerBody,
   VStack,
   useBreakpointValue,
-  useDisclosure,
   Menu,
   MenuButton,
   MenuList,
@@ -46,13 +45,13 @@ const Navbar = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const { isLogin, user } = useSelector((store) => store.data);
   const isMobileOrTablet = useBreakpointValue({ base: true, md: false });
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
   useEffect(() => {
     if (!isLogin) {
-      onOpen();
+      setIsLoginModalOpen(true);
     }
-  }, [isLogin, onOpen]);
+  }, [isLogin]);
 
   const handleLogOut = () => {
     Cookie.remove("token");
@@ -60,10 +59,10 @@ const Navbar = () => {
   };
   const handleDrawerOpen = () => setIsDrawerOpen(true);
   const handleDrawerClose = () => setIsDrawerOpen(false);
+  const handleLoginModalClose = () => setIsLoginModalOpen(false);
 
-  // Define hover styles based on color mode
-  const hoverColor = useColorModeValue('#f44336', 'teal.400');
-  const hoverBg = useColorModeValue('white', 'gray.200');
+  const hoverColor = useColorModeValue("#f44336", "teal.400");
+  const hoverBg = useColorModeValue("white", "gray.200");
 
   const renderNavLinks = () => (
     <>
@@ -208,7 +207,7 @@ const Navbar = () => {
               variant="solid"
               colorScheme="teal"
               leftIcon={<FaSignInAlt size={iconSize} />}
-              onClick={onOpen}
+              onClick={() => setIsLoginModalOpen(true)}
             >
               Login
             </Button>
@@ -223,7 +222,7 @@ const Navbar = () => {
       >
         <DrawerOverlay />
         <DrawerContent>
-          <DrawerCloseButton />
+          <DrawerCloseButton onClick={handleDrawerClose} />
           <DrawerHeader>Menu</DrawerHeader>
           <DrawerBody>
             <VStack spacing={4}>
@@ -291,7 +290,7 @@ const Navbar = () => {
         </DrawerContent>
       </Drawer>
 
-      {!isLogin && <Login isOpen={isOpen} onClose={onClose} />}
+      <Login isOpen={isLoginModalOpen} onClose={handleLoginModalClose} />
     </Box>
   );
 };
