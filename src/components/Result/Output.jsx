@@ -28,9 +28,9 @@ import {
 } from "../../redux/QuestionSolvedSplice";
 import { MdTimer } from "react-icons/md";
 import TimerDisplay from "./TimerDisplay";
+import { getContestById } from "../../redux/contestSlice";
+import { showToast } from "../../utils/toastUtils";
 
-import DrawerComponent from "../Editor/Drawer";
-const RATE_LIMIT_INTERVAL = 10000;
 const Output = ({
   editorRef,
   language,
@@ -43,11 +43,17 @@ const Output = ({
 
   // Selectors at the top level
   const { questionId, contestId } = useParams();
-  const { user } = useSelector((store) => store.data);
-  const { contest } = useSelector((store) => store.contest);
-  const { solvedQuestions } = useSelector((store) => store.solved);
+  const { user, contest, solvedQuestions } = useSelector((store) => ({
+    user: store.data.user,
+    contest: store.contest.contest,
+    solvedQuestions: store.solved.solvedQuestions,
+  }));
   const studentId = user?.id;
-
+  useEffect(() => {
+    if (contestId && !contest) {
+      dispatch(getContestById(contestId));
+    }
+  }, [contestId, contest, dispatch]);
   // State management
   const [output, setOutput] = useState(null);
   const [input, setInput] = useState("");
@@ -76,25 +82,13 @@ const Output = ({
 
   const runCode = useCallback(async () => {
     if (!editorRef?.current) {
-      toast({
-        title: "Editor Not Ready",
-        description: "Please wait until the editor is fully loaded.",
-        status: "warning",
-        duration: 3000,
-        isClosable: true,
-      });
+      showToast(toast, "Editor is not ready. Please wait.", "warning");
       return;
     }
 
     const sourceCode = editorRef.current.getValue();
     if (!sourceCode.trim()) {
-      toast({
-        title: "No Code Provided",
-        description: "Please enter some code to run.",
-        status: "warning",
-        duration: 3000,
-        isClosable: true,
-      });
+      showToast(toast, "Enter code to run.", "warning");
       return;
     }
 
@@ -114,22 +108,10 @@ const Output = ({
       setIsError(!!result.stderr);
 
       if (result.stderr) {
-        toast({
-          title: "Runtime Error",
-          description: result.stderr,
-          status: "error",
-          duration: 6000,
-          isClosable: true,
-        });
+        showToast(toast, result.stderr, "error", 6000);
       }
     } catch (error) {
-      toast({
-        title: "Execution Failed",
-        description: error.message || "Unable to run code",
-        status: "error",
-        duration: 6000,
-        isClosable: true,
-      });
+      showToast(toast, error.message || "Execution failed", "error", 6000);
     } finally {
       setIsLoading(false);
     }
@@ -137,54 +119,30 @@ const Output = ({
 
   const submitCode = useCallback(async () => {
     if (!editorRef?.current) {
-      toast({
-        title: "Editor Not Ready",
-        description: "Please wait until the editor is fully loaded.",
-        status: "warning",
-        duration: 3000,
-        isClosable: true,
-      });
+      showToast(toast, "Editor is not ready. Please wait.", "warning");
       return;
     }
 
     const sourceCode = editorRef.current.getValue();
     if (!sourceCode.trim()) {
-      toast({
-        title: "No Code Provided",
-        description: "Please enter some code to submit.",
-        status: "warning",
-        duration: 3000,
-        isClosable: true,
-      });
+      showToast(toast, "Enter code to submit.", "warning");
       return;
     }
 
     if (!questionId || !studentId) {
-      toast({
-        title: "Submission Failed",
-        description: "Invalid question or user information.",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
+      showToast(toast, "Invalid question or user information.", "error");
       return;
     }
-    if (contest) {
-      // Check if the contest is currently active
-      const currentTime = new Date();
-      const contestStartTime = new Date(contest?.startTime);
-      const contestEndTime = new Date(contest?.endTime);
-      if (currentTime < contestStartTime || currentTime > contestEndTime) {
-        toast({
-          title: "Contest Not Active",
-          description: "You can only submit during the contest time.",
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-        });
-        return;
-      }
+
+    // Check if the contest is currently active
+    const currentTime = new Date();
+    const contestStartTime = new Date(contest?.startTime);
+    const contestEndTime = new Date(contest?.endTime);
+    if (currentTime < contestStartTime || currentTime > contestEndTime) {
+      showToast(toast, "Contest not active.", "error");
+      return;
     }
+
     setIsLoading(true);
     setIsError(false);
     setTestResults([]);
@@ -199,7 +157,7 @@ const Output = ({
         result.output?.split("\n").filter((line) => line.trim() !== "") || [];
 
       setOutput(resultOutput);
-
+      // showToast(toast, "Code executed successfully", "success", 6000);
       const expectedOutputs = expectedOutput
         .split("\n")
         .filter((line) => line.trim() !== "");
@@ -241,13 +199,12 @@ const Output = ({
           if (existingSolvedQuestion) {
             // Compare current obtained marks with previous marks
             if (existingSolvedQuestion.obtainedMarks >= obtainedMarks) {
-              toast({
-                title: "No Update Needed",
-                description: `Your previous score of ${existingSolvedQuestion.obtainedMarks} is higher or equal to the current score of ${obtainedMarks}.`,
-                status: "info",
-                duration: 5000,
-                isClosable: true,
-              });
+              showToast(
+                toast,
+                `Your previous score of ${existingSolvedQuestion.obtainedMarks} is higher or equal to the current score of ${obtainedMarks}.`,
+                "info",
+                5000
+              );
               setIsLoading(false);
               return; // Do not update if the previous marks are greater or equal
             }
@@ -276,35 +233,26 @@ const Output = ({
             ).unwrap();
           }
 
-          toast({
-            title: "Submission Successful",
-            description: `You have obtained ${obtainedMarks} out of ${totalMarks} marks.`,
-            status: "success",
-            duration: 6000,
-            isClosable: true,
-          });
+          showToast(
+            toast,
+            `You have obtained ${obtainedMarks} out of ${totalMarks} marks.`,
+            "success",
+            6000
+          );
         } catch (error) {
-          toast({
-            title: "Submission Failed",
-            description:
-              error.message ||
+          showToast(
+            toast,
+            error.message ||
               "Something went wrong while saving the submission.",
-            status: "error",
-            duration: 6000,
-            isClosable: true,
-          });
+            "error",
+            6000
+          );
         }
 
         setIsError(!!result.stderr);
       }
     } catch (error) {
-      toast({
-        title: "Submission Failed",
-        description: error.message || "Unable to submit code",
-        status: "error",
-        duration: 6000,
-        isClosable: true,
-      });
+      showToast(toast, error.message || "Unable to submit code", "error", 6000);
     } finally {
       setIsLoading(false);
       setIsDrawerOpen(true);
@@ -377,13 +325,63 @@ const Output = ({
         </Button>
       </HStack>
 
+      {/* Timer Display */}
+
       {/* Drawer Component */}
-      <DrawerComponent
-        isOpen={isDrawerOpen}
+      <Drawer
+        placement="right"
         onClose={toggleDrawer}
-        isLoading={isLoading}
-        testResults={testResults}
-      />
+        isOpen={isDrawerOpen}
+        size="md"
+      >
+        <DrawerOverlay />
+        <DrawerContent bg="gray.900" color="gray.100">
+          <DrawerCloseButton />
+          <DrawerHeader bg="teal.500" color="white">
+            Test Cases Result
+          </DrawerHeader>
+          <DrawerBody>
+            {isLoading ? (
+              <Flex justify="center" align="center" h="100%">
+                <Spinner size="xl" color="teal.500" />
+              </Flex>
+            ) : testResults.length > 0 ? (
+              <VStack spacing={4} align="stretch">
+                {testResults.map((test, index) => (
+                  <Box
+                    key={index}
+                    p={4}
+                    borderRadius="md"
+                    bg={test.passed ? "green.100" : "red.100"}
+                    display="flex"
+                    alignItems="center"
+                  >
+                    <Icon
+                      as={test.passed ? CheckCircleIcon : WarningIcon}
+                      color={test.passed ? "green.500" : "red.500"}
+                      mr={4}
+                      boxSize={6}
+                    />
+                    <Box>
+                      <Text fontWeight="bold" color="gray.800">
+                        {test.passed ? "Passed" : "Failed"}
+                      </Text>
+                      <Text fontSize="sm" color="gray.600">
+                        Expected: {test.expected}
+                      </Text>
+                      <Text fontSize="sm" color="gray.600">
+                        Got: {test.output}
+                      </Text>
+                    </Box>
+                  </Box>
+                ))}
+              </VStack>
+            ) : (
+              <Text>No test results available.</Text>
+            )}
+          </DrawerBody>
+        </DrawerContent>
+      </Drawer>
     </Box>
   );
 };

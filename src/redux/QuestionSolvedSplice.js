@@ -7,7 +7,6 @@ export const saveOrUpdateSolvedQuestion = createAsyncThunk(
   "solvedQuestions/saveOrUpdate",
   async (solvedQuestionData, { rejectWithValue }) => {
     try {
-      solvedQuestionData.id = generateLongIdFromUUID();
       const response = await axiosInstance.post(
         "/solved-questions/save",
         solvedQuestionData

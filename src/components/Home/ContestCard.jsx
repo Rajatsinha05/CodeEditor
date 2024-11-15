@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React from "react";
 import {
   Box,
   Text,
@@ -8,28 +8,36 @@ import {
   Button,
   Tooltip,
   Icon,
+  IconButton,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
   useColorModeValue,
-  useDisclosure,
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalCloseButton,
-  ModalBody,
+  useToast,
 } from "@chakra-ui/react";
 import { CalendarIcon } from "@chakra-ui/icons";
-import { FaFlagCheckered } from "react-icons/fa";
-import { MdPlayArrow, MdEdit, MdDelete } from "react-icons/md";
+import {
+  FaFlagCheckered,
+  FaEdit,
+  FaTrashAlt,
+  FaBookmark,
+  FaShare,
+  FaEye,
+} from "react-icons/fa";
+import { MdPlayArrow } from "react-icons/md";
+import { FiMoreVertical } from "react-icons/fi";
 import dayjs from "dayjs";
-import { useDispatch } from "react-redux";
-import { deleteContest } from "../../redux/contestSlice";
-import CreateContest from "../../Pages/CreateContest";
+import { useDispatch, useSelector } from "react-redux";
+import { deleteContestById } from "../../redux/contestSlice";
+import { showToast } from "../../utils/toastUtils"; // Import custom toast function
 
-const ContestCard = React.memo(({ contest, user, onStartClick }) => {
-  const dispatch = useDispatch();
-  const { isOpen, onOpen, onClose } = useDisclosure();
-
+const ContestCard = ({ contest, onStartClick }) => {
   const currentTime = dayjs();
+  const dispatch = useDispatch();
+  const toast = useToast();
+  const { user } = useSelector((state) => state.user); // Assuming role is in user state
+
   const contestActive =
     currentTime.isAfter(dayjs(contest.startTime)) &&
     currentTime.isBefore(dayjs(contest.endTime));
@@ -45,13 +53,20 @@ const ContestCard = React.memo(({ contest, user, onStartClick }) => {
   const textColor = useColorModeValue("gray.700", "gray.100");
   const dividerColor = useColorModeValue("gray.200", "gray.600");
 
-  const isEditableOrDeletable =
-    user?.role === "SUPERADMIN" || contest.createdBy === user?.id;
-
-  // Memoized delete handler to avoid re-renders
-  const handleDelete = useCallback(() => {
-    dispatch(deleteContest(contest.id));
-  }, [dispatch, contest.id]);
+  // Handle Delete
+  const handleDelete = async () => {
+    try {
+      await dispatch(deleteContestById(contest.id)).unwrap();
+      showToast(toast, "Contest deleted successfully.", "success", 3000);
+    } catch (error) {
+      showToast(
+        toast,
+        error.message || "Failed to delete contest.",
+        "error",
+        3000
+      );
+    }
+  };
 
   return (
     <Box
@@ -61,18 +76,22 @@ const ContestCard = React.memo(({ contest, user, onStartClick }) => {
       p={6}
       bg={cardBgColor}
       shadow="md"
+      position="relative"
       _hover={{
         transform: "scale(1.02)",
         transition: "0.3s",
         cursor: "pointer",
       }}
     >
+      {/* Contest Title and Description */}
       <Text fontSize="xl" fontWeight="bold" color={titleColor}>
         {contest.title}
       </Text>
       <Text fontSize="md" color={textColor} mt={2}>
         {contest.description}
       </Text>
+
+      {/* Start and End Times */}
       <Stack mt={3} spacing={4}>
         <HStack>
           <Icon as={CalendarIcon} color="teal.500" />
@@ -89,6 +108,7 @@ const ContestCard = React.memo(({ contest, user, onStartClick }) => {
       </Stack>
       <Divider my={4} borderColor={dividerColor} />
 
+      {/* Start Button or Status Message */}
       {contestActive && (
         <Tooltip label="Start Contest" aria-label="Start Contest">
           <Button
@@ -112,44 +132,43 @@ const ContestCard = React.memo(({ contest, user, onStartClick }) => {
         </Text>
       )}
 
-      {isEditableOrDeletable && (
-        <HStack mt={4} spacing={3}>
-          <Tooltip label="Edit Contest" aria-label="Edit Contest">
-            <Button
-              leftIcon={<MdEdit />}
-              colorScheme="blue"
-              onClick={onOpen}
-            >
-              Edit
-            </Button>
-          </Tooltip>
-          <Tooltip label="Delete Contest" aria-label="Delete Contest">
-            <Button
-              leftIcon={<MdDelete />}
-              colorScheme="red"
-              onClick={handleDelete}
-            >
-              Delete
-            </Button>
-          </Tooltip>
-        </HStack>
-      )}
-      <Modal isOpen={isOpen} onClose={onClose} size="xl">
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Edit Contest</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            <CreateContest
-              initialData={contest}
-              onClose={onClose}
-              isEditing={true}
-            />
-          </ModalBody>
-        </ModalContent>
-      </Modal>
+      {/* More Options Menu */}
+      <Menu>
+        <MenuButton
+          as={IconButton}
+          icon={<FiMoreVertical />}
+          size="sm"
+          position="absolute"
+          top="4px"
+          right="4px"
+          aria-label="More options"
+        />
+        <MenuList>
+          {/* Conditional Options for SUPERADMIN or ADMIN */}
+          {(user?.role === "SUPERADMIN" || user?.role === "ADMIN") && (
+            <>
+              <MenuItem
+                icon={<FaEdit />}
+                onClick={() => console.log("Edit Contest")}
+              >
+                Edit
+              </MenuItem>
+              <MenuItem icon={<FaTrashAlt />} onClick={handleDelete}>
+                Delete
+              </MenuItem>
+            </>
+          )}
+          <MenuItem
+            icon={<FaBookmark />}
+            onClick={() => console.log("Bookmark Contest")}
+          >
+            Bookmark
+          </MenuItem>
+         
+        </MenuList>
+      </Menu>
     </Box>
   );
-});
+};
 
 export default ContestCard;

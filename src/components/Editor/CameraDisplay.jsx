@@ -3,6 +3,7 @@ import { Box, Text, useToast, HStack, Icon } from "@chakra-ui/react";
 import { ViewOffIcon } from "@chakra-ui/icons";
 import Draggable from "react-draggable";
 import * as faceapi from "face-api.js";
+import * as tf from "@tensorflow/tfjs";
 
 const CameraDisplay = ({ videoBoxSize }) => {
   const toast = useToast();
@@ -11,29 +12,40 @@ const CameraDisplay = ({ videoBoxSize }) => {
   const [isFaceDetected, setIsFaceDetected] = useState(true);
   const detectionInterval = useRef(null);
   const noFaceTimeout = useRef(null);
-  const cameraAlertShown = useRef(false); // Flag to track if camera alert has been shown
+  const cameraAlertShown = useRef(false);
+  const modelsInitialized = useRef(false);
 
-  const FACE_DETECTION_TIME_LIMIT = 10000; // 10 seconds
+  const FACE_DETECTION_TIME_LIMIT = 10000;
 
-  // Load face detection models
-  const loadModels = async () => {
-    try {
-      await faceapi.nets.ssdMobilenetv1.loadFromUri("/models");
-      await faceapi.nets.faceLandmark68Net.loadFromUri("/models");
-      await faceapi.nets.faceRecognitionNet.loadFromUri("/models");
-      startFaceDetection();
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to load face detection models.",
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-      });
+  const initializeFaceApi = async () => {
+    if (!modelsInitialized.current) {
+      if (tf.getBackend() !== "webgl") {
+        await tf.setBackend("webgl");
+      }
+      await tf.ready();
+
+      try {
+        await faceapi.nets.ssdMobilenetv1.loadFromUri("/models");
+        await faceapi.nets.faceLandmark68Net.loadFromUri("/models");
+        await faceapi.nets.faceRecognitionNet.loadFromUri("/models");
+        modelsInitialized.current = true;
+        startFaceDetection();
+      } catch (error) {
+        toast({
+          description: "Failed to load face detection models.",
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+          position: "top",
+          containerStyle: {
+            maxWidth: "200px",
+            padding: "5px",
+          },
+        });
+      }
     }
   };
 
-  // Start face detection
   const startFaceDetection = () => {
     detectionInterval.current = setInterval(async () => {
       if (videoRef.current && videoRef.current.readyState === 4) {
@@ -42,30 +54,31 @@ const CameraDisplay = ({ videoBoxSize }) => {
         if (detections.length === 0) {
           setIsFaceDetected(false);
 
-          // Start the no-face timer if it isn't already running
           if (!noFaceTimeout.current) {
             noFaceTimeout.current = setTimeout(() => {
               toast({
-                title: "No Face Detected",
-                description:
-                  "Your face has not been visible for 10 seconds. Please adjust your camera.",
+                description: "No Face Detected",
                 status: "warning",
                 duration: 2000,
                 isClosable: true,
+                position: "top",
+                containerStyle: {
+                  maxWidth: "180px",
+                  padding: "5px",
+                },
               });
             }, FACE_DETECTION_TIME_LIMIT);
           }
         } else {
           setIsFaceDetected(true);
 
-          // Reset the no-face timer if a face is detected
           if (noFaceTimeout.current) {
             clearTimeout(noFaceTimeout.current);
             noFaceTimeout.current = null;
           }
         }
       }
-    }, 1000); // Detect every second
+    }, 1000);
   };
 
   useEffect(() => {
@@ -76,24 +89,26 @@ const CameraDisplay = ({ videoBoxSize }) => {
         });
         videoRef.current.srcObject = stream;
 
-        // Load face detection models after camera is accessed
-        await loadModels();
+        await initializeFaceApi();
 
         setIsCameraActive(true);
-        cameraAlertShown.current = false; // Reset camera alert flag when camera is active
+        cameraAlertShown.current = false;
       } catch (err) {
         setIsCameraActive(false);
 
-        // Show the camera alert only if it hasn't been shown yet
         if (!cameraAlertShown.current) {
           toast({
-            title: "Error",
             description: "Failed to access the camera.",
             status: "error",
             duration: 5000,
             isClosable: true,
+            position: "top",
+            containerStyle: {
+              maxWidth: "200px",
+              padding: "5px",
+            },
           });
-          cameraAlertShown.current = true; // Set flag to true to avoid duplicate alerts
+          cameraAlertShown.current = true;
         }
       }
     };
@@ -115,7 +130,7 @@ const CameraDisplay = ({ videoBoxSize }) => {
       {!isCameraActive && (
         <HStack color="red.500" mb={4}>
           <Icon as={ViewOffIcon} boxSize={6} />
-          <Text>Please Turn on your Camera.</Text>
+          <Text>Please Turn on your Camera.....</Text>
         </HStack>
       )}
       {isCameraActive && (

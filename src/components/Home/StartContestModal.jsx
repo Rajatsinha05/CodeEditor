@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState } from "react";
 import {
   Modal,
   ModalOverlay,
@@ -27,29 +27,37 @@ import { useDispatch } from "react-redux";
 import { startContestAttempt } from "../../redux/contestAttemptSlice";
 import { useNavigate } from "react-router-dom";
 
-const StartContestModal = React.memo(({ isOpen, onClose, contest, user }) => {
+const StartContestModal = ({ isOpen, onClose, contest, user }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const handleProceed = useCallback(async () => {
+  const handleProceed = async () => {
     setLoading(true);
     setError(null);
+
+    console.log("Starting contest with:", {
+      contestId: contest.id,
+      studentId: user.id,
+    });
 
     try {
       const resultAction = await dispatch(
         startContestAttempt({ contestId: contest.id, studentId: user.id })
       ).unwrap();
 
+      console.log("Contest started successfully:", resultAction);
       onClose(); // Close the modal after success
       navigate(`/contest/${contest.id}`); // Redirect to contest details page
     } catch (err) {
+      navigate(`/contest/${contest.id}`);
+      console.error("Failed to start contest attempt:", err);
       setError(err.message || "An unexpected error occurred.");
     } finally {
       setLoading(false);
     }
-  }, [dispatch, contest.id, user.id, onClose, navigate]);
+  };
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
@@ -117,7 +125,11 @@ const StartContestModal = React.memo(({ isOpen, onClose, contest, user }) => {
           )}
         </ModalBody>
         <ModalFooter>
-          <Button colorScheme="teal" onClick={handleProceed} isDisabled={loading}>
+          <Button
+            colorScheme="teal"
+            onClick={handleProceed}
+            isDisabled={loading}
+          >
             {loading ? <Spinner size="sm" /> : "Proceed"}
           </Button>
           <Button variant="ghost" onClick={onClose} ml={3} isDisabled={loading}>
@@ -127,6 +139,6 @@ const StartContestModal = React.memo(({ isOpen, onClose, contest, user }) => {
       </ModalContent>
     </Modal>
   );
-});
+};
 
 export default StartContestModal;

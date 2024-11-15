@@ -3,7 +3,7 @@ import axiosInstance from "../config/axiosConfig";
 import { generateLongIdFromUUID } from "../utils/idHelper";
 
 // Helper function to handle API errors
-const handleApiError = (error, rejectWithValue) => 
+const handleApiError = (error, rejectWithValue) =>
   rejectWithValue(error.response?.data || "An error occurred");
 
 // Async thunk to create a contest
@@ -13,7 +13,6 @@ export const createContest = createAsyncThunk(
     try {
       const response = await axiosInstance.post("/contests", {
         ...contestData,
-        id: generateLongIdFromUUID(),
       });
       return response.data;
     } catch (error) {
@@ -40,7 +39,9 @@ export const fetchContestsByStudent = createAsyncThunk(
   "contests/fetchContestsByStudent",
   async (studentId, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.get(`/contests/student/${studentId}`);
+      const response = await axiosInstance.get(
+        `/contests/student/${studentId}`
+      );
       return response.data;
     } catch (error) {
       return handleApiError(error, rejectWithValue);
@@ -66,7 +67,10 @@ export const updateContest = createAsyncThunk(
   "contests/updateContest",
   async ({ contestId, updatedData }, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.put(`/contests/${contestId}`, updatedData);
+      const response = await axiosInstance.put(
+        `/contests/${contestId}`,
+        updatedData
+      );
       return response.data;
     } catch (error) {
       return handleApiError(error, rejectWithValue);
@@ -75,7 +79,7 @@ export const updateContest = createAsyncThunk(
 );
 
 // Async thunk to delete a contest
-export const deleteContest = createAsyncThunk(
+export const deleteContestById = createAsyncThunk(
   "contests/deleteContest",
   async (contestId, { rejectWithValue }) => {
     try {
@@ -168,7 +172,9 @@ export const contestSlice = createSlice({
         state.error = null;
       })
       .addCase(updateContest.fulfilled, (state, action) => {
-        const index = state.contests.findIndex(contest => contest.id === action.payload.id);
+        const index = state.contests.findIndex(
+          (contest) => contest.id === action.payload.id
+        );
         if (index !== -1) {
           state.contests[index] = action.payload;
         }
@@ -180,15 +186,17 @@ export const contestSlice = createSlice({
       })
 
       // Delete Contest Reducers
-      .addCase(deleteContest.pending, (state) => {
+      .addCase(deleteContestById.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(deleteContest.fulfilled, (state, action) => {
-        state.contests = state.contests.filter(contest => contest.id !== action.payload);
+      .addCase(deleteContestById.fulfilled, (state, action) => {
+        state.contests = state.contests.filter(
+          (contest) => contest.id !== action.payload
+        );
         state.loading = false;
       })
-      .addCase(deleteContest.rejected, (state, action) => {
+      .addCase(deleteContestById.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });
