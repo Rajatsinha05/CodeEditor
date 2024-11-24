@@ -29,8 +29,11 @@ const Problems = () => {
 
   // Fetch questions and manage loading
   useEffect(() => {
-    dispatch(fetchQuestions());
-    const timer = setTimeout(() => setLoading(false), 1000);
+    if (question.questions.length == 0) {
+      dispatch(fetchQuestions());
+    }
+
+    const timer = setTimeout(() => setLoading(false), 500);
     return () => clearTimeout(timer);
   }, [dispatch]);
 

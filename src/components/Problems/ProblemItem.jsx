@@ -1,5 +1,3 @@
-// ProblemItem.js
-
 import React from "react";
 import { Link } from "react-router-dom";
 import {
@@ -8,6 +6,10 @@ import {
   Text,
   ListItem,
   IconButton,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
   useDisclosure,
   Modal,
   ModalOverlay,
@@ -15,19 +17,19 @@ import {
   ModalHeader,
   ModalCloseButton,
   ModalBody,
+  Button,
 } from "@chakra-ui/react";
-import { MdDelete, MdEdit } from "react-icons/md";
+import { MdMoreVert, MdDelete, MdEdit, MdBookmark } from "react-icons/md";
 import { useDispatch } from "react-redux";
 import { deleteQuestion } from "../../redux/Question/questionApi";
-import AddQuestions from "../../Pages/AddQuestions";
-// Adjust the path as needed
+import AddQuestions from "../../Pages/AddQuestions"; // Adjust the path as needed
 
 const ProblemItem = ({ question, currentUserId, currentUserRole }) => {
   const dispatch = useDispatch();
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   const canModify =
-    currentUserRole === "SUPERADMIN" || question.userId === currentUserId;
+    currentUserRole === "SUPERADMIN" || currentUserRole === "ADMIN";
 
   const handleDelete = (e) => {
     e.preventDefault();
@@ -39,10 +41,17 @@ const ProblemItem = ({ question, currentUserId, currentUserRole }) => {
     onOpen(); // Open the modal
   };
 
+  const handleBookmark = (e) => {
+    e.preventDefault();
+    // Logic for bookmarking the question
+    console.log("Bookmark clicked for question:", question.id);
+  };
+
   return (
     <>
       <ListItem borderRadius="md" backgroundColor="rgba(0, 0, 0, 0.03)">
         <Flex p={4} alignItems="center" justifyContent="space-between">
+          {/* Question Title and Details */}
           <Link
             to={`/problem/${question.id}`}
             style={{ textDecoration: "none", display: "block", flexGrow: 1 }}
@@ -54,23 +63,41 @@ const ProblemItem = ({ question, currentUserId, currentUserRole }) => {
               </Text>
             </Box>
           </Link>
-          {canModify && (
-            <Box>
-              <IconButton
-                icon={<MdEdit />}
-                aria-label="Edit Question"
-                onClick={handleEdit}
-                colorScheme="blue"
-                mr={2}
-              />
-              <IconButton
-                icon={<MdDelete />}
-                aria-label="Delete Question"
-                onClick={handleDelete}
-                colorScheme="red"
-              />
-            </Box>
-          )}
+
+          {/* Actions Menu */}
+          <Menu>
+            <MenuButton
+              as={IconButton}
+              icon={<MdMoreVert />}
+              aria-label="Actions"
+              variant="ghost"
+            />
+            <MenuList>
+              <MenuItem
+                icon={<MdBookmark />}
+                onClick={handleBookmark}
+              >
+                Bookmark
+              </MenuItem>
+              {canModify && (
+                <>
+                  <MenuItem
+                    icon={<MdEdit />}
+                    onClick={handleEdit}
+                  >
+                    Edit
+                  </MenuItem>
+                  <MenuItem
+                    icon={<MdDelete />}
+                    onClick={handleDelete}
+                    color="red.500"
+                  >
+                    Delete
+                  </MenuItem>
+                </>
+              )}
+            </MenuList>
+          </Menu>
         </Flex>
       </ListItem>
 
