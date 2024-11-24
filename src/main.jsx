@@ -4,15 +4,19 @@ import App from "./App.jsx";
 import { ChakraProvider } from "@chakra-ui/react";
 import theme, { getTheme } from "./theme.js";
 import { Provider } from "react-redux";
-import { store } from "./redux/store.js";
+import { store } from "./redux/store.js"; // Import both store and persistor
 import { BrowserRouter } from "react-router-dom";
-
 import { ThemeProvider } from "@mui/material";
+import { PersistGate } from "redux-persist/integration/react"; // Import PersistGate
+
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <ThemeProvider theme={getTheme("light")}>
       <BrowserRouter>
+        {/* Provide the store to the React app */}
         <Provider store={store}>
+          {/* Delay rendering until Redux store is rehydrated */}
+
           <ChakraProvider theme={theme}>
             <App />
           </ChakraProvider>
