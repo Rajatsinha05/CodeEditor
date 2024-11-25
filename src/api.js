@@ -18,8 +18,6 @@ export const executeCode = async (language, code, inputData) => {
   }
 };
 
-
-
 export const getCodeResult = async (requestId) => {
   try {
     const response = await axiosInstance.get(`/result/${requestId}`);
