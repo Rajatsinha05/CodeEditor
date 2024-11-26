@@ -45,6 +45,7 @@ const CodeEditor = ({ problemId }) => {
   const { data } = useSelector((store) => store.test) || {};
 
   const { question } = useSelector((store) => store.question);
+  console.log("question: ", question);
 
   // Color mode dependent values
   const bgColor = useColorModeValue("gray.100", "gray.800");
