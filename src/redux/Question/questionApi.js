@@ -1,7 +1,7 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 
 import axiosInstance from "../../config/axiosConfig";
-import { generateLongIdFromUUID } from "../../utils/idHelper";
+// import { generateLongIdFromUUID } from "../../utils/idHelper";
 
 // Async thunk to post a question
 export const postQuestion = createAsyncThunk(

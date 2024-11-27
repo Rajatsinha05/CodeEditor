@@ -23,7 +23,7 @@ import ExampleInputs from "../components/Problems/ExampleInputs";
 import { formDataValidator } from "../components/Problems/formDataValidator";
 import { postQuestion, updateQuestion } from "../redux/Question/questionApi";
 import { Topics } from "../components/data/Dsa"; // Import the Topics function
-import { generateLongIdFromUUID } from "../utils/idHelper";
+// import { generateLongIdFromUUID } from "../utils/idHelper";
 
 const AddQuestions = ({ isOpen, onClose, initialData, isEditing }) => {
   // Component logic

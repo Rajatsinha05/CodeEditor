@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axiosInstance from "../config/axiosConfig";
-import { generateLongIdFromUUID } from "../utils/idHelper";
+// import { generateLongIdFromUUID } from "../utils/idHelper";
 
 // Async thunk to start a contest attempt
 export const startContestAttempt = createAsyncThunk(
@@ -9,7 +9,6 @@ export const startContestAttempt = createAsyncThunk(
     console.log("Start Contest Attempt Payload: ", { contestId, studentId });
     try {
       const response = await axiosInstance.post("/contest-attempts/start", {
-        id: generateLongIdFromUUID(),
         contestId,
         studentId,
       });

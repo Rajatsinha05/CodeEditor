@@ -21,6 +21,7 @@ const Navbar = ({ onOpen }) => {
 
   const handleLogOut = () => {
     Cookie.remove("token");
+    Cookie.remove("userToken");
     window.location.reload();
   };
 

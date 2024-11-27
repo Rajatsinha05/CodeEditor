@@ -1,7 +1,7 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import Cookies from "js-cookie";
 import axiosInstance from "../config/axiosConfig";
-import { generateLongIdFromUUID } from "../utils/idHelper";
+// import { generateLongIdFromUUID } from "../utils/idHelper";
 
 export const stringToObject = (str) => {
   if (typeof str !== "string" || str.trim() === "") return {};
