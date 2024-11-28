@@ -16,36 +16,33 @@ const Home = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [filter, setFilter] = useState("active"); // Default filter set to "active"
+  const [filter, setFilter] = useState("active");
   const [selectedContest, setSelectedContest] = useState(null);
-  const [loading, setLoading] = useState(true); // Loading state
+  const [loading, setLoading] = useState(true);
 
-  // Select user and contests from the Redux store
   const user = useSelector((store) => store.data.user, shallowEqual);
   const contests = useSelector((store) => store.contest.contests, shallowEqual);
   const isFetched = useSelector((store) => store.contest.isFetched, shallowEqual);
 
-  // Fetch contests only once if they haven't been fetched yet
   useEffect(() => {
-    if (!isFetched) {
+    if (isFetched) return;
+
+    const fetchData = () => {
       if (user?.role === "STUDENT") {
         dispatch(fetchContestsByStudent(user.id));
       } else {
         dispatch(fetchContests());
       }
-    }
-  }, [dispatch, user, isFetched]);
+    };
 
-  // Timer to control loading state, runs only on the initial mount
+    fetchData();
+  }, [dispatch, user?.role, user?.id, isFetched]);
+
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 1000); // 1-second delay
-
+    const timer = setTimeout(() => setLoading(false), 1000);
     return () => clearTimeout(timer);
   }, []);
 
-  // Memoized handler for starting a contest to avoid re-renders
   const handleStartContestClick = useCallback(
     (contest) => {
       setSelectedContest(contest);
@@ -54,13 +51,11 @@ const Home = () => {
     [onOpen]
   );
 
-  // Memoized filtered contests list
   const filteredContests = useMemo(() => {
     if (!contests || contests.length === 0) return [];
+    const currentTime = dayjs();
 
     return contests.filter((contest) => {
-      const currentTime = dayjs();
-
       switch (filter) {
         case "active":
           return (
@@ -79,7 +74,6 @@ const Home = () => {
     });
   }, [contests, filter]);
 
-  // Display loading spinner initially
   if (loading) {
     return <MotivationalLoadingSpinner />;
   }

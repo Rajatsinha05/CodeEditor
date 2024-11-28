@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import {
   Flex,
   Box,
@@ -37,8 +37,10 @@ import {
 } from "react-icons/fa";
 import "../CSS/Navbar.css";
 import Login from "../Pages/Login";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import Cookie from "js-cookie";
+import { logout } from "../redux/apiSlice";
+import { logoutUser } from "../redux/User/userSlice";
 
 const Navbar = () => {
   const { colorMode, toggleColorMode } = useColorMode();
@@ -47,6 +49,8 @@ const Navbar = () => {
   const { isLogin, user } = useSelector((store) => store.data);
   const isMobileOrTablet = useBreakpointValue({ base: true, md: false });
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const dispatch = useDispatch();
+  const location = useLocation();
 
   useEffect(() => {
     if (!isLogin) {
@@ -55,19 +59,26 @@ const Navbar = () => {
   }, [isLogin, onOpen]);
 
   const handleLogOut = () => {
-    Cookie.remove("token");
-    window.location.reload();
+    dispatch(logout());
+    // Cookie.remove("token");
+    // window.location.reload();
   };
+
   const handleDrawerOpen = () => setIsDrawerOpen(true);
   const handleDrawerClose = () => setIsDrawerOpen(false);
 
   // Define hover styles based on color mode
-  const hoverColor = useColorModeValue('#f44336', 'teal.400');
-  const hoverBg = useColorModeValue('white', 'gray.200');
+  const hoverColor = useColorModeValue("#f44336", "teal.400");
+  const hoverBg = useColorModeValue("white", "gray.200");
 
   const renderNavLinks = () => (
     <>
-      <NavLink exact to="/" className="nav-link" activeClassName="active">
+      <NavLink
+        to="/"
+        className={({ isActive }) =>
+          isActive ? "nav-link active" : "nav-link"
+        }
+      >
         <Tooltip label="Home" placement="bottom">
           <IconButton
             icon={<FaHome size={iconSize} />}
@@ -78,7 +89,12 @@ const Navbar = () => {
           />
         </Tooltip>
       </NavLink>
-      <NavLink to="/problems" className="nav-link" activeClassName="active">
+      <NavLink
+        to="/problems"
+        className={({ isActive }) =>
+          isActive ? "nav-link active" : "nav-link"
+        }
+      >
         <Tooltip label="Problems" placement="bottom">
           <IconButton
             icon={<FaCode size={iconSize} />}
@@ -93,8 +109,9 @@ const Navbar = () => {
         <>
           <NavLink
             to="/addQuestion"
-            className="nav-link"
-            activeClassName="active"
+            className={({ isActive }) =>
+              isActive ? "nav-link active" : "nav-link"
+            }
           >
             <Tooltip label="Add Question" placement="bottom">
               <IconButton
@@ -108,8 +125,9 @@ const Navbar = () => {
           </NavLink>
           <NavLink
             to="/createContest"
-            className="nav-link"
-            activeClassName="active"
+            className={({ isActive }) =>
+              isActive ? "nav-link active" : "nav-link"
+            }
           >
             <Tooltip label="Create Contest" placement="bottom">
               <IconButton
@@ -187,8 +205,9 @@ const Navbar = () => {
               </Menu>
               <NavLink
                 to="/profile"
-                className="nav-link"
-                activeClassName="active"
+                className={({ isActive }) =>
+                  isActive ? "nav-link active" : "nav-link"
+                }
               >
                 <Tooltip label="Profile" placement="bottom">
                   <IconButton
@@ -228,18 +247,19 @@ const Navbar = () => {
           <DrawerBody>
             <VStack spacing={4}>
               <NavLink
-                exact
                 to="/"
-                className="nav-link"
-                activeClassName="active"
+                className={({ isActive }) =>
+                  isActive ? "nav-link active" : "nav-link"
+                }
                 onClick={handleDrawerClose}
               >
                 Home
               </NavLink>
               <NavLink
                 to="/problems"
-                className="nav-link"
-                activeClassName="active"
+                className={({ isActive }) =>
+                  isActive ? "nav-link active" : "nav-link"
+                }
                 onClick={handleDrawerClose}
               >
                 Problems
@@ -248,8 +268,9 @@ const Navbar = () => {
                 <>
                   <NavLink
                     to="/profile"
-                    className="nav-link"
-                    activeClassName="active"
+                    className={({ isActive }) =>
+                      isActive ? "nav-link active" : "nav-link"
+                    }
                     onClick={handleDrawerClose}
                   >
                     Profile
@@ -258,16 +279,18 @@ const Navbar = () => {
                     <>
                       <NavLink
                         to="/addQuestion"
-                        className="nav-link"
-                        activeClassName="active"
+                        className={({ isActive }) =>
+                          isActive ? "nav-link active" : "nav-link"
+                        }
                         onClick={handleDrawerClose}
                       >
                         Add Question
                       </NavLink>
                       <NavLink
                         to="/createContest"
-                        className="nav-link"
-                        activeClassName="active"
+                        className={({ isActive }) =>
+                          isActive ? "nav-link active" : "nav-link"
+                        }
                         onClick={handleDrawerClose}
                       >
                         Create Contest
@@ -279,8 +302,9 @@ const Navbar = () => {
               {!isLogin && (
                 <NavLink
                   to="/login"
-                  className="nav-link"
-                  activeClassName="active"
+                  className={({ isActive }) =>
+                    isActive ? "nav-link active" : "nav-link"
+                  }
                   onClick={handleDrawerClose}
                 >
                   Login

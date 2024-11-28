@@ -1,4 +1,10 @@
-import { Box, Button, Text, useColorMode, useColorModeValue } from "@chakra-ui/react";
+import {
+  Box,
+  Button,
+  Text,
+  useColorMode,
+  useColorModeValue,
+} from "@chakra-ui/react";
 import Navbar from "./components/Navbar";
 import AllRoutes from "./Routes/AllRoutes";
 import { useSelector } from "react-redux";
@@ -12,12 +18,16 @@ function App() {
   const handleDrawerClose = () => setIsDrawerOpen(false);
 
   // Define hover styles based on color mode
-  const hoverBg = useColorModeValue('#f44336', 'blue.600');
-  const hoverColor = useColorModeValue('white', 'white');
+  const hoverBg = useColorModeValue("#f44336", "blue.600");
+  const hoverColor = useColorModeValue("white", "white");
+  const { user } = useSelector((store) => store.data);
 
   return (
     <>
-      <Navbar />
+      
+        <Navbar />
+        <AllRoutes />
+
       {!isLogin && (
         <Box
           position="fixed"
@@ -64,7 +74,6 @@ function App() {
           </Box>
         </Box>
       )}
-      <AllRoutes />
     </>
   );
 }

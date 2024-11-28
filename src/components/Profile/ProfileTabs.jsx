@@ -14,38 +14,44 @@ import Students from "./Students";
 import Users from "./Users";
 
 const ProfileTabs = ({ user }) => {
-  const isAdmin = user?.role === "ADMIN";
-  const isSuperAdmin = user?.role === "SUPERADMIN";
+  if (!user || !user.role) {
+    // Fallback for cases where `user` is undefined or role is missing
+    return <Heading size="lg">Invalid User Data</Heading>;
+  }
+
+  const isAdmin = user.role === "ADMIN";
+  const isSuperAdmin = user.role === "SUPERADMIN";
 
   return (
     <Tabs colorScheme="blue">
       <TabList>
         <Tab>Profile</Tab>
-        {(isAdmin || isSuperAdmin) && <Tab>Rankings</Tab>}
-        {user?.role === "STUDENT" && <Tab>Stats</Tab>}
+        <Tab>Rankings</Tab>
+        {user.role === "STUDENT" && <Tab>Stats</Tab>}
         {(isAdmin || isSuperAdmin) && <Tab>Students</Tab>}
         {(isAdmin || isSuperAdmin) && <Tab>Users</Tab>}
       </TabList>
       <TabPanels>
         {/* Profile Tab */}
         <TabPanel>
-          <Heading size="lg">Welcome, {user.name}</Heading>
+          <Heading size="lg">Welcome, {user.name || "User"}</Heading>
         </TabPanel>
 
         {/* Rankings Tab for Admins and Superadmins */}
-        {(isAdmin || isSuperAdmin) && (
-          <TabPanel>
-            <VStack spacing={4}>
-              <Heading size="md">Rankings</Heading>
-              <Rankings />
-            </VStack>
-          </TabPanel>
-        )}
+
+        <TabPanel>
+          <VStack spacing={4}>
+            <Rankings />
+          </VStack>
+        </TabPanel>
 
         {/* Stats Tab for Students */}
-        {user?.role === "STUDENT" && (
+        {user.role === "STUDENT" && (
           <TabPanel>
-            <StudentStats student={{ ...user }} />
+            <VStack spacing={4}>
+              <Heading size="md">Your Stats</Heading>
+              <StudentStats student={{ ...user }} />
+            </VStack>
           </TabPanel>
         )}
 

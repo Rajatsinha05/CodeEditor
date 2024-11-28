@@ -46,6 +46,8 @@ const Users = React.memo(({ branchCode }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { users, user } = useSelector((store) => store.user); // Assuming `user` is the logged-in user
+  const userData = useSelector((store) => store.data.user);
+  console.log("userData: ", userData);
 
   const {
     isOpen: isDeleteModalOpen,
@@ -249,7 +251,7 @@ const Users = React.memo(({ branchCode }) => {
               <Th>Department</Th>
               <Th>Branch Code</Th>
               <Th>Role</Th>
-              {user.role === "SUPERADMIN" && <Th>Actions</Th>}
+              {userData.role === "SUPERADMIN" && <Th>Actions</Th>}
             </Tr>
           </Thead>
           <Tbody>

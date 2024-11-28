@@ -7,6 +7,7 @@ import { contestAttemptReducer } from "./contestAttemptSlice";
 import { questionsReducer } from "./Question/questionsSlice";
 import { themeReducer } from "./Theme/themeSlice";
 import { userReducer } from "./User/userSlice";
+import { studentsReducer } from "./Student/studentsSlice";
 
 // Combine all reducers into a single rootReducer
 const rootReducer = combineReducers({
@@ -18,6 +19,7 @@ const rootReducer = combineReducers({
   contestAttempt: contestAttemptReducer,
   question: questionsReducer,
   theme: themeReducer,
+  student: studentsReducer,
 });
 
 // Configure the store with the rootReducer
@@ -27,5 +29,5 @@ export const store = configureStore({
     getDefaultMiddleware({
       serializableCheck: false, // Disable serializability check if needed
     }),
-  devTools: process.env.NODE_ENV !== "production", // Enable dev tools only in development
+  devTools: process.env.NODE_ENV !== "production",
 });

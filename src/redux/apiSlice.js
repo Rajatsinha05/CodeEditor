@@ -20,7 +20,6 @@ export const stringToObject = (str) => {
   return obj;
 };
 
-
 const createAsyncThunkHelper = (name, apiCall, transformResponse) =>
   createAsyncThunk(name, async (arg, { rejectWithValue }) => {
     try {
@@ -64,6 +63,11 @@ export const getStudents = createAsyncThunkHelper("api/getStudents", () =>
   axiosInstance.get("/students")
 );
 
+export const getStudentById = createAsyncThunkHelper(
+  "api/getStudentById",
+  (id) => axiosInstance.get(`/students/${id}`)
+);
+
 export const createStudent = createAsyncThunkHelper(
   "api/createStudent",
   (student) => {
@@ -101,40 +105,13 @@ export const createUser = createAsyncThunkHelper("api/createUser", (user) => {
   }
 });
 
-export const assignPermission = createAsyncThunkHelper(
-  "api/assignPermission",
-  ({ userId, permissions }) => {
-    try {
-      return axiosInstance.put(`/users/${userId}/permissions/add`, {
-        permissions,
-      });
-    } catch (error) {
-      console.error("Error assigning permissions:", error);
-      throw error;
-    }
-  }
-);
-
-export const revokePermission = createAsyncThunkHelper(
-  "api/revokePermission",
-  ({ userId, permission }) => {
-    try {
-      return axiosInstance.put(`/users/${userId}/permissions/remove`, {
-        permission,
-      });
-    } catch (error) {
-      console.error("Error revoking permission:", error);
-      throw error;
-    }
-  }
-);
-
 const initialState = {
   loading: false,
   user: Cookies.get("userToken")
     ? stringToObject(Cookies.get("userToken"))
     : null,
   students: [],
+  student: {},
   users: [],
   isLogin: !!Cookies.get("token"),
   token: Cookies.get("token") || null,
@@ -147,8 +124,10 @@ const apiSlice = createSlice({
   reducers: {
     logout: (state) => {
       try {
-        Cookies.remove("token");
         Cookies.remove("userToken");
+        Cookies.remove("token");
+
+        // window.location.reload();
       } catch (error) {
         console.error("Error during logout:", error);
       }
@@ -205,26 +184,19 @@ const apiSlice = createSlice({
         handleFulfilled(state, action, "users")
       )
       .addCase(getUsers.rejected, handleRejected)
-      .addCase(assignPermission.pending, handlePending)
-      .addCase(assignPermission.fulfilled, (state, action) => {
-        const updatedUser = action.payload;
-        const index = state.users.findIndex(
-          (user) => user.id === updatedUser.id
-        );
-        if (index !== -1) state.users[index] = updatedUser;
+
+      .addCase(getStudentById.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getStudentById.fulfilled, (state, action) => {
+        state.student = action.payload; // Add a property `student` to hold the fetched student
         state.loading = false;
       })
-      .addCase(assignPermission.rejected, handleRejected)
-      .addCase(revokePermission.pending, handlePending)
-      .addCase(revokePermission.fulfilled, (state, action) => {
-        const updatedUser = action.payload;
-        const index = state.users.findIndex(
-          (user) => user.id === updatedUser.id
-        );
-        if (index !== -1) state.users[index] = updatedUser;
+      .addCase(getStudentById.rejected, (state, action) => {
         state.loading = false;
-      })
-      .addCase(revokePermission.rejected, handleRejected);
+        state.error = action.payload;
+      });
   },
 });
 

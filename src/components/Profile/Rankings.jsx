@@ -1,22 +1,31 @@
 import React, { useEffect, useState } from "react";
 import {
   Box,
-  Heading,
-  VStack,
-  Spinner,
-  Text,
   Flex,
+  Avatar,
+  Text,
   Badge,
-  Icon,
+  VStack,
+  Heading,
+  Spinner,
   useColorModeValue,
+  Icon,
+  Tooltip,
+  useDisclosure,
 } from "@chakra-ui/react";
 import { useDispatch, useSelector } from "react-redux";
-import { FaTrophy } from "react-icons/fa";
 import { fetchTop20RankedStudents } from "../../redux/QuestionSolvedSplice";
+import { FaCrown, FaMedal, FaStar, FaTrophy } from "react-icons/fa";
+import { keyframes } from "@emotion/react";
+import StudentDetailsModal from "./StudentDetailsModal"; // Modal Component
+import { getStudentById } from "../../redux/apiSlice";
+import { fetchStudentById } from "../../redux/Student/studentsSlice";
 
-const Rankings = () => {
+const Leaderboard = () => {
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(true);
+  const [selectedStudent, setSelectedStudent] = useState(null); // Selected student for modal
+  const { isOpen, onOpen, onClose } = useDisclosure(); // Modal state management
 
   useEffect(() => {
     dispatch(fetchTop20RankedStudents()).finally(() => setLoading(false));
@@ -24,110 +33,222 @@ const Rankings = () => {
 
   const { topRankedStudents } = useSelector((store) => store.solved);
 
-  // Use theme colors for different modes
-  const bgColor = useColorModeValue("gray.50", "gray.800");
+  const bgColor = useColorModeValue("gray.50", "gray.900");
   const cardBgColor = useColorModeValue("white", "gray.700");
-  const cardTextColor = useColorModeValue("gray.800", "white");
+  const primaryColor = useColorModeValue("teal.500", "teal.300");
+
+  // Animation for floating effect
+  const float = keyframes`
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  `;
 
   if (loading) {
     return (
       <Flex justify="center" align="center" height="100vh" bg={bgColor}>
-        <Spinner size="xl" thickness="4px" color="blue.400" />
+        <Spinner size="xl" thickness="4px" color={primaryColor} />
+        <Text ml={4} fontSize="lg" color={primaryColor}>
+          Loading Leaderboard...
+        </Text>
       </Flex>
     );
   }
 
+  const handleOpenModal = async (studentData) => {
+    const response = await dispatch(fetchStudentById(studentData.studentId));
+    if (response?.payload) {
+      setSelectedStudent(response.payload); // Use the fetched student data
+      onOpen();
+    }
+  };
+
   return (
-    <Box p={6} maxW="600px" mx="auto" mt={8} bg={bgColor} borderRadius="md" boxShadow="lg">
-      <Heading fontSize="3xl" mb={6} textAlign="center" color={useColorModeValue("teal.600", "teal.300")}>
-        🏆 Top 20 Students Ranking 🏆
-      </Heading>
-      <VStack align="stretch" spacing={6}>
-        {topRankedStudents.length > 0 ? (
-          topRankedStudents.map((student, index) => (
+    <Box bg={bgColor} minH="100vh" py={6}>
+      <Box
+        w={{ base: "90vw", md: "70vw" }}
+        maxW="800px"
+        bg={cardBgColor}
+        p={6}
+        borderRadius="lg"
+        boxShadow="2xl"
+        mx="auto"
+      >
+        <Heading
+          fontSize={{ base: "2xl", md: "3xl" }}
+          mb={8}
+          textAlign="center"
+          color={primaryColor}
+          fontWeight="bold"
+        >
+          🏆 Leaderboard 🏆
+        </Heading>
+
+        {/* Podium Section */}
+        <Flex
+          justify="space-around"
+          align="center"
+          mb={8}
+          direction={{ base: "column-reverse", md: "row" }}
+          textAlign="center"
+        >
+          {[1, 0, 2].map((rank, index) => (
+            <Box
+              key={rank}
+              textAlign="center"
+              w={{ base: "90%", md: "30%" }}
+              p={4}
+              borderRadius="lg"
+              bgGradient={
+                rank === 0
+                  ? "linear(to-b, red.400, red.300)"
+                  : rank === 1
+                  ? "linear(to-b, teal.500, teal.300)"
+                  : "linear(to-b, orange.400, orange.300)"
+              }
+              boxShadow="xl"
+              animation={`${float} ${3 + index * 0.5}s infinite`}
+              position="relative"
+            >
+              <Box position="relative" display="inline-block">
+                <Avatar
+                  size="2xl"
+                  bg="gold"
+                  borderWidth="4px"
+                  borderColor="gold"
+                  cursor="pointer"
+                  onClick={() => handleOpenModal(topRankedStudents[rank])}
+                />
+                <Box
+                  position="absolute"
+                  bottom="-10px"
+                  right="-10px"
+                  bg="white"
+                  borderRadius="full"
+                  p={2}
+                  boxShadow="lg"
+                >
+                  <Icon
+                    as={rank === 0 ? FaCrown : rank === 1 ? FaMedal : FaStar}
+                    boxSize={6}
+                    color={
+                      rank === 0
+                        ? "yellow.500"
+                        : rank === 1
+                        ? "teal.300"
+                        : "orange.400"
+                    }
+                  />
+                </Box>
+              </Box>
+              {topRankedStudents[rank]?.studentName && (
+                <Tooltip label="Click for details" placement="top">
+                  <Text
+                    fontWeight="bold"
+                    fontSize="lg"
+                    color="white"
+                    cursor="pointer"
+                    onClick={() => handleOpenModal(topRankedStudents[rank])}
+                  >
+                    {topRankedStudents[rank].studentName}
+                  </Text>
+                </Tooltip>
+              )}
+              {topRankedStudents[rank]?.branchCode && (
+                <Text fontSize="md" color="white">
+                  {topRankedStudents[rank].branchCode}
+                </Text>
+              )}
+              {topRankedStudents[rank]?.totalScore && (
+                <Text fontSize="sm" color="white">
+                  {topRankedStudents[rank].totalScore} pts
+                </Text>
+              )}
+              <Badge
+                colorScheme="yellow"
+                mt={2}
+                fontSize="sm"
+                px={3}
+                py={1}
+                borderRadius="full"
+              >
+                Rank #{rank + 1}
+              </Badge>
+            </Box>
+          ))}
+        </Flex>
+
+        {/* Other Rankings */}
+        <VStack spacing={4} align="stretch">
+          {topRankedStudents.slice(3).map((student, index) => (
             <Flex
               key={student.id}
+              bg={cardBgColor}
               p={4}
               borderRadius="md"
-              bg={cardBgColor}
-              color={cardTextColor}
+              boxShadow="md"
               align="center"
               justify="space-between"
-              borderWidth="2px"
-              borderColor={
-                index === 0
-                  ? "yellow.400"
-                  : index === 1
-                  ? "gray.500"
-                  : index === 2
-                  ? "orange.400"
-                  : "blue.500"
-              }
-              transition="all 0.3s"
               _hover={{
-                transform: "translateY(-5px)",
-                boxShadow: "xl",
+                boxShadow: "lg",
+                transform: "scale(1.03)",
+                transition: "all 0.3s",
               }}
             >
               <Flex align="center">
-                <Box mr={4}>
-                  <Text fontWeight="bold" fontSize="xl">
-                    {index + 1}. {student.studentName}
+                <Tooltip label="Click for details" placement="top">
+                  <Avatar
+                    size="lg"
+                    mr={4}
+                    name={student.studentName}
+                    bgGradient="linear(to-r, teal.400, blue.500)"
+                    cursor="pointer"
+                    onClick={() => handleOpenModal(student)}
+                  />
+                </Tooltip>
+                <Box>
+                  <Tooltip label="Click for details" placement="top">
+                    <Text
+                      fontWeight="bold"
+                      fontSize="lg"
+                      color={primaryColor}
+                      cursor="pointer"
+                      onClick={() => handleOpenModal(student)}
+                    >
+                      {student.studentName}
+                    </Text>
+                  </Tooltip>
+                  <Text fontSize="sm" color="gray.500">
+                    {student.branchCode}
                   </Text>
-                  <Text fontSize="md" color={useColorModeValue("gray.600", "gray.300")}>
-                    Total Score: {student.totalScore}
+                  <Text fontSize="sm" color="gray.500">
+                    {student.totalScore} pts
                   </Text>
                 </Box>
               </Flex>
               <Badge
-                colorScheme={
-                  index === 0
-                    ? "yellow"
-                    : index === 1
-                    ? "gray"
-                    : index === 2
-                    ? "orange"
-                    : "teal"
-                }
-                fontSize="md"
+                colorScheme="purple"
+                fontSize="sm"
                 px={3}
                 py={1}
                 borderRadius="full"
-                textTransform="capitalize"
-                display="flex"
-                alignItems="center"
-                transition="all 0.3s"
-                _hover={{ transform: "scale(1.1)" }}
               >
-                {index === 0 ? (
-                  <>
-                    <Icon as={FaTrophy} color="yellow.400" mr={2} transition="color 0.3s" _hover={{ color: "yellow.600" }} />
-                    Champion
-                  </>
-                ) : index === 1 ? (
-                  <>
-                    <Icon as={FaTrophy} color="gray.500" mr={2} transition="color 0.3s" _hover={{ color: "gray.700" }} />
-                    2nd Place
-                  </>
-                ) : index === 2 ? (
-                  <>
-                    <Icon as={FaTrophy} color="orange.400" mr={2} transition="color 0.3s" _hover={{ color: "orange.600" }} />
-                    3rd Place
-                  </>
-                ) : (
-                  "Participant"
-                )}
+                #{index + 4}
               </Badge>
             </Flex>
-          ))
-        ) : (
-          <Text fontSize="lg" textAlign="center">
-            No rankings available.
-          </Text>
+          ))}
+        </VStack>
+
+        {/* Modal */}
+        {selectedStudent && (
+          <StudentDetailsModal
+            isOpen={isOpen}
+            onClose={onClose}
+            student={selectedStudent}
+          />
         )}
-      </VStack>
+      </Box>
     </Box>
   );
 };
 
-export default Rankings;
+export default Leaderboard;

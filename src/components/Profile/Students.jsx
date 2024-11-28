@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getStudents } from "../../redux/apiSlice";
+import { getStudents } from "../../redux/apiSlice"; // Import deleteStudent
 import { useDispatch, useSelector } from "react-redux";
 import {
   Box,
@@ -16,14 +16,22 @@ import {
   Text,
   useColorModeValue,
   IconButton,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+  useToast, // Toast for notifications
 } from "@chakra-ui/react";
 import { ArrowUpIcon, ArrowDownIcon } from "@chakra-ui/icons";
-import { FaSortAlphaDown, FaSortAlphaUpAlt } from "react-icons/fa";
+import { FaSortAlphaDown, FaSortAlphaUpAlt, FaEllipsisV } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import { deleteStudent } from "../../redux/Student/studentsSlice";
+import { showToast } from "../../utils/toastUtils";
 
 const Students = ({ branchCode }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const toast = useToast(); // Toast for feedback
   const { students } = useSelector((store) => store.data);
 
   const [search, setSearch] = useState("");
@@ -43,11 +51,9 @@ const Students = ({ branchCode }) => {
   // Filter and sort students
   const filteredStudents = students
     .filter((student) => {
-      // If branchCode is "SUPERADMIN", allow filtering by branch code
       if (branchCode === "SUPERADMIN") {
         return branchFilter ? student.branchCode === branchFilter : true;
       }
-      // For admins, filter by their specific branch code
       return student.branchCode === branchCode;
     })
     .filter(
@@ -67,7 +73,6 @@ const Students = ({ branchCode }) => {
       }
     });
 
-  // Handle sorting
   const handleSort = (key) => {
     setSortOrder((prev) => ({
       key,
@@ -75,9 +80,29 @@ const Students = ({ branchCode }) => {
     }));
   };
 
-  // Handle navigation to student details
   const handleRowClick = (id) => {
     navigate(`/student/${id}`);
+  };
+
+  const handleRemoveStudent = (id) => {
+    dispatch(deleteStudent(id))
+      .unwrap() // Ensures proper handling of async actions
+      .then(() => {
+        showToast(toast, "Student Removed", "success");
+      })
+      .catch((error) => {
+        toast({
+          title: "Error Removing Student",
+          description: error || "Failed to remove student.",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+      });
+  };
+
+  const handleUpdateStudent = (id) => {
+    navigate(`/update-student/${id}`);
   };
 
   return (
@@ -121,7 +146,6 @@ const Students = ({ branchCode }) => {
           <option value="C">C</option>
         </Select>
 
-        {/* Branch filter visible only to SUPERADMIN */}
         {branchCode === "SUPERADMIN" && (
           <Select
             placeholder="Filter by branch"
@@ -149,78 +173,42 @@ const Students = ({ branchCode }) => {
         <Table variant="striped" colorScheme="teal">
           <Thead>
             <Tr>
-              <Th>
-                ID
-                <IconButton
-                  size="xs"
-                  ml={2}
-                  onClick={() => handleSort("id")}
-                  icon={
-                    sortOrder.key === "id" && sortOrder.order === "asc" ? (
-                      <ArrowUpIcon />
-                    ) : (
-                      <ArrowDownIcon />
-                    )
-                  }
-                  variant="ghost"
-                  colorScheme="teal"
-                  _hover={{ bg: hoverColor }}
-                />
-              </Th>
-              <Th>
-                Name
-                <IconButton
-                  size="xs"
-                  ml={2}
-                  onClick={() => handleSort("name")}
-                  icon={
-                    sortOrder.key === "name" && sortOrder.order === "asc" ? (
-                      <FaSortAlphaUpAlt />
-                    ) : (
-                      <FaSortAlphaDown />
-                    )
-                  }
-                  variant="ghost"
-                  colorScheme="teal"
-                  _hover={{ bg: hoverColor }}
-                />
-              </Th>
+              <Th>ID</Th>
+              <Th>Name</Th>
               <Th>Email</Th>
               <Th>Grid</Th>
-              <Th>
-                Course
-                <IconButton
-                  size="xs"
-                  ml={2}
-                  onClick={() => handleSort("course")}
-                  icon={
-                    sortOrder.key === "course" && sortOrder.order === "asc" ? (
-                      <ArrowUpIcon />
-                    ) : (
-                      <ArrowDownIcon />
-                    )
-                  }
-                  variant="ghost"
-                  colorScheme="teal"
-                  _hover={{ bg: hoverColor }}
-                />
-              </Th>
+              <Th>Course</Th>
               <Th>Branch Code</Th>
+              <Th>Actions</Th>
             </Tr>
           </Thead>
           <Tbody>
             {filteredStudents.map((student) => (
-              <Tr
-                key={student.id}
-                _hover={{ bg: hoverColor, cursor: "pointer" }}
-                onClick={() => handleRowClick(student.id)}
-              >
+              <Tr key={student.id}>
                 <Td>{student.id}</Td>
                 <Td>{student.name}</Td>
                 <Td>{student.email}</Td>
                 <Td>{student.grid}</Td>
                 <Td>{student.course}</Td>
                 <Td>{student.branchCode}</Td>
+                <Td>
+                  <Menu>
+                    <MenuButton
+                      as={IconButton}
+                      aria-label="Options"
+                      icon={<FaEllipsisV />}
+                      variant="ghost"
+                    />
+                    <MenuList>
+                      <MenuItem onClick={() => handleUpdateStudent(student.id)}>
+                        Update
+                      </MenuItem>
+                      <MenuItem onClick={() => handleRemoveStudent(student.id)}>
+                        Remove
+                      </MenuItem>
+                    </MenuList>
+                  </Menu>
+                </Td>
               </Tr>
             ))}
           </Tbody>

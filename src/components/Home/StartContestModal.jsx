@@ -32,31 +32,29 @@ const StartContestModal = ({ isOpen, onClose, contest, user }) => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [isNavigated, setIsNavigated] = useState(false); // Prevent multiple navigations
 
   const handleProceed = async () => {
+    if (isNavigated) return; // Prevent further actions if already navigating
     setLoading(true);
     setError(null);
+    dispatch(
+      startContestAttempt({ contestId: contest.id, studentId: user.id })
+    );
+    navigate(`/contest/${contest.id}`);
+    // try {
+    //   const resultAction = await dispatch(
+    //     startContestAttempt({ contestId: contest.id, studentId: user.id })
+    //   ).unwrap();
 
-    console.log("Starting contest with:", {
-      contestId: contest.id,
-      studentId: user.id,
-    });
-
-    try {
-      const resultAction = await dispatch(
-        startContestAttempt({ contestId: contest.id, studentId: user.id })
-      ).unwrap();
-
-      console.log("Contest started successfully:", resultAction);
-      onClose(); // Close the modal after success
-      navigate(`/contest/${contest.id}`); // Redirect to contest details page
-    } catch (err) {
-      navigate(`/contest/${contest.id}`);
-      console.error("Failed to start contest attempt:", err);
-      setError(err.message || "An unexpected error occurred.");
-    } finally {
-      setLoading(false);
-    }
+    //   setIsNavigated(true); // Mark as navigated
+    //   onClose(); // Close modal
+    //   navigate(`/contest/${contest.id}`); // Navigate to contest details
+    // } catch (err) {
+    //   setError(err.message || "An unexpected error occurred.");
+    // } finally {
+    //   setLoading(false);
+    // }
   };
 
   return (
@@ -128,11 +126,16 @@ const StartContestModal = ({ isOpen, onClose, contest, user }) => {
           <Button
             colorScheme="teal"
             onClick={handleProceed}
-            isDisabled={loading}
+            isDisabled={loading || isNavigated}
           >
             {loading ? <Spinner size="sm" /> : "Proceed"}
           </Button>
-          <Button variant="ghost" onClick={onClose} ml={3} isDisabled={loading}>
+          <Button
+            variant="ghost"
+            onClick={onClose}
+            ml={3}
+            isDisabled={loading || isNavigated}
+          >
             Cancel
           </Button>
         </ModalFooter>
