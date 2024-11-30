@@ -46,7 +46,7 @@ const ExcelUpload = ({ setCreateButtonVisible, setUploadedData }) => {
             duration: 3000,
             isClosable: true,
           });
-          console.error("File processing error:", error);
+          
         }
       };
       reader.readAsBinaryString(file);

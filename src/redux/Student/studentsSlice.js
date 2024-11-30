@@ -9,7 +9,7 @@ export const fetchStudents = createAsyncThunk(
       const response = await axiosInstance.get("/students");
       return response.data;
     } catch (error) {
-      console.error("Error fetching students:", error);
+      
       return rejectWithValue(
         error.response?.data || "Failed to fetch students."
       );
@@ -24,7 +24,7 @@ export const fetchStudentById = createAsyncThunk(
       const response = await axiosInstance.get(`/students/${id}`);
       return response.data;
     } catch (error) {
-      console.error("Error fetching student by ID:", error);
+      
       return rejectWithValue(
         error.response?.data || `Failed to fetch student with ID: ${id}.`
       );
@@ -40,7 +40,7 @@ export const createStudent = createAsyncThunk(
       const response = await axiosInstance.post("/students", studentWithId);
       return response.data;
     } catch (error) {
-      console.error("Error creating student:", error);
+      
       return rejectWithValue(
         error.response?.data || "Failed to create student."
       );
@@ -55,7 +55,7 @@ export const updateStudent = createAsyncThunk(
       const response = await axiosInstance.put(`/students/${id}`, updates);
       return response.data;
     } catch (error) {
-      console.error("Error updating student:", error);
+      
       return rejectWithValue(
         error.response?.data || `Failed to update student with ID: ${id}.`
       );
@@ -70,7 +70,7 @@ export const deleteStudent = createAsyncThunk(
       await axiosInstance.delete(`/students/${id}`);
       return id;
     } catch (error) {
-      console.error("Error deleting student:", error);
+      
       return rejectWithValue(
         error.response?.data || `Failed to delete student with ID: ${id}.`
       );

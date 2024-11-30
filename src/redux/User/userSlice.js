@@ -3,13 +3,15 @@ import { createSlice } from "@reduxjs/toolkit";
 import Cookies from "js-cookie";
 
 import { createUser, deleteUser, fetchUsers, updateUser } from "./userApi";
-import { stringToObject } from "../apiSlice";
+import { login } from "../apiSlice";
 
-// Initial State
+import { jwtDecode } from "jwt-decode";
+import { stringToObject } from "../../utils/objectConveter";
+
 const initialState = {
   loading: false,
   user: Cookies.get("userToken")
-    ? stringToObject(Cookies.get("userToken"))
+    ? stringToObject(jwtDecode(Cookies.get("userToken")).sub)
     : null,
   users: [],
   isLogin: !!Cookies.get("token"),
@@ -27,7 +29,7 @@ const userSlice = createSlice({
         Cookies.remove("token");
         Cookies.remove("userToken");
       } catch (error) {
-        console.error("Error during logout:", error);
+        
       }
       state.user = null;
       state.isLogin = false;
@@ -84,7 +86,10 @@ const userSlice = createSlice({
         state.users = state.users.filter((user) => user.id !== action.payload);
         state.loading = false;
       })
-      .addCase(deleteUser.rejected, setErrorState);
+      .addCase(deleteUser.rejected, setErrorState)
+      .addCase(login.fulfilled, (state, action) => {
+        state.user = action.payload;
+      });
   },
 });
 

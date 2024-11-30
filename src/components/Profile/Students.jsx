@@ -1,5 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { getStudents } from "../../redux/apiSlice"; // Import deleteStudent
+import {
+  getStudents,
+  updateStudent,
+  deleteStudent,
+} from "../../redux/apiSlice";
 import { useDispatch, useSelector } from "react-redux";
 import {
   Box,
@@ -20,35 +24,44 @@ import {
   MenuButton,
   MenuList,
   MenuItem,
-  useToast, // Toast for notifications
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalCloseButton,
+  ModalBody,
+  ModalFooter,
+  Button,
+  FormControl,
+  FormLabel,
+  useToast,
 } from "@chakra-ui/react";
-import { ArrowUpIcon, ArrowDownIcon } from "@chakra-ui/icons";
-import { FaSortAlphaDown, FaSortAlphaUpAlt, FaEllipsisV } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
-import { deleteStudent } from "../../redux/Student/studentsSlice";
+import { FaEllipsisV, FaTrash, FaEdit } from "react-icons/fa";
+import { getBranch } from "../data/branch";
+import { getCourse } from "../data/course";
 import { showToast } from "../../utils/toastUtils";
 
 const Students = ({ branchCode }) => {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
-  const toast = useToast(); // Toast for feedback
+  const toast = useToast();
   const { students } = useSelector((store) => store.data);
 
   const [search, setSearch] = useState("");
   const [courseFilter, setCourseFilter] = useState("");
   const [branchFilter, setBranchFilter] = useState("");
-  const [sortOrder, setSortOrder] = useState({ key: "", order: "" });
+  const [sortOrder, setSortOrder] = useState("asc");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const bgColor = useColorModeValue("gray.50", "gray.800");
   const textColor = useColorModeValue("gray.900", "gray.100");
-  const hoverColor = useColorModeValue("teal.100", "teal.700");
   const tableBgColor = useColorModeValue("white", "gray.700");
 
   useEffect(() => {
     dispatch(getStudents());
   }, [dispatch]);
 
-  // Filter and sort students
   const filteredStudents = students
     .filter((student) => {
       if (branchCode === "SUPERADMIN") {
@@ -64,45 +77,53 @@ const Students = ({ branchCode }) => {
     .filter((student) =>
       courseFilter ? student.course === courseFilter : true
     )
-    .sort((a, b) => {
-      if (!sortOrder.key) return 0;
-      if (sortOrder.order === "asc") {
-        return a[sortOrder.key] > b[sortOrder.key] ? 1 : -1;
-      } else {
-        return a[sortOrder.key] < b[sortOrder.key] ? 1 : -1;
-      }
-    });
+    .sort((a, b) =>
+      sortOrder === "asc"
+        ? a.name.localeCompare(b.name)
+        : b.name.localeCompare(a.name)
+    );
 
-  const handleSort = (key) => {
-    setSortOrder((prev) => ({
-      key,
-      order: prev.order === "asc" ? "desc" : "asc",
-    }));
+  const handleUpdateStudent = (student) => {
+    setSelectedStudent(student);
+    setIsModalOpen(true);
   };
 
-  const handleRowClick = (id) => {
-    navigate(`/student/${id}`);
+  const handleDeleteStudent = async (id) => {
+    try {
+      await dispatch(deleteStudent(id)).unwrap();
+      showToast(toast, "Student deleted successfully.", "success");
+      dispatch(getStudents());
+    } catch (error) {
+      showToast(toast, "Error deleting student." + error, "error");
+    }
   };
 
-  const handleRemoveStudent = (id) => {
-    dispatch(deleteStudent(id))
-      .unwrap() // Ensures proper handling of async actions
-      .then(() => {
-        showToast(toast, "Student Removed", "success");
-      })
-      .catch((error) => {
-        toast({
-          title: "Error Removing Student",
-          description: error || "Failed to remove student.",
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-        });
-      });
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+    setSelectedStudent(null);
   };
 
-  const handleUpdateStudent = (id) => {
-    navigate(`/update-student/${id}`);
+  const handleSave = async () => {
+    if (!selectedStudent) return;
+
+    setIsSubmitting(true);
+    try {
+      await dispatch(
+        updateStudent({ id: selectedStudent.id, studentData: selectedStudent })
+      ).unwrap();
+      showToast(toast, "Student updated successfully..", "success");
+
+      setIsModalOpen(false);
+      dispatch(getStudents());
+    } catch (error) {
+      showToast(toast, "Error updating student." + error, "error");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const toggleSortOrder = () => {
+    setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
   };
 
   return (
@@ -118,7 +139,6 @@ const Students = ({ branchCode }) => {
         Students Management
       </Text>
 
-      {/* Search and Filter Section */}
       <Flex mb={4} gap={4} alignItems="center">
         <Input
           placeholder="Search by name or email"
@@ -138,12 +158,11 @@ const Students = ({ branchCode }) => {
           borderRadius="md"
           boxShadow="sm"
         >
-          <option value="android Developer">Android Developer</option>
-          <option value="C++">C++</option>
-          <option value="backend Developer">Backend Developer</option>
-          <option value="full stack Developer">Full Stack Developer</option>
-          <option value="frontend Developer">Frontend Developer</option>
-          <option value="C">C</option>
+          {getCourse().map((course) => (
+            <option key={course} value={course}>
+              {course}
+            </option>
+          ))}
         </Select>
 
         {branchCode === "SUPERADMIN" && (
@@ -156,27 +175,23 @@ const Students = ({ branchCode }) => {
             borderRadius="md"
             boxShadow="sm"
           >
-            <option value="rw1">Branch RW1</option>
-            <option value="rw2">Branch RW2</option>
-            <option value="rw3">Branch RW3</option>
-            <option value="rw4">Branch RW4</option>
-            <option value="rw5">Branch RW5</option>
-            <option value="rw6">Branch RW6</option>
-            <option value="rw7">Branch RW7</option>
-            <option value="rw8">Branch RW8</option>
+            {getBranch().map((branch) => (
+              <option key={branch} value={branch}>
+                {branch}
+              </option>
+            ))}
           </Select>
         )}
       </Flex>
 
-      {/* Students Table */}
       <TableContainer>
         <Table variant="striped" colorScheme="teal">
           <Thead>
             <Tr>
-              <Th>ID</Th>
-              <Th>Name</Th>
+              <Th onClick={toggleSortOrder} cursor="pointer">
+                Name {sortOrder === "asc" ? "↑" : "↓"}
+              </Th>
               <Th>Email</Th>
-              <Th>Grid</Th>
               <Th>Course</Th>
               <Th>Branch Code</Th>
               <Th>Actions</Th>
@@ -185,10 +200,8 @@ const Students = ({ branchCode }) => {
           <Tbody>
             {filteredStudents.map((student) => (
               <Tr key={student.id}>
-                <Td>{student.id}</Td>
                 <Td>{student.name}</Td>
                 <Td>{student.email}</Td>
-                <Td>{student.grid}</Td>
                 <Td>{student.course}</Td>
                 <Td>{student.branchCode}</Td>
                 <Td>
@@ -200,11 +213,11 @@ const Students = ({ branchCode }) => {
                       variant="ghost"
                     />
                     <MenuList>
-                      <MenuItem onClick={() => handleUpdateStudent(student.id)}>
-                        Update
+                      <MenuItem onClick={() => handleUpdateStudent(student)}>
+                        <FaEdit style={{ marginRight: "8px" }} /> Update
                       </MenuItem>
-                      <MenuItem onClick={() => handleRemoveStudent(student.id)}>
-                        Remove
+                      <MenuItem onClick={() => handleDeleteStudent(student.id)}>
+                        <FaTrash style={{ marginRight: "8px" }} /> Delete
                       </MenuItem>
                     </MenuList>
                   </Menu>
@@ -214,6 +227,94 @@ const Students = ({ branchCode }) => {
           </Tbody>
         </Table>
       </TableContainer>
+
+      {isModalOpen && (
+        <Modal isOpen={isModalOpen} onClose={handleModalClose}>
+          <ModalOverlay />
+          <ModalContent>
+            <ModalHeader>Update Student</ModalHeader>
+            <ModalCloseButton />
+            <ModalBody>
+              <FormControl isRequired>
+                <FormLabel>Name</FormLabel>
+                <Input
+                  name="name"
+                  value={selectedStudent?.name || ""}
+                  onChange={(e) =>
+                    setSelectedStudent((prev) => ({
+                      ...prev,
+                      name: e.target.value,
+                    }))
+                  }
+                />
+              </FormControl>
+              <FormControl isRequired mt={4}>
+                <FormLabel>Email</FormLabel>
+                <Input
+                  name="email"
+                  value={selectedStudent?.email || ""}
+                  onChange={(e) =>
+                    setSelectedStudent((prev) => ({
+                      ...prev,
+                      email: e.target.value,
+                    }))
+                  }
+                />
+              </FormControl>
+              <FormControl isRequired mt={4}>
+                <FormLabel>Course</FormLabel>
+                <Select
+                  name="course"
+                  value={selectedStudent?.course || ""}
+                  onChange={(e) =>
+                    setSelectedStudent((prev) => ({
+                      ...prev,
+                      course: e.target.value,
+                    }))
+                  }
+                >
+                  {getCourse().map((course) => (
+                    <option key={course} value={course}>
+                      {course}
+                    </option>
+                  ))}
+                </Select>
+              </FormControl>
+              <FormControl isRequired mt={4}>
+                <FormLabel>Branch Code</FormLabel>
+                <Select
+                  name="branchCode"
+                  value={selectedStudent?.branchCode || ""}
+                  onChange={(e) =>
+                    setSelectedStudent((prev) => ({
+                      ...prev,
+                      branchCode: e.target.value,
+                    }))
+                  }
+                >
+                  {getBranch().map((branch) => (
+                    <option key={branch} value={branch}>
+                      {branch}
+                    </option>
+                  ))}
+                </Select>
+              </FormControl>
+            </ModalBody>
+            <ModalFooter>
+              <Button
+                colorScheme="teal"
+                onClick={handleSave}
+                isLoading={isSubmitting}
+              >
+                Save
+              </Button>
+              <Button variant="ghost" onClick={handleModalClose} ml={3}>
+                Cancel
+              </Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
+      )}
     </Box>
   );
 };

@@ -14,7 +14,7 @@ const createApiThunk = (typePrefix, apiFunction) =>
       const response = await apiFunction(args);
       return response.data;
     } catch (error) {
-      console.error(`Error in ${typePrefix}:`, error.message);
+      
 
       // Enhanced error handling
       let errorMessage = `An error occurred in ${typePrefix}.`;
@@ -49,7 +49,7 @@ export const createUser = createApiThunk("user/createUser", (user) => {
 export const updateUser = createApiThunk(
   "user/updateUser",
   ({ id, userData }) => {
-    console.log("id, userData: ", id, userData);
+    
 
     return axiosInstance.put(`/users/${id}`, userData);
   }

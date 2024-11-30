@@ -6,17 +6,16 @@ import { generateLongIdFromUUID } from "../utils/idHelper";
 export const startContestAttempt = createAsyncThunk(
   "contestAttempts/start",
   async ({ contestId, studentId }, { rejectWithValue }) => {
-    console.log("Start Contest Attempt Payload: ", { contestId, studentId });
+    
     try {
       const response = await axiosInstance.post("/contest-attempts/start", {
-        id: generateLongIdFromUUID(),
         contestId,
         studentId,
       });
-      console.log("Contest Attempt Started Response: ", response.data);
+      
       return response.data;
     } catch (error) {
-      console.log("Error starting contest attempt: ", error);
+      
       return rejectWithValue(
         error.response?.data ||
           "An error occurred while starting the contest attempt."
@@ -29,7 +28,7 @@ export const startContestAttempt = createAsyncThunk(
 export const endContestAttempt = createAsyncThunk(
   "contestAttempts/end",
   async ({ attemptId, totalMarks }, { rejectWithValue }) => {
-    console.log("attemptId, totalMarks:", attemptId, totalMarks);
+    
 
     try {
       // Sending data as query parameters in the POST request
@@ -37,10 +36,10 @@ export const endContestAttempt = createAsyncThunk(
         params: { attemptId, totalMarks }, // These will be sent as query parameters
       });
 
-      console.log("End Contest Attempt Response:", response.data);
+      
       return response.data;
     } catch (error) {
-      console.log("Error ending contest attempt:", error);
+      
       return rejectWithValue(
         error.response?.data ||
           "An error occurred while ending the contest attempt."
@@ -59,10 +58,10 @@ export const fetchContestAttemptById = createAsyncThunk(
       const response = await axiosInstance.get(
         `/contest-attempts/${attemptId}`
       );
-      console.log("Fetch Specific Contest Attempt Response: ", response.data);
+      
       return response.data;
     } catch (error) {
-      console.log("Error fetching contest attempt: ", error);
+      
       return rejectWithValue(
         error.response?.data ||
           "An error occurred while fetching the contest attempt by ID."
@@ -85,7 +84,7 @@ export const fetchContestAttemptsByContestId = createAsyncThunk(
       );
       return response.data;
     } catch (error) {
-      console.log("Error fetching all contest attempts: ", error);
+      
       return rejectWithValue(
         error.response?.data ||
           "An error occurred while fetching the contest attempts by contest ID."

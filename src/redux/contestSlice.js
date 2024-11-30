@@ -11,7 +11,7 @@ export const createContest = createAsyncThunk(
   "contests/createContest",
   async (contestData, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.post("/contests", {
+      const response = await axiosInstance.post("/contests/contestcreate", {
         ...contestData,
       });
       return response.data;

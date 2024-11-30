@@ -44,7 +44,7 @@ const ProblemItem = ({ question, currentUserId, currentUserRole }) => {
   const handleBookmark = (e) => {
     e.preventDefault();
     // Logic for bookmarking the question
-    console.log("Bookmark clicked for question:", question.id);
+    
   };
 
   return (

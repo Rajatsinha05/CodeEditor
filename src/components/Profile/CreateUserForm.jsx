@@ -1,5 +1,4 @@
-// CreateUserForm.js
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   VStack,
   FormControl,
@@ -7,25 +6,15 @@ import {
   Input,
   Select,
   Box,
+  Button,
+  Text,
   useColorModeValue,
 } from "@chakra-ui/react";
-import Snackbar from "@mui/material/Snackbar";
-import MuiAlert from "@mui/material/Alert";
-import { getBranch } from "../data/branch";
 import { getCourse } from "../data/course";
+import { getBranch } from "../data/branch";
 
-const Alert = React.forwardRef(function Alert(props, ref) {
-  return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
-});
-
-const CreateUserForm = ({ userData, setUserData }) => {
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [validationMessage, setValidationMessage] = useState("");
-
-  const handleCloseSnackbar = (event, reason) => {
-    if (reason === "clickaway") return;
-    setSnackbarOpen(false);
-  };
+const CreateUserForm = ({ userData = {}, setUserData, isSubmitting, apiError }) => {
+  const [errors, setErrors] = useState({});
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -33,44 +22,65 @@ const CreateUserForm = ({ userData, setUserData }) => {
       ...prevData,
       [name]: value,
     }));
+    setErrors((prevErrors) => ({
+      ...prevErrors,
+      [name]: "",
+    }));
   };
 
-  const inputBgColor = useColorModeValue("white", "gray.700");
-  const labelColor = useColorModeValue("red.600", "red.300");
+  const inputBgColor = useColorModeValue("gray.100", "gray.800");
+  const labelColor = useColorModeValue("teal.700", "teal.300");
+
+  const renderErrorMessage = (field) =>
+    errors[field] && (
+      <Text color="red.500" fontSize="sm">
+        {errors[field]}
+      </Text>
+    );
 
   return (
-    <VStack spacing={4} width="full">
-      <FormControl isRequired>
-        <FormLabel color={labelColor}>User Name</FormLabel>
-        <Box>
+    <Box maxWidth="500px" mx="auto" p={4}>
+      <VStack spacing={4} width="full">
+        {/* Display API error message */}
+        {apiError && (
+          <Text color="red.500" fontSize="sm" mb={4}>
+            {apiError}
+          </Text>
+        )}
+
+        <FormControl isRequired isDisabled={isSubmitting}>
+          <FormLabel color={labelColor}>User Name</FormLabel>
           <Input
             type="text"
             name="name"
             value={userData.name || ""}
             onChange={handleChange}
             bg={inputBgColor}
+            isInvalid={!!errors.name}
           />
-        </Box>
-      </FormControl>
+          {renderErrorMessage("name")}
+        </FormControl>
 
-      <FormControl isRequired>
-        <FormLabel color={labelColor}>User Email</FormLabel>
-        <Box>
+        <FormControl isRequired isDisabled={isSubmitting}>
+          <FormLabel color={labelColor}>User Email</FormLabel>
           <Input
             type="email"
             name="email"
             value={userData.email || ""}
             onChange={handleChange}
             bg={inputBgColor}
+            isInvalid={!!errors.email}
           />
-        </Box>
-      </FormControl>
+          {renderErrorMessage("email")}
+        </FormControl>
 
-      <FormControl isRequired>
-        <FormLabel color={labelColor}>
-          Password {userData.id ? "(Leave blank to keep current)" : "(min. 8 characters)"}
-        </FormLabel>
-        <Box>
+        <FormControl isDisabled={isSubmitting}>
+          <FormLabel color={labelColor}>
+            Password{" "}
+            {userData.id
+              ? "(Leave blank to keep current)"
+              : "(min. 8 characters)"}
+          </FormLabel>
           <Input
             type="password"
             name="password"
@@ -78,59 +88,50 @@ const CreateUserForm = ({ userData, setUserData }) => {
             onChange={handleChange}
             bg={inputBgColor}
             placeholder={userData.id ? "********" : ""}
+            isInvalid={!!errors.password}
           />
-        </Box>
-      </FormControl>
+          {renderErrorMessage("password")}
+        </FormControl>
 
-      <FormControl isRequired>
-        <FormLabel color={labelColor}>Department (Course)</FormLabel>
-        <Box>
+        <FormControl isRequired isDisabled={isSubmitting}>
+          <FormLabel color={labelColor}>Department (Course)</FormLabel>
           <Select
             name="department"
             value={userData.department || ""}
             onChange={handleChange}
             bg={inputBgColor}
+            isInvalid={!!errors.department}
           >
             <option value="">Select Department</option>
-            {getCourse().map((dept, index) => (
-              <option key={index} value={dept}>
+            {getCourse().map((dept) => (
+              <option key={dept} value={dept}>
                 {dept}
               </option>
             ))}
           </Select>
-        </Box>
-      </FormControl>
+          {renderErrorMessage("department")}
+        </FormControl>
 
-      <FormControl isRequired>
-        <FormLabel color={labelColor}>Branch Code</FormLabel>
-        <Box>
+        <FormControl isRequired isDisabled={isSubmitting}>
+          <FormLabel color={labelColor}>Branch Code</FormLabel>
           <Select
             name="branchCode"
             value={userData.branchCode || ""}
             onChange={handleChange}
             bg={inputBgColor}
+            isInvalid={!!errors.branchCode}
           >
             <option value="">Select Branch Code</option>
-            {getBranch().map((code, index) => (
-              <option key={index} value={code}>
+            {getBranch().map((code) => (
+              <option key={code} value={code}>
                 {code}
               </option>
             ))}
           </Select>
-        </Box>
-      </FormControl>
-
-      <Snackbar
-        open={snackbarOpen}
-        autoHideDuration={3000}
-        onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: "top", horizontal: "center" }}
-      >
-        <Alert onClose={handleCloseSnackbar} severity="error">
-          {validationMessage}
-        </Alert>
-      </Snackbar>
-    </VStack>
+          {renderErrorMessage("branchCode")}
+        </FormControl>
+      </VStack>
+    </Box>
   );
 };
 

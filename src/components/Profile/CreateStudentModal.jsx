@@ -91,7 +91,7 @@ const CreateStudentModal = ({ isOpen, onClose }) => {
           isClosable: true,
         });
       }
-      console.error("Error creating student:", error);
+      
     }
   };
 
@@ -150,7 +150,7 @@ const CreateStudentModal = ({ isOpen, onClose }) => {
         duration: 3000,
         isClosable: true,
       });
-      console.error("Error creating students:", error);
+      
     }
   };
 

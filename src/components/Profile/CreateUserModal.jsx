@@ -1,4 +1,3 @@
-// CreateUserModal.js
 import React, { useState, useEffect } from "react";
 import {
   Modal,
@@ -19,21 +18,26 @@ import { createUser, updateUser } from "../../redux/User/userApi";
 const CreateUserModal = ({
   isOpen,
   onClose,
-  refreshUsers, // Make sure this is optional
+  refreshUsers,
   userData,
   mode = "Create",
 }) => {
   const [formData, setFormData] = useState(userData || {});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [apiError, setApiError] = useState(null); // Track API errors
   const dispatch = useDispatch();
   const toast = useToast();
   const modalBgColor = useColorModeValue("white", "gray.800");
-  const headerColor = useColorModeValue("red.600", "red.400");
+  const headerColor = useColorModeValue("teal.600", "teal.400");
 
   useEffect(() => {
     setFormData(userData || {});
+    setApiError(null); // Reset error on open
   }, [userData]);
 
   const handleSave = async () => {
+    setIsSubmitting(true);
+    setApiError(null); // Clear previous errors
     try {
       if (mode === "Create") {
         await dispatch(createUser(formData)).unwrap();
@@ -57,20 +61,13 @@ const CreateUserModal = ({
         });
       }
       onClose();
-
-      // Only call refreshUsers if it's provided
-      if (refreshUsers) {
-        refreshUsers();
-      }
+      if (refreshUsers) refreshUsers();
     } catch (error) {
-      toast({
-        title: "Error",
-        description: error.message || "An error occurred",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-        position: "top",
-      });
+      
+
+      setApiError(error || "An unexpected error occurred.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -83,13 +80,28 @@ const CreateUserModal = ({
         </ModalHeader>
         <ModalCloseButton />
         <ModalBody>
-          <CreateUserForm userData={formData} setUserData={setFormData} />
+          <CreateUserForm
+            userData={formData}
+            setUserData={setFormData}
+            isSubmitting={isSubmitting}
+            apiError={apiError} // Pass API error to the form
+          />
         </ModalBody>
         <ModalFooter>
-          <Button colorScheme="red" onClick={handleSave}>
+          <Button
+            colorScheme="teal"
+            onClick={handleSave}
+            isLoading={isSubmitting}
+            loadingText={mode === "Create" ? "Creating" : "Saving"}
+          >
             {mode === "Create" ? "Create" : "Save Changes"}
           </Button>
-          <Button variant="ghost" onClick={onClose} ml={3}>
+          <Button
+            variant="ghost"
+            onClick={onClose}
+            ml={3}
+            disabled={isSubmitting}
+          >
             Cancel
           </Button>
         </ModalFooter>

@@ -36,7 +36,7 @@ const ExampleInputs = ({
     }
 
     setExamples([...examples, newExample]);
-    console.log("examples, newExample: ", examples, newExample);
+    
 
     setNewExample({
       input: "",

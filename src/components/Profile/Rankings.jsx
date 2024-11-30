@@ -18,7 +18,6 @@ import { fetchTop20RankedStudents } from "../../redux/QuestionSolvedSplice";
 import { FaCrown, FaMedal, FaStar, FaTrophy } from "react-icons/fa";
 import { keyframes } from "@emotion/react";
 import StudentDetailsModal from "./StudentDetailsModal"; // Modal Component
-import { getStudentById } from "../../redux/apiSlice";
 import { fetchStudentById } from "../../redux/Student/studentsSlice";
 
 const Leaderboard = () => {
@@ -83,160 +82,183 @@ const Leaderboard = () => {
           🏆 Leaderboard 🏆
         </Heading>
 
-        {/* Podium Section */}
-        <Flex
-          justify="space-around"
-          align="center"
-          mb={8}
-          direction={{ base: "column-reverse", md: "row" }}
-          textAlign="center"
-        >
-          {[1, 0, 2].map((rank, index) => (
-            <Box
-              key={rank}
-              textAlign="center"
-              w={{ base: "90%", md: "30%" }}
-              p={4}
-              borderRadius="lg"
-              bgGradient={
-                rank === 0
-                  ? "linear(to-b, red.400, red.300)"
-                  : rank === 1
-                  ? "linear(to-b, teal.500, teal.300)"
-                  : "linear(to-b, orange.400, orange.300)"
-              }
-              boxShadow="xl"
-              animation={`${float} ${3 + index * 0.5}s infinite`}
-              position="relative"
-            >
-              <Box position="relative" display="inline-block">
-                <Avatar
-                  size="2xl"
-                  bg="gold"
-                  borderWidth="4px"
-                  borderColor="gold"
-                  cursor="pointer"
-                  onClick={() => handleOpenModal(topRankedStudents[rank])}
-                />
-                <Box
-                  position="absolute"
-                  bottom="-10px"
-                  right="-10px"
-                  bg="white"
-                  borderRadius="full"
-                  p={2}
-                  boxShadow="lg"
-                >
-                  <Icon
-                    as={rank === 0 ? FaCrown : rank === 1 ? FaMedal : FaStar}
-                    boxSize={6}
-                    color={
-                      rank === 0
-                        ? "yellow.500"
-                        : rank === 1
-                        ? "teal.300"
-                        : "orange.400"
-                    }
-                  />
-                </Box>
-              </Box>
-              {topRankedStudents[rank]?.studentName && (
-                <Tooltip label="Click for details" placement="top">
-                  <Text
-                    fontWeight="bold"
-                    fontSize="lg"
-                    color="white"
-                    cursor="pointer"
-                    onClick={() => handleOpenModal(topRankedStudents[rank])}
-                  >
-                    {topRankedStudents[rank].studentName}
-                  </Text>
-                </Tooltip>
-              )}
-              {topRankedStudents[rank]?.branchCode && (
-                <Text fontSize="md" color="white">
-                  {topRankedStudents[rank].branchCode}
-                </Text>
-              )}
-              {topRankedStudents[rank]?.totalScore && (
-                <Text fontSize="sm" color="white">
-                  {topRankedStudents[rank].totalScore} pts
-                </Text>
-              )}
-              <Badge
-                colorScheme="yellow"
-                mt={2}
-                fontSize="sm"
-                px={3}
-                py={1}
-                borderRadius="full"
-              >
-                Rank #{rank + 1}
-              </Badge>
-            </Box>
-          ))}
-        </Flex>
-
-        {/* Other Rankings */}
-        <VStack spacing={4} align="stretch">
-          {topRankedStudents.slice(3).map((student, index) => (
+        {/* Conditional rendering for empty ranking list */}
+        {topRankedStudents.length === 0 ? (
+          <Flex
+            justify="center"
+            align="center"
+            flexDirection="column"
+            minH="50vh"
+            textAlign="center"
+          >
+            <Icon as={FaTrophy} boxSize={16} color={primaryColor} mb={4} />
+            <Text fontSize="xl" fontWeight="bold" color={primaryColor}>
+              No rankings yet, check back later!
+            </Text>
+            <Text fontSize="md" color="gray.500">
+              Upcoming leaderboard will be displayed here.
+            </Text>
+          </Flex>
+        ) : (
+          <>
+            {/* Podium Section */}
             <Flex
-              key={student.id}
-              bg={cardBgColor}
-              p={4}
-              borderRadius="md"
-              boxShadow="md"
+              justify="space-around"
               align="center"
-              justify="space-between"
-              _hover={{
-                boxShadow: "lg",
-                transform: "scale(1.03)",
-                transition: "all 0.3s",
-              }}
+              mb={8}
+              direction={{ base: "column-reverse", md: "row" }}
+              textAlign="center"
             >
-              <Flex align="center">
-                <Tooltip label="Click for details" placement="top">
-                  <Avatar
-                    size="lg"
-                    mr={4}
-                    name={student.studentName}
-                    bgGradient="linear(to-r, teal.400, blue.500)"
-                    cursor="pointer"
-                    onClick={() => handleOpenModal(student)}
-                  />
-                </Tooltip>
-                <Box>
-                  <Tooltip label="Click for details" placement="top">
-                    <Text
-                      fontWeight="bold"
-                      fontSize="lg"
-                      color={primaryColor}
+              {[1, 0, 2].map((rank, index) => (
+                <Box
+                  key={rank}
+                  textAlign="center"
+                  w={{ base: "90%", md: "30%" }}
+                  p={4}
+                  borderRadius="lg"
+                  bgGradient={
+                    rank === 0
+                      ? "linear(to-b, red.400, red.300)"
+                      : rank === 1
+                      ? "linear(to-b, teal.500, teal.300)"
+                      : "linear(to-b, orange.400, orange.300)"
+                  }
+                  boxShadow="xl"
+                  animation={`${float} ${3 + index * 0.5}s infinite`}
+                  position="relative"
+                >
+                  <Box position="relative" display="inline-block">
+                    <Avatar
+                      size="2xl"
+                      bg="gold"
+                      borderWidth="4px"
+                      borderColor="gold"
                       cursor="pointer"
-                      onClick={() => handleOpenModal(student)}
+                      onClick={() => handleOpenModal(topRankedStudents[rank])}
+                    />
+                    <Box
+                      position="absolute"
+                      bottom="-10px"
+                      right="-10px"
+                      bg="white"
+                      borderRadius="full"
+                      p={2}
+                      boxShadow="lg"
                     >
-                      {student.studentName}
+                      <Icon
+                        as={
+                          rank === 0 ? FaCrown : rank === 1 ? FaMedal : FaStar
+                        }
+                        boxSize={6}
+                        color={
+                          rank === 0
+                            ? "yellow.500"
+                            : rank === 1
+                            ? "teal.300"
+                            : "orange.400"
+                        }
+                      />
+                    </Box>
+                  </Box>
+                  {topRankedStudents[rank]?.studentName && (
+                    <Tooltip label="Click for details" placement="top">
+                      <Text
+                        fontWeight="bold"
+                        fontSize="lg"
+                        color="white"
+                        cursor="pointer"
+                        onClick={() => handleOpenModal(topRankedStudents[rank])}
+                      >
+                        {topRankedStudents[rank].studentName}
+                      </Text>
+                    </Tooltip>
+                  )}
+                  {topRankedStudents[rank]?.branchCode && (
+                    <Text fontSize="md" color="white">
+                      {topRankedStudents[rank].branchCode}
                     </Text>
-                  </Tooltip>
-                  <Text fontSize="sm" color="gray.500">
-                    {student.branchCode}
-                  </Text>
-                  <Text fontSize="sm" color="gray.500">
-                    {student.totalScore} pts
-                  </Text>
+                  )}
+                  {topRankedStudents[rank]?.totalScore && (
+                    <Text fontSize="sm" color="white">
+                      {topRankedStudents[rank].totalScore} pts
+                    </Text>
+                  )}
+                  <Badge
+                    colorScheme="yellow"
+                    mt={2}
+                    fontSize="sm"
+                    px={3}
+                    py={1}
+                    borderRadius="full"
+                  >
+                    Rank #{rank + 1}
+                  </Badge>
                 </Box>
-              </Flex>
-              <Badge
-                colorScheme="purple"
-                fontSize="sm"
-                px={3}
-                py={1}
-                borderRadius="full"
-              >
-                #{index + 4}
-              </Badge>
+              ))}
             </Flex>
-          ))}
-        </VStack>
+
+            {/* Other Rankings */}
+            <VStack spacing={4} align="stretch">
+              {topRankedStudents.slice(3).map((student, index) => (
+                <Flex
+                  key={student.id}
+                  bg={cardBgColor}
+                  p={4}
+                  borderRadius="md"
+                  boxShadow="md"
+                  align="center"
+                  justify="space-between"
+                  _hover={{
+                    boxShadow: "lg",
+                    transform: "scale(1.03)",
+                    transition: "all 0.3s",
+                  }}
+                >
+                  <Flex align="center">
+                    <Tooltip label="Click for details" placement="top">
+                      <Avatar
+                        size="lg"
+                        mr={4}
+                        name={student.studentName}
+                        bgGradient="linear(to-r, teal.400, blue.500)"
+                        cursor="pointer"
+                        onClick={() => handleOpenModal(student)}
+                      />
+                    </Tooltip>
+                    <Box>
+                      <Tooltip label="Click for details" placement="top">
+                        <Text
+                          fontWeight="bold"
+                          fontSize="lg"
+                          color={primaryColor}
+                          cursor="pointer"
+                          onClick={() => handleOpenModal(student)}
+                        >
+                          {student.studentName}
+                        </Text>
+                      </Tooltip>
+                      <Text fontSize="sm" color="gray.500">
+                        {student.branchCode}
+                      </Text>
+                      <Text fontSize="sm" color="gray.500">
+                        {student.totalScore} pts
+                      </Text>
+                    </Box>
+                  </Flex>
+                  <Badge
+                    colorScheme="purple"
+                    fontSize="sm"
+                    px={3}
+                    py={1}
+                    borderRadius="full"
+                  >
+                    #{index + 4}
+                  </Badge>
+                </Flex>
+              ))}
+            </VStack>
+          </>
+        )}
 
         {/* Modal */}
         {selectedStudent && (

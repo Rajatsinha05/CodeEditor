@@ -1,19 +1,21 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 
 import axiosInstance from "../../config/axiosConfig";
-import { generateLongIdFromUUID } from "../../utils/idHelper";
+import { generateLongIdFromUUID, generateULID } from "../../utils/idHelper";
 
 // Async thunk to post a question
 export const postQuestion = createAsyncThunk(
   "questions/postQuestion",
   async (data, { rejectWithValue }) => {
-    console.log("data: ", data);
     try {
-      const response = await axiosInstance.post("/questions", data);
-      console.log("response: ", response);
+      const response = await axiosInstance.post("/questions", {
+        ...data,
+        id: generateULID(),
+      });
+      
       return response.data;
     } catch (error) {
-      console.log("error: ", error);
+      
       return rejectWithValue(
         error.response?.data || "An error occurred while posting the question."
       );
@@ -88,17 +90,17 @@ export const getsolvedQuestions = createAsyncThunk(
 export const updateQuestion = createAsyncThunk(
   "questions/updateQuestion",
   async ({ questionId, data }, { rejectWithValue }) => {
-    console.log("data: ", data);
-    console.log("questionId: ", questionId);
+    
+    
     try {
       const response = await axiosInstance.put(
         `/questions/${questionId}`,
         data
       );
-      console.log("response: ", response);
+      
       return response.data;
     } catch (error) {
-      console.log("error: ", error);
+      
       return rejectWithValue(
         error.response?.data || "An error occurred while updating the question."
       );

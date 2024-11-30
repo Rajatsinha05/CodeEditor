@@ -11,7 +11,7 @@ export const saveOrUpdateSolvedQuestion = createAsyncThunk(
         "/solved-questions/save",
         solvedQuestionData
       );
-      console.log("Solved Question", response.data);
+      
 
       return response.data;
     } catch (error) {
@@ -32,7 +32,7 @@ export const updateObtainedMarks = createAsyncThunk(
         "/solved-questions/update-marks",
         solvedQuestionData
       );
-      console.log("update marks", response.data);
+      
 
       return response.data;
     } catch (error) {

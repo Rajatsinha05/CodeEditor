@@ -72,7 +72,7 @@ const Login = ({ isOpen, onClose }) => {
       // onClose();
       navigate("/");
     } catch (error) {
-      console.log("error: ", error);
+      
       showToast(
         toast,
         error ? error : "An error occurred during login",

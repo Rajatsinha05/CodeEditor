@@ -22,21 +22,22 @@ import {
   FaEdit,
   FaTrashAlt,
   FaBookmark,
-  FaShare,
   FaEye,
 } from "react-icons/fa";
 import { MdPlayArrow } from "react-icons/md";
 import { FiMoreVertical } from "react-icons/fi";
 import dayjs from "dayjs";
 import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import { deleteContestById } from "../../redux/contestSlice";
-import { showToast } from "../../utils/toastUtils"; // Import custom toast function
+import { showToast } from "../../utils/toastUtils";
 
 const ContestCard = ({ contest, onStartClick }) => {
   const currentTime = dayjs();
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const toast = useToast();
-  const { user } = useSelector((state) => state.user); // Assuming role is in user state
+  const { user } = useSelector((state) => state.user);
 
   const contestActive =
     currentTime.isAfter(dayjs(contest.startTime)) &&
@@ -53,7 +54,6 @@ const ContestCard = ({ contest, onStartClick }) => {
   const textColor = useColorModeValue("gray.700", "gray.100");
   const dividerColor = useColorModeValue("gray.200", "gray.600");
 
-  // Handle Delete
   const handleDelete = async () => {
     try {
       await dispatch(deleteContestById(contest.id)).unwrap();
@@ -66,6 +66,10 @@ const ContestCard = ({ contest, onStartClick }) => {
         3000
       );
     }
+  };
+
+  const redirectToContest = () => {
+    navigate(`/contest/${contest.id}`);
   };
 
   return (
@@ -108,28 +112,51 @@ const ContestCard = ({ contest, onStartClick }) => {
       </Stack>
       <Divider my={4} borderColor={dividerColor} />
 
-      {/* Start Button or Status Message */}
-      {contestActive && (
-        <Tooltip label="Start Contest" aria-label="Start Contest">
+      {/* Conditional Buttons */}
+      {contestPast ? (
+        <Tooltip label="View Contest" aria-label="View Contest">
           <Button
             mt={4}
-            colorScheme="teal"
-            onClick={() => onStartClick(contest)}
-            leftIcon={<MdPlayArrow />}
+            colorScheme="blue"
+            onClick={redirectToContest}
+            leftIcon={<FaEye />}
           >
-            Start Contest
+            View Contest
           </Button>
         </Tooltip>
-      )}
-      {contestUpcoming && (
+      ) : contestActive ? (
+        <>
+          {user?.role === "SUPERADMIN" || user?.role === "ADMIN" ? (
+            <Tooltip label="View Contest" aria-label="View Contest">
+              <Button
+                mt={4}
+                colorScheme="blue"
+                onClick={redirectToContest}
+                leftIcon={<FaEye />}
+              >
+                View Contest
+              </Button>
+            </Tooltip>
+          ) : (
+            <Tooltip label="Start Contest" aria-label="Start Contest">
+              <Button
+                mt={4}
+                colorScheme="teal"
+                onClick={() => {
+                  onStartClick(contest);
+                  redirectToContest();
+                }}
+                leftIcon={<MdPlayArrow />}
+              >
+                Start Contest
+              </Button>
+            </Tooltip>
+          )}
+        </>
+      ) : (
         <Box mt={4} color="yellow.500" fontWeight="bold">
           <Text>Contest starts soon!</Text>
         </Box>
-      )}
-      {contestPast && (
-        <Text mt={4} color="red.500" fontWeight="bold">
-          Contest has ended
-        </Text>
       )}
 
       {/* More Options Menu */}
@@ -149,7 +176,7 @@ const ContestCard = ({ contest, onStartClick }) => {
             <>
               <MenuItem
                 icon={<FaEdit />}
-                onClick={() => console.log("Edit Contest")}
+                onClick={() => showToast(toast, "working on it...", "info")}
               >
                 Edit
               </MenuItem>
@@ -160,11 +187,10 @@ const ContestCard = ({ contest, onStartClick }) => {
           )}
           <MenuItem
             icon={<FaBookmark />}
-            onClick={() => console.log("Bookmark Contest")}
+            onClick={() => showToast(toast, "will be  soon..", "info")}
           >
             Bookmark
           </MenuItem>
-         
         </MenuList>
       </Menu>
     </Box>

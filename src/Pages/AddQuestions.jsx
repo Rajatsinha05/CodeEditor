@@ -80,7 +80,7 @@ const AddQuestions = ({ isOpen, onClose, initialData, isEditing }) => {
 
   const handleTagChange = useCallback((e) => {
     const { value } = e.target;
-    console.log("value: ", value);
+    
     setFormData((prevData) => ({
       ...prevData,
       tag: value,

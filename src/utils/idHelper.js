@@ -7,3 +7,14 @@ export const generateLongIdFromUUID = () => {
   };
 
   
+  import { ulid } from 'ulid';
+
+/**
+ * Generate a unique string ID using ULID
+ * @returns {string} A unique string ID
+ */
+export const generateULID = () => {
+  return ulid(); // Generate and return the ULID as a string
+};
+
+
