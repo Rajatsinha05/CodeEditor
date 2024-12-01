@@ -1,8 +1,15 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { Flex, Text, HStack } from "@chakra-ui/react";
+import {
+  Flex,
+  Text,
+  HStack,
+  Icon,
+  Box,
+  useColorModeValue,
+} from "@chakra-ui/react";
 import { MdTimer } from "react-icons/md";
 
-const ContestHeader = ({ contest, colorMode }) => {
+const ContestHeader = ({ contest }) => {
   const [remainingTime, setRemainingTime] = useState("");
 
   // Memoized calculation of remaining time
@@ -23,9 +30,9 @@ const ContestHeader = ({ contest, colorMode }) => {
     const minutes = Math.floor((difference / (1000 * 60)) % 60);
     const seconds = Math.floor((difference / 1000) % 60);
 
-    const newRemainingTime = `${
-      days > 0 ? `${days}d ` : ""
-    }${hours > 0 ? `${hours}h ` : ""}${minutes}m ${seconds}s`;
+    const newRemainingTime = `${days > 0 ? `${days}d ` : ""}${
+      hours > 0 ? `${hours}h ` : ""
+    }${minutes}m ${seconds}s`;
 
     setRemainingTime((prevTime) =>
       prevTime === newRemainingTime ? prevTime : newRemainingTime
@@ -40,22 +47,42 @@ const ContestHeader = ({ contest, colorMode }) => {
     }
   }, [contest?.endTime, calculateRemainingTime]);
 
+  // Dynamic styling
+  const bg = useColorModeValue("white", "gray.700");
+  const textColor = useColorModeValue("teal.600", "teal.300");
+  const timerColor = useColorModeValue("red.600", "red.300");
+
   return (
-    <Flex justify="space-between" align="center" mb={6}>
-      <Text
-        fontSize="3xl"
-        fontWeight="bold"
-        color={colorMode === "light" ? "teal.600" : "teal.300"}
+    <Box
+      bg={bg}
+      p={4}
+      borderRadius="lg"
+      shadow="base"
+      transition="all 0.3s ease"
+      _hover={{ shadow: "md" }}
+    >
+      <Flex
+        direction={{ base: "column", md: "row" }}
+        justify="space-between"
+        align="center"
+        textAlign={{ base: "center", md: "left" }}
       >
-        {contest?.title}
-      </Text>
-      <HStack>
-        <MdTimer color={colorMode === "light" ? "red.600" : "red.300"} />
-        <Text fontSize="lg" color={colorMode === "light" ? "red.600" : "red.300"}>
-          {remainingTime}
+        <Text
+          fontSize={{ base: "2xl", md: "3xl" }}
+          fontWeight="bold"
+          color={textColor}
+          mb={{ base: 2, md: 0 }}
+        >
+          {contest?.title || "Contest Title"}
         </Text>
-      </HStack>
-    </Flex>
+        <HStack spacing={3}>
+          <Icon as={MdTimer} boxSize={6} color={timerColor} />
+          <Text fontSize={{ base: "md", md: "lg" }} color={timerColor}>
+            {remainingTime}
+          </Text>
+        </HStack>
+      </Flex>
+    </Box>
   );
 };
 

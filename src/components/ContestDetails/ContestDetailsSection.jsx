@@ -1,5 +1,14 @@
 import React from "react";
-import { Box, Text, Badge, HStack, Icon, Divider, Button } from "@chakra-ui/react";
+import {
+  Box,
+  Text,
+  Badge,
+  HStack,
+  Icon,
+  Divider,
+  useColorModeValue,
+  Stack,
+} from "@chakra-ui/react";
 import { CalendarIcon, TimeIcon } from "@chakra-ui/icons";
 
 const formatDateTime12Hour = (dateString) => {
@@ -14,68 +23,93 @@ const formatDateTime12Hour = (dateString) => {
   return new Date(dateString).toLocaleString("en-US", options);
 };
 
-const ContestDetailsSection = ({ contest, colorMode, user }) => {
+const ContestDetailsSection = ({ contest, user }) => {
   const currentTime = new Date();
   const contestEnded = new Date(contest.endTime) < currentTime;
   const isAdmin = user?.role === "SUPERADMIN" || user?.role === "ADMIN";
 
+  // Dynamic styles
+  const textColor = useColorModeValue("gray.700", "gray.300");
+  const subTextColor = useColorModeValue("gray.600", "gray.400");
+  const dividerColor = useColorModeValue("gray.300", "gray.600");
+  const badgeBg = useColorModeValue("purple.100", "purple.800");
+
   return (
-    <>
+    <Box
+      p={6}
+      borderRadius="lg"
+      shadow="md"
+      bg={useColorModeValue("white", "gray.700")}
+      transition="all 0.3s ease"
+      _hover={{ shadow: "lg" }}
+    >
       {contest?.difficultyLevel && (
-        <Box mb={6}>
-          <Badge colorScheme="purple" fontSize="0.8em" p={1} borderRadius="md">
+        <Box mb={4}>
+          <Badge
+            bg={badgeBg}
+            color="purple.500"
+            fontSize="0.9em"
+            px={2}
+            py={1}
+            borderRadius="md"
+            shadow="sm"
+          >
             Difficulty: {contest.difficultyLevel}
           </Badge>
         </Box>
       )}
 
       {contest?.startTime && contest?.endTime && (
-        <HStack mb={6} spacing={4}>
+        <Stack
+          direction={{ base: "column", md: "row" }}
+          spacing={4}
+          align="start"
+          mb={6}
+        >
           <HStack>
-            <Icon as={CalendarIcon} color={colorMode === "light" ? "gray.500" : "gray.400"} />
-            <Text fontSize="md" color={colorMode === "light" ? "gray.600" : "gray.400"}>
+            <Icon as={CalendarIcon} color="purple.400" />
+            <Text fontSize="md" color={subTextColor}>
               Starts: {formatDateTime12Hour(contest.startTime)}
             </Text>
           </HStack>
           <HStack>
-            <Icon as={TimeIcon} color={colorMode === "light" ? "gray.500" : "gray.400"} />
-            <Text fontSize="md" color={colorMode === "light" ? "gray.600" : "gray.400"}>
+            <Icon as={TimeIcon} color="red.400" />
+            <Text fontSize="md" color={subTextColor}>
               Ends: {formatDateTime12Hour(contest.endTime)}
             </Text>
           </HStack>
-        </HStack>
+        </Stack>
       )}
 
       {contest?.totalMarks && (
-        <Box mb={6}>
-          <Text fontSize="lg" fontWeight="bold" color={colorMode === "light" ? "gray.700" : "gray.300"}>
+        <Box mb={4}>
+          <Text fontSize="lg" fontWeight="bold" color={textColor}>
             Total Marks: {contest.totalMarks}
           </Text>
         </Box>
       )}
 
       {contest?.description && (
-        <Box my={6}>
-          <Text fontSize="lg" fontWeight="semibold" mb={2} color={colorMode === "light" ? "gray.700" : "gray.300"}>
+        <Box my={4}>
+          <Text fontSize="lg" fontWeight="semibold" mb={2} color={textColor}>
             Description
           </Text>
-          <Text fontSize="md" color={colorMode === "light" ? "gray.600" : "gray.400"}>
+          <Text fontSize="md" color={subTextColor} lineHeight="1.6">
             {contest.description}
           </Text>
         </Box>
       )}
 
-      <Divider borderColor={colorMode === "light" ? "gray.300" : "gray.600"} />
+      <Divider borderColor={dividerColor} my={4} />
 
-      {/* Submit Button */}
-      {!contestEnded && !isAdmin && (
+      {isAdmin && (
         <Box mt={6}>
-          <Button colorScheme="teal" size="lg">
-            Submit
-          </Button>
+          <Text fontSize="sm" color={subTextColor}>
+            *Admin Actions Placeholder (e.g., Edit/Delete Contest)*
+          </Text>
         </Box>
       )}
-    </>
+    </Box>
   );
 };
 

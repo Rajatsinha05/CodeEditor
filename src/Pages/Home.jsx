@@ -99,7 +99,7 @@ const Home = () => {
           onClose={onClose}
           contest={selectedContest}
           user={user}
-          onProceed={() => navigate(`/contest/${selectedContest.id}`)}
+          onProceed={() => navigate(`/Contest/${selectedContest.id}`)}
         />
       )}
     </Box>

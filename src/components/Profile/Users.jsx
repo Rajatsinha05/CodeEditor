@@ -47,7 +47,6 @@ const Users = React.memo(({ branchCode }) => {
   const navigate = useNavigate();
   const { users, user } = useSelector((store) => store.user); // Assuming `user` is the logged-in user
   const userData = useSelector((store) => store.data.user);
-  console.log("userData: ", userData);
 
   const {
     isOpen: isDeleteModalOpen,

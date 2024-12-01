@@ -1,11 +1,5 @@
 import React, { useEffect, useState } from "react";
 import {
-  getStudents,
-  updateStudent,
-  deleteStudent,
-} from "../../redux/apiSlice";
-import { useDispatch, useSelector } from "react-redux";
-import {
   Box,
   Input,
   Table,
@@ -37,6 +31,12 @@ import {
   useToast,
 } from "@chakra-ui/react";
 import { FaEllipsisV, FaTrash, FaEdit } from "react-icons/fa";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  getStudents,
+  updateStudent,
+  deleteStudent,
+} from "../../redux/apiSlice";
 import { getBranch } from "../data/branch";
 import { getCourse } from "../data/course";
 import { showToast } from "../../utils/toastUtils";
@@ -56,7 +56,13 @@ const Students = ({ branchCode }) => {
 
   const bgColor = useColorModeValue("gray.50", "gray.800");
   const textColor = useColorModeValue("gray.900", "gray.100");
+  const hoverColor = useColorModeValue("red.100", "teal.600");
   const tableBgColor = useColorModeValue("white", "gray.700");
+  const tableColorScheme = useColorModeValue("red", "teal");
+  const alternateRowBg = useColorModeValue(
+    "rgba(255, 0, 0, 0.05)",
+    "rgba(20, 20, 20, 0.5)"
+  );
 
   useEffect(() => {
     dispatch(getStudents());
@@ -83,6 +89,10 @@ const Students = ({ branchCode }) => {
         : b.name.localeCompare(a.name)
     );
 
+  const toggleSortOrder = () => {
+    setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
+  };
+
   const handleUpdateStudent = (student) => {
     setSelectedStudent(student);
     setIsModalOpen(true);
@@ -94,13 +104,8 @@ const Students = ({ branchCode }) => {
       showToast(toast, "Student deleted successfully.", "success");
       dispatch(getStudents());
     } catch (error) {
-      showToast(toast, "Error deleting student." + error, "error");
+      showToast(toast, "Error deleting student.", "error");
     }
-  };
-
-  const handleModalClose = () => {
-    setIsModalOpen(false);
-    setSelectedStudent(null);
   };
 
   const handleSave = async () => {
@@ -111,19 +116,19 @@ const Students = ({ branchCode }) => {
       await dispatch(
         updateStudent({ id: selectedStudent.id, studentData: selectedStudent })
       ).unwrap();
-      showToast(toast, "Student updated successfully..", "success");
-
+      showToast(toast, "Student updated successfully.", "success");
       setIsModalOpen(false);
       dispatch(getStudents());
     } catch (error) {
-      showToast(toast, "Error updating student." + error, "error");
+      showToast(toast, "Error updating student.", "error");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const toggleSortOrder = () => {
-    setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+    setSelectedStudent(null);
   };
 
   return (
@@ -164,7 +169,6 @@ const Students = ({ branchCode }) => {
             </option>
           ))}
         </Select>
-
         {branchCode === "SUPERADMIN" && (
           <Select
             placeholder="Filter by branch"
@@ -185,7 +189,7 @@ const Students = ({ branchCode }) => {
       </Flex>
 
       <TableContainer>
-        <Table variant="striped" colorScheme="teal">
+        <Table variant="striped" colorScheme={tableColorScheme}>
           <Thead>
             <Tr>
               <Th onClick={toggleSortOrder} cursor="pointer">
@@ -198,8 +202,12 @@ const Students = ({ branchCode }) => {
             </Tr>
           </Thead>
           <Tbody>
-            {filteredStudents.map((student) => (
-              <Tr key={student.id}>
+            {filteredStudents.map((student, index) => (
+              <Tr
+                key={student.id}
+                _hover={{ bg: hoverColor }}
+                bg={index % 2 === 1 ? alternateRowBg : "transparent"}
+              >
                 <Td>{student.name}</Td>
                 <Td>{student.email}</Td>
                 <Td>{student.course}</Td>
@@ -238,7 +246,6 @@ const Students = ({ branchCode }) => {
               <FormControl isRequired>
                 <FormLabel>Name</FormLabel>
                 <Input
-                  name="name"
                   value={selectedStudent?.name || ""}
                   onChange={(e) =>
                     setSelectedStudent((prev) => ({
@@ -248,10 +255,9 @@ const Students = ({ branchCode }) => {
                   }
                 />
               </FormControl>
-              <FormControl isRequired mt={4}>
+              <FormControl mt={4} isRequired>
                 <FormLabel>Email</FormLabel>
                 <Input
-                  name="email"
                   value={selectedStudent?.email || ""}
                   onChange={(e) =>
                     setSelectedStudent((prev) => ({
@@ -261,10 +267,9 @@ const Students = ({ branchCode }) => {
                   }
                 />
               </FormControl>
-              <FormControl isRequired mt={4}>
+              <FormControl mt={4} isRequired>
                 <FormLabel>Course</FormLabel>
                 <Select
-                  name="course"
                   value={selectedStudent?.course || ""}
                   onChange={(e) =>
                     setSelectedStudent((prev) => ({
@@ -280,10 +285,9 @@ const Students = ({ branchCode }) => {
                   ))}
                 </Select>
               </FormControl>
-              <FormControl isRequired mt={4}>
+              <FormControl mt={4} isRequired>
                 <FormLabel>Branch Code</FormLabel>
                 <Select
-                  name="branchCode"
                   value={selectedStudent?.branchCode || ""}
                   onChange={(e) =>
                     setSelectedStudent((prev) => ({

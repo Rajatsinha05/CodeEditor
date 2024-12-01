@@ -68,7 +68,7 @@ const ContestCard = ({ contest, onStartClick }) => {
     }
   };
 
-  const redirectToContest = () => {
+  const handleRedirectToContest = () => {
     navigate(`/contest/${contest.id}`);
   };
 
@@ -118,7 +118,7 @@ const ContestCard = ({ contest, onStartClick }) => {
           <Button
             mt={4}
             colorScheme="blue"
-            onClick={redirectToContest}
+            onClick={handleRedirectToContest}
             leftIcon={<FaEye />}
           >
             View Contest
@@ -130,8 +130,8 @@ const ContestCard = ({ contest, onStartClick }) => {
             <Tooltip label="View Contest" aria-label="View Contest">
               <Button
                 mt={4}
-                colorScheme="blue"
-                onClick={redirectToContest}
+                colorScheme="teal"
+                onClick={handleRedirectToContest}
                 leftIcon={<FaEye />}
               >
                 View Contest
@@ -142,10 +142,7 @@ const ContestCard = ({ contest, onStartClick }) => {
               <Button
                 mt={4}
                 colorScheme="teal"
-                onClick={() => {
-                  onStartClick(contest);
-                  redirectToContest();
-                }}
+                onClick={() => onStartClick(contest)}
                 leftIcon={<MdPlayArrow />}
               >
                 Start Contest
@@ -187,7 +184,7 @@ const ContestCard = ({ contest, onStartClick }) => {
           )}
           <MenuItem
             icon={<FaBookmark />}
-            onClick={() => showToast(toast, "will be  soon..", "info")}
+            onClick={() => showToast(toast, "will be soon...", "info")}
           >
             Bookmark
           </MenuItem>

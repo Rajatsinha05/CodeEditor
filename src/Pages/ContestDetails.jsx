@@ -56,11 +56,11 @@ const ContestDetails = () => {
   }, [dispatch, id]);
 
   // Navigate to home if contest is not found after loading is complete
-  useEffect(() => {
-    if (!contestLoading && !contest) {
-      navigate("/", { replace: true });
-    }
-  }, [contest, contestLoading, navigate]);
+  // useEffect(() => {
+  //   if (!contestLoading && !contest) {
+  //     navigate("/", { replace: true });
+  //   }
+  // }, [contest, contestLoading, navigate]);
 
   // Control spinner visibility
   useEffect(() => {
