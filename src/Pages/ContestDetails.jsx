@@ -5,18 +5,23 @@ import { Box, Button, useColorMode, useToast } from "@chakra-ui/react";
 import { groupBy } from "lodash";
 
 // Redux Actions
-import { getContestById } from "../redux/contestSlice";
-import { fetchSolvedQuestionsByContestId } from "../redux/QuestionSolvedSplice";
 import {
   fetchContestAttemptsByContestId,
   endContestAttempt,
 } from "../redux/contestAttemptSlice";
+import { getContestById } from "../redux/contestSlice";
+import { fetchSolvedQuestionsByContestId } from "../redux/ContestQuestionSolvedSplice";
+
+// Components
 import CustomCreativeSpinner from "../components/Spinner/CustomCreativeSpinner";
 import ContestHeader from "../components/ContestDetails/ContestHeader";
 import ContestDetailsSection from "../components/ContestDetails/ContestDetailsSection";
 import ContestQuestions from "../components/ContestDetails/ContestQuestions";
 import StudentRankings from "../components/ContestDetails/StudentRankings";
 import EnrolledStudents from "../components/ContestDetails/EnrolledStudents";
+
+// Utils
+import { showToast } from "../utils/toastUtils";
 import ContestAttemptingDetails from "../components/ContestDetails/ContestAttemptingDetails ";
 
 const ContestDetails = () => {
@@ -25,28 +30,24 @@ const ContestDetails = () => {
   const navigate = useNavigate();
   const toast = useToast();
   const { colorMode } = useColorMode();
+
   const [showSpinner, setShowSpinner] = useState(true);
 
-  // Combined selector to access the necessary store data in one go
-  const {
-    solvedQuestions,
-    contest,
-    user,
-    contestAttempts,
-    solvedLoading,
-    contestLoading,
-    attemptsLoading,
-  } = useSelector((store) => ({
-    solvedQuestions: store.solved.solvedQuestions,
-    contest: store.contest.contest,
-    user: store.data.user,
-    contestAttempts: store.contestAttempt.contestAttempts,
-    solvedLoading: store.solved.loading,
-    contestLoading: store.contest.loading,
-    attemptsLoading: store.contestAttempt.loading.fetchAll,
-  }));
+  // Selector for necessary data
+  const { solvedQuestions, contest, user, contestAttempts, loadingStates } =
+    useSelector((store) => ({
+      solvedQuestions: store.solved.solvedQuestions,
+      contest: store.contest.contest,
+      user: store.data.user,
+      contestAttempts: store.contestAttempt.contestAttempts,
+      loadingStates: {
+        solvedLoading: store.solved.loading,
+        contestLoading: store.contest.loading,
+        attemptsLoading: store.contestAttempt.loading.fetchAll,
+      },
+    }));
 
-  // Fetch contest data, solved questions, and contest attempts
+  // Fetch contest-related data
   useEffect(() => {
     if (id) {
       dispatch(fetchSolvedQuestionsByContestId(id));
@@ -55,103 +56,66 @@ const ContestDetails = () => {
     }
   }, [dispatch, id]);
 
-  // Navigate to home if contest is not found after loading is complete
-  // useEffect(() => {
-  //   if (!contestLoading && !contest) {
-  //     navigate("/", { replace: true });
-  //   }
-  // }, [contest, contestLoading, navigate]);
-
-  // Control spinner visibility
+  // Spinner timeout
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowSpinner(false);
-    }, 1500); // Show spinner for 1.5 seconds
-
+    const timer = setTimeout(() => setShowSpinner(false), 1500);
     return () => clearTimeout(timer);
   }, []);
 
-  // Memoize student rankings to avoid unnecessary recalculations
+  // Calculate student rankings
   const studentRankings = useMemo(() => {
     if (!solvedQuestions || solvedQuestions.length === 0) return [];
 
     const groupedByStudent = groupBy(solvedQuestions, "studentId");
-    const rankings = Object.keys(groupedByStudent).map((studentId) => {
-      const totalMarks = groupedByStudent[studentId]?.reduce(
-        (acc, curr) => acc + curr.obtainedMarks,
-        0
-      );
-      return { studentId, totalMarks };
-    });
-
-    return rankings.sort((a, b) => b.totalMarks - a.totalMarks);
+    return Object.keys(groupedByStudent)
+      .map((studentId) => ({
+        studentId,
+        totalMarks: groupedByStudent[studentId]?.reduce(
+          (acc, curr) => acc + curr.obtainedMarks,
+          0
+        ),
+      }))
+      .sort((a, b) => b.totalMarks - a.totalMarks);
   }, [solvedQuestions]);
 
-  // Function to handle contest submission
-  const handleSubmitContest = useCallback(async () => {
-    // Calculate total marks of the current user
-    const totalMarks = solvedQuestions.reduce(
-      (acc, question) => acc + question.obtainedMarks,
-      0
-    );
+  // Get current user's attempt
+  const currentAttempt = useMemo(() => {
+    return contestAttempts.find((attempt) => attempt.studentId === user.id);
+  }, [contestAttempts, user.id]);
 
-    
+  const attemptId = useMemo(() => currentAttempt?.id, [currentAttempt]);
 
-    // Ensure contest attempts are loaded
-    if (!contestAttempts || contestAttempts.length === 0) {
-      toast({
-        title: "No Contest Attempt",
-        description: "You have not started this contest yet.",
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-      });
+  // Handle contest submission
+  const handleSubmitContest = useCallback(() => {
+    if (!currentAttempt) {
+      showToast(toast, "No contest attempt found.", "error");
       return;
     }
 
-    // Find the current user's contest attempt
-    const currentAttempt = contestAttempts.filter((attempt) => attempt.studentId == user.id
+    dispatch(endContestAttempt({ attemptId }))
+      .unwrap()
+      .then(() =>
+        showToast(toast, "Contest submitted successfully!", "success")
+      )
+      .catch((error) =>
+        showToast(
+          toast,
+          error || "Failed to submit the contest. Please try again.",
+          "error"
+        )
+      );
+  }, [dispatch, currentAttempt, attemptId, toast]);
+
+  // Show spinner or loading state
+  const isLoading = useMemo(() => {
+    return (
+      showSpinner ||
+      loadingStates.contestLoading ||
+      loadingStates.attemptsLoading
     );
+  }, [showSpinner, loadingStates]);
 
-    
-
-    if (currentAttempt) {
-      try {
-        // Call the end contest API
-        await dispatch(
-          endContestAttempt({ attemptId: currentAttempt[0].id, totalMarks })
-        );
-        toast({
-          title: "Contest Submitted",
-          description: `You have successfully submitted the contest with ${totalMarks} marks.`,
-          status: "success",
-          duration: 5000,
-          isClosable: true,
-        });
-        // navigate("/"); // Redirect to homepage after submission
-      } catch (error) {
-        toast({
-          title: "Submission Failed",
-          description:
-            error.message || "An error occurred while submitting the contest.",
-          status: "error",
-          duration: 5000,
-          isClosable: true,
-        });
-      }
-    } else {
-      toast({
-        title: "No Contest Attempt",
-        description: "You have not started this contest yet.",
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-      });
-    }
-  }, [dispatch, solvedQuestions, contestAttempts, user.id, toast, navigate]);
-
-  // Show spinner initially or if the contest is still loading
-  if (showSpinner || contestLoading || attemptsLoading) {
+  if (isLoading) {
     return <CustomCreativeSpinner />;
   }
 
@@ -171,6 +135,7 @@ const ContestDetails = () => {
         solvedQuestions={solvedQuestions}
         user={user}
         colorMode={colorMode}
+        attemptId={attemptId}
       />
       <StudentRankings
         studentRankings={studentRankings}
@@ -184,11 +149,13 @@ const ContestDetails = () => {
           <EnrolledStudents contest={contest} colorMode={colorMode} />
         </>
       )}
-      <Button mt={4} colorScheme="teal" onClick={handleSubmitContest}>
-        Submit Contest
-      </Button>
+      {currentAttempt?.endTime == null || (user.role === "ADMIN" || user.role === "SUPERADMIN") (
+        <Button mt={4} colorScheme="teal" onClick={handleSubmitContest}>
+          Submit Contest
+        </Button>
+      )}
     </Box>
   );
 };
 
-export default ContestDetails;
+export default React.memo(ContestDetails);

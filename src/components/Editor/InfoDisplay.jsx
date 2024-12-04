@@ -10,4 +10,4 @@ const InfoDisplay = ({ inactiveTime, tabChangeCount }) => {
   );
 };
 
-export default InfoDisplay;
+export default React.memo(InfoDisplay);

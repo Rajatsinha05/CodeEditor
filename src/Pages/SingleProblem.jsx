@@ -14,4 +14,4 @@ const SingleProblem = () => {
   );
 };
 
-export default SingleProblem;
+export default React.memo(SingleProblem);

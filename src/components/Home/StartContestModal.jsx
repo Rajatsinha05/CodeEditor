@@ -144,4 +144,4 @@ const StartContestModal = ({ isOpen, onClose, contest, user }) => {
   );
 };
 
-export default StartContestModal;
+export default React.memo(StartContestModal);

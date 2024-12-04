@@ -103,4 +103,4 @@ const Problems = () => {
   );
 };
 
-export default Problems;
+export default React.memo(Problems);

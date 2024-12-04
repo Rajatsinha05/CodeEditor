@@ -72,4 +72,4 @@ const MotivationalLoadingSpinner = React.memo(() => {
   );
 });
 
-export default MotivationalLoadingSpinner;
+export default React.memo(MotivationalLoadingSpinner);

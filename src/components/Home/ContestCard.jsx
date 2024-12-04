@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Box,
   Text,
@@ -15,6 +15,12 @@ import {
   MenuItem,
   useColorModeValue,
   useToast,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalCloseButton,
 } from "@chakra-ui/react";
 import { CalendarIcon } from "@chakra-ui/icons";
 import {
@@ -24,6 +30,7 @@ import {
   FaBookmark,
   FaEye,
 } from "react-icons/fa";
+
 import { MdPlayArrow } from "react-icons/md";
 import { FiMoreVertical } from "react-icons/fi";
 import dayjs from "dayjs";
@@ -31,14 +38,16 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { deleteContestById } from "../../redux/contestSlice";
 import { showToast } from "../../utils/toastUtils";
+import CreateContest from "../../Pages/CreateContest";
 
 const ContestCard = ({ contest, onStartClick }) => {
-  const currentTime = dayjs();
+  const [isEditing, setIsEditing] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const toast = useToast();
   const { user } = useSelector((state) => state.user);
 
+  const currentTime = dayjs();
   const contestActive =
     currentTime.isAfter(dayjs(contest.startTime)) &&
     currentTime.isBefore(dayjs(contest.endTime));
@@ -173,7 +182,11 @@ const ContestCard = ({ contest, onStartClick }) => {
             <>
               <MenuItem
                 icon={<FaEdit />}
-                onClick={() => showToast(toast, "working on it...", "info")}
+                onClick={(e) => {
+                  // e.preventDefault(); // Prevent default behavior
+                  setIsEditing(true); // Update state
+                  console.log("Edit clicked, isEditing:", isEditing);
+                }}
               >
                 Edit
               </MenuItem>
@@ -184,14 +197,32 @@ const ContestCard = ({ contest, onStartClick }) => {
           )}
           <MenuItem
             icon={<FaBookmark />}
-            onClick={() => showToast(toast, "will be soon...", "info")}
+            onClick={() =>
+              showToast(toast, "Bookmark feature coming soon...", "info")
+            }
           >
             Bookmark
           </MenuItem>
         </MenuList>
       </Menu>
+
+      {/* Edit Contest Modal */}
+      <Modal isOpen={isEditing} onClose={() => setIsEditing(false)}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Edit Contest</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <CreateContest
+              initialData={contest}
+              onClose={() => setIsEditing(false)}
+              isEditing
+            />
+          </ModalBody>
+        </ModalContent>
+      </Modal>
     </Box>
   );
 };
 
-export default ContestCard;
+export default React.memo(ContestCard);

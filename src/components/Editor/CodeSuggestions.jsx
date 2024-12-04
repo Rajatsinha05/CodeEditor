@@ -5,7 +5,6 @@ const CodeSuggestions = ({ monaco, language }) => {
     let suggestions = [];
     switch (language) {
       case "javascript":
-        
         suggestions = [
           {
             label: "console.log",
@@ -42,4 +41,4 @@ const CodeSuggestions = ({ monaco, language }) => {
   return null;
 };
 
-export default CodeSuggestions;
+export default React.memo(CodeSuggestions);

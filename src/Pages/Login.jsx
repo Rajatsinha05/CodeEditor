@@ -137,4 +137,4 @@ const Login = ({ isOpen, onClose }) => {
   );
 };
 
-export default Login;
+export default React.memo(Login);

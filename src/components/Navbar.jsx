@@ -38,9 +38,7 @@ import {
 import "../CSS/Navbar.css";
 import Login from "../Pages/Login";
 import { useDispatch, useSelector } from "react-redux";
-import Cookie from "js-cookie";
 import { logout } from "../redux/apiSlice";
-import { logoutUser } from "../redux/User/userSlice";
 
 const Navbar = () => {
   const { colorMode, toggleColorMode } = useColorMode();
@@ -60,8 +58,6 @@ const Navbar = () => {
 
   const handleLogOut = () => {
     dispatch(logout());
-    // Cookie.remove("token");
-    // window.location.reload();
   };
 
   const handleDrawerOpen = () => setIsDrawerOpen(true);
@@ -108,7 +104,7 @@ const Navbar = () => {
       {isLogin && (user?.role === "ADMIN" || user?.role === "SUPERADMIN") && (
         <>
           <NavLink
-            to="/addQuestion"
+            to="/admin/add-question"
             className={({ isActive }) =>
               isActive ? "nav-link active" : "nav-link"
             }
@@ -124,7 +120,7 @@ const Navbar = () => {
             </Tooltip>
           </NavLink>
           <NavLink
-            to="/createContest"
+            to="/admin/create-contest"
             className={({ isActive }) =>
               isActive ? "nav-link active" : "nav-link"
             }
@@ -278,7 +274,7 @@ const Navbar = () => {
                   {user?.role === "ADMIN" || user?.role === "SUPERADMIN" ? (
                     <>
                       <NavLink
-                        to="/addQuestion"
+                        to="/admin/add-question"
                         className={({ isActive }) =>
                           isActive ? "nav-link active" : "nav-link"
                         }
@@ -287,7 +283,7 @@ const Navbar = () => {
                         Add Question
                       </NavLink>
                       <NavLink
-                        to="/createContest"
+                        to="/admin/create-contest"
                         className={({ isActive }) =>
                           isActive ? "nav-link active" : "nav-link"
                         }
@@ -320,4 +316,4 @@ const Navbar = () => {
   );
 };
 
-export default Navbar;
+export default React.memo(Navbar);

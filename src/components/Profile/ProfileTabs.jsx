@@ -79,4 +79,4 @@ const ProfileTabs = ({ user }) => {
   );
 };
 
-export default ProfileTabs;
+export default React.memo(ProfileTabs);

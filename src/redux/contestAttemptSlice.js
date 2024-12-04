@@ -6,16 +6,14 @@ import { generateLongIdFromUUID } from "../utils/idHelper";
 export const startContestAttempt = createAsyncThunk(
   "contestAttempts/start",
   async ({ contestId, studentId }, { rejectWithValue }) => {
-    
     try {
       const response = await axiosInstance.post("/contest-attempts/start", {
         contestId,
         studentId,
       });
-      
+
       return response.data;
     } catch (error) {
-      
       return rejectWithValue(
         error.response?.data ||
           "An error occurred while starting the contest attempt."
@@ -27,22 +25,20 @@ export const startContestAttempt = createAsyncThunk(
 // Async thunk to end a contest attempt
 export const endContestAttempt = createAsyncThunk(
   "contestAttempts/end",
-  async ({ attemptId, totalMarks }, { rejectWithValue }) => {
-    
-
+  async ({ attemptId }, { rejectWithValue }) => {
+    console.log("Processing endContestAttempt for attemptId:", attemptId);
     try {
-      // Sending data as query parameters in the POST request
+      // Sending request to the backend with query parameters
       const response = await axiosInstance.post("/contest-attempts/end", null, {
-        params: { attemptId, totalMarks }, // These will be sent as query parameters
+        params: { attemptId }, // These will be sent as query parameters
       });
 
-      
-      return response.data;
+      console.log("Response received:", response.data);
+      return response.data; // Return the response data to the caller
     } catch (error) {
-      
+      console.error("Error ending contest attempt:", error);
       return rejectWithValue(
-        error.response?.data ||
-          "An error occurred while ending the contest attempt."
+        error.response?.data || "An error occurred while ending the contest attempt."
       );
     }
   }
@@ -58,10 +54,9 @@ export const fetchContestAttemptById = createAsyncThunk(
       const response = await axiosInstance.get(
         `/contest-attempts/${attemptId}`
       );
-      
+
       return response.data;
     } catch (error) {
-      
       return rejectWithValue(
         error.response?.data ||
           "An error occurred while fetching the contest attempt by ID."
@@ -84,10 +79,26 @@ export const fetchContestAttemptsByContestId = createAsyncThunk(
       );
       return response.data;
     } catch (error) {
-      
       return rejectWithValue(
         error.response?.data ||
           "An error occurred while fetching the contest attempts by contest ID."
+      );
+    }
+  }
+);
+export const fetchContestAttemptsByStudentAndContest = createAsyncThunk(
+  "contestAttempts/fetchByStudentAndContest",
+  async ({ studentId, contestId }, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.get(
+        `/contest-attempts/by-student-and-contest`,
+        { params: { studentId, contestId } }
+      );
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data ||
+          "An error occurred while fetching contest attempts by student and contest."
       );
     }
   }
@@ -177,7 +188,25 @@ export const contestAttemptSlice = createSlice({
       .addCase(fetchContestAttemptsByContestId.rejected, (state, action) => {
         state.loading.fetchAll = false;
         state.error.fetchAll = action.payload;
-      });
+      })
+      .addCase(fetchContestAttemptsByStudentAndContest.pending, (state) => {
+        state.loading.fetchAll = true;
+        state.error.fetchAll = null;
+      })
+      .addCase(
+        fetchContestAttemptsByStudentAndContest.fulfilled,
+        (state, action) => {
+          state.loading.fetchAll = false;
+          state.contestAttempts = action.payload;
+        }
+      )
+      .addCase(
+        fetchContestAttemptsByStudentAndContest.rejected,
+        (state, action) => {
+          state.loading.fetchAll = false;
+          state.error.fetchAll = action.payload;
+        }
+      );
   },
 });
 

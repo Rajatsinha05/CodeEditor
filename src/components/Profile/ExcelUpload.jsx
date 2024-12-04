@@ -94,4 +94,4 @@ const ExcelUpload = ({ setCreateButtonVisible, setUploadedData }) => {
   );
 };
 
-export default ExcelUpload;
+export default React.memo(ExcelUpload);

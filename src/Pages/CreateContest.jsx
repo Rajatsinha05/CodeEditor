@@ -381,4 +381,4 @@ const CreateContest = ({ onCreate, initialData = {}, onClose, isEditing }) => {
   );
 };
 
-export default CreateContest;
+export default React.memo(CreateContest);

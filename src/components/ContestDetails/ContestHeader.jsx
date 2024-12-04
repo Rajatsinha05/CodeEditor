@@ -86,4 +86,4 @@ const ContestHeader = ({ contest }) => {
   );
 };
 
-export default ContestHeader;
+export default React.memo(ContestHeader);

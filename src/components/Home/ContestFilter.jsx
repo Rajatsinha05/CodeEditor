@@ -43,9 +43,8 @@ const ContestFilter = ({ filter, setFilter }) => {
           All
         </Button>
       </Tooltip>
-
     </HStack>
   );
 };
 
-export default ContestFilter;
+export default React.memo(ContestFilter);

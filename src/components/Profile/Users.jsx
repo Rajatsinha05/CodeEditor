@@ -344,4 +344,4 @@ const Users = React.memo(({ branchCode }) => {
   );
 });
 
-export default Users;
+export default React.memo(Users);

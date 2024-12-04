@@ -113,4 +113,4 @@ const ContestDetailsSection = ({ contest, user }) => {
   );
 };
 
-export default ContestDetailsSection;
+export default React.memo (ContestDetailsSection);

@@ -1,23 +1,18 @@
 import React, { useRef, useState, useEffect, useMemo } from "react";
 import {
   Box,
-  HStack,
-  VStack,
-  Text,
+
   useToast,
-  useBreakpointValue,
-  useColorMode,
   useColorModeValue,
   Flex,
+
 } from "@chakra-ui/react";
-// import { Editor } from "@monaco-editor/react";
 import * as monaco from "monaco-editor";
 
 import { useDispatch, useSelector } from "react-redux";
 import { CODE_SNIPPETS } from "./constants";
 
 import CameraDisplay from "./CameraDisplay";
-
 import { getQuestionById } from "../../redux/Question/questionApi";
 import { showToast } from "../../utils/toastUtils";
 import ProblemDetails from "./ProblemDetails";
@@ -25,27 +20,23 @@ import CodeWorkspace from "./CodeWorkspace";
 
 const CodeEditor = ({ problemId }) => {
   const editorRef = useRef();
-  const [value, setValue] = useState(CODE_SNIPPETS["java"]); // Default to Java
-  const [language, setLanguage] = useState("java"); // Default language set to Java
+  const [value, setValue] = useState(CODE_SNIPPETS["java"]);
+  const [language, setLanguage] = useState("java");
   const [theme, setTheme] = useState("vs-dark");
   const [fontSize, setFontSize] = useState(14);
-  const [inactiveTime, setInactiveTime] = useState(0);
-  const [tabChangeCount, setTabChangeCount] = useState(0);
-  const [intervalId, setIntervalId] = useState(null);
+
+  const [dividerX, setDividerX] = useState(40); // Percentage for initial ProblemDetails width
+ 
 
   const [testResults, setTestResults] = useState([]);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const editorContainerRef = useRef();
 
   const toast = useToast();
   const dispatch = useDispatch();
-  const { colorMode } = useColorMode();
   const { data } = useSelector((store) => store.test) || {};
-
   const { question } = useSelector((store) => store.question);
 
-  // Color mode dependent values
   const bgColor = useColorModeValue("gray.100", "gray.800");
   const textColor = useColorModeValue("blackAlpha.800", "whiteAlpha.900");
 
@@ -60,28 +51,6 @@ const CodeEditor = ({ problemId }) => {
     }
   }, [dispatch, problemId, shouldFetchQuestion]);
 
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.hidden) {
-        setTabChangeCount((prevCount) => prevCount + 0.5);
-        const id = setInterval(() => {
-          setInactiveTime((prev) => prev + 1);
-        }, 1000);
-        setIntervalId(id);
-      } else {
-        clearInterval(intervalId);
-        setIntervalId(null);
-      }
-    };
-
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-
-    return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-      clearInterval(intervalId);
-    };
-  }, [intervalId]);
-
   const onMount = (editor, monaco) => {
     editorRef.current = editor;
     editor.focus();
@@ -94,42 +63,83 @@ const CodeEditor = ({ problemId }) => {
     });
   };
 
-  const handleLanguageChange = (newLanguage) => {
-    setLanguage(newLanguage);
-    setValue(CODE_SNIPPETS[newLanguage]);
-  };
-
   const toggleDrawer = () => setIsDrawerOpen(!isDrawerOpen);
 
+  const handleMouseDown = (e) => {
+    const startX = e.clientX;
+    const startDividerX = dividerX;
+
+    const handleMouseMove = (e) => {
+      const deltaX = e.clientX - startX;
+      const newDividerX = Math.max(
+        20,
+        Math.min(80, startDividerX + (deltaX / window.innerWidth) * 100)
+      );
+      setDividerX(newDividerX);
+    };
+
+    const handleMouseUp = () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+  };
+
   return (
-    <Box p={4} bg={bgColor} color={textColor} height="100vh">
+    <Box
+      p={4}
+      bgGradient={useColorModeValue(
+        "linear(to-r, gray.100, gray.200)",
+        "linear(to-r, gray.700, gray.800)"
+      )}
+      color={textColor}
+      height="100vh"
+      overflow="hidden"
+      display="flex"
+      flexDirection="column"
+    >
       <CameraDisplay />
 
       <Flex
-        direction={{ base: "column", lg: "row" }}
-        gap={6}
-        height="100%"
+        height="calc(100% - 50px)"
         overflow="hidden"
+        direction={{ base: "column", md: "row" }}
+        gap={{ base: 4, md: 0 }}
       >
-        {/* Problem Details (40%) */}
+        {/* Problem Details */}
         <Box
-          flex={{ base: "1", lg: "0 0 40%" }}
-          maxW={{ lg: "40%" }}
-          minW="300px"
-          height={{ base: "auto", lg: "100%" }}
+          flex={`0 0 ${dividerX}%`}
+          height={{ base: "40vh", md: "100%" }}
           overflowY="auto"
-          // bg={bgColor}
+          minW="300px"
+          borderRight={{ base: "none", md: `1px solid ${textColor}` }}
+          shadow="md"
+          borderRadius="lg"
+          p={4}
+          bg={useColorModeValue("white", "gray.900")}
         >
           <ProblemDetails question={question} />
         </Box>
 
-        {/* Code Workspace (60%) */}
+        {/* Resizer */}
         <Box
-          flex={{ base: "1", lg: "0 0 60%" }}
-          maxW={{ lg: "60%" }}
-          height={{ base: "auto", lg: "100%" }}
+          display={{ base: "none", md: "block" }}
+          width="4px"
+          bg="gray.500"
+          cursor="ew-resize"
+          onMouseDown={handleMouseDown}
+          zIndex="10"
+        />
+
+        {/* Code Workspace */}
+        <Box
+          flex={`0 0 ${100 - dividerX}%`}
           overflowY="auto"
-          // bg={bgColor}
+          borderRadius="lg"
+          shadow="md"
+          bg={useColorModeValue("white", "gray.900")}
         >
           <CodeWorkspace
             language={language}
@@ -152,11 +162,9 @@ const CodeEditor = ({ problemId }) => {
           />
         </Box>
       </Flex>
-
-      <Text mt={4}>Inactive Time: {inactiveTime} seconds</Text>
-      <Text>Tab Changes: {tabChangeCount}</Text>
+     
     </Box>
   );
 };
 
-export default CodeEditor;
+export default React.memo(CodeEditor);

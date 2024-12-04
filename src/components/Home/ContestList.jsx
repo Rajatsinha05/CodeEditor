@@ -26,4 +26,4 @@ const ContestList = ({ contests, onStartContestClick }) => {
   );
 };
 
-export default ContestList;
+export default  React.memo(ContestList);

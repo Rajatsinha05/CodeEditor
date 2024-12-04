@@ -2,12 +2,14 @@ import { configureStore, combineReducers } from "@reduxjs/toolkit";
 import editorReducer from "./editorSlice";
 import { apiReducer } from "./apiSlice";
 import { contestReducer } from "./contestSlice";
-import { solvedQuestionReducer } from "./QuestionSolvedSplice";
+
 import { contestAttemptReducer } from "./contestAttemptSlice";
 import { questionsReducer } from "./Question/questionsSlice";
 import { themeReducer } from "./Theme/themeSlice";
 import { userReducer } from "./User/userSlice";
 import { studentsReducer } from "./Student/studentsSlice";
+import { solvedQuestionReducer } from "./ContestQuestionSolvedSplice";
+import { questionSolvedReducer } from "./Question/questionSolvedSlice";
 
 // Combine all reducers into a single rootReducer
 const rootReducer = combineReducers({
@@ -20,6 +22,7 @@ const rootReducer = combineReducers({
   question: questionsReducer,
   theme: themeReducer,
   student: studentsReducer,
+  questionSolved: questionSolvedReducer,
 });
 
 // Configure the store with the rootReducer

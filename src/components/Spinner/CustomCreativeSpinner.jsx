@@ -83,4 +83,4 @@ const CustomCreativeSpinner = () => {
   );
 };
 
-export default CustomCreativeSpinner;
+export default React.memo(CustomCreativeSpinner);

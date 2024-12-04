@@ -22,7 +22,10 @@ const Home = () => {
 
   const user = useSelector((store) => store.data.user, shallowEqual);
   const contests = useSelector((store) => store.contest.contests, shallowEqual);
-  const isFetched = useSelector((store) => store.contest.isFetched, shallowEqual);
+  const isFetched = useSelector(
+    (store) => store.contest.isFetched,
+    shallowEqual
+  );
 
   useEffect(() => {
     if (isFetched) return;
@@ -106,4 +109,4 @@ const Home = () => {
   );
 };
 
-export default Home;
+export default React.memo(Home);

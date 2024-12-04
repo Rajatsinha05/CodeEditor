@@ -70,4 +70,4 @@ const DrawerComponent = ({ isOpen, onClose, isLoading, testResults }) => {
   );
 };
 
-export default DrawerComponent;
+export default React.memo(DrawerComponent);

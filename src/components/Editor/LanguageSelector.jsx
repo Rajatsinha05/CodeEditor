@@ -44,4 +44,4 @@ const LanguageSelector = ({ language, onSelect }) => {
     </Box>
   );
 };
-export default LanguageSelector;
+export default React.memo(LanguageSelector);

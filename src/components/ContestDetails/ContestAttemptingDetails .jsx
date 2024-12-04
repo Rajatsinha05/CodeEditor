@@ -123,10 +123,10 @@ const ContestAttemptingDetails = ({ contestAttempts }) => {
                 <Text
                   fontSize="sm"
                   fontWeight="bold"
-                  color={attempt.obtainMarks !== null ? "teal.600" : "red.500"}
+                  color={attempt.obtainedMarks !== null ? "teal.600" : "red.500"}
                 >
-                  {attempt.obtainMarks !== null
-                    ? `${attempt.obtainMarks} / ${attempt.totalMarks}`
+                  {attempt. obtainedMarks !== null
+                    ? `${attempt.obtainedMarks} / ${attempt.totalMarks}`
                     : `0 / ${attempt.totalMarks}`}
                 </Text>
               </Flex>
@@ -151,4 +151,4 @@ const ContestAttemptingDetails = ({ contestAttempts }) => {
   );
 };
 
-export default ContestAttemptingDetails;
+export default React.memo(ContestAttemptingDetails);

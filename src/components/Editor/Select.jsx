@@ -15,4 +15,4 @@ const CustomSelect = ({ id, label, options, onChange, isMulti, styles, onInputCh
   </FormControl>
 );
 
-export default CustomSelect;
+export default React.memo(CustomSelect);

@@ -32,7 +32,11 @@ const StudentDetailsModal = ({ isOpen, onClose, student }) => {
       <ModalOverlay />
       <ModalContent bg={bgColor} borderRadius="lg" boxShadow="2xl">
         {/* Header Section */}
-        <ModalHeader textAlign="center" color={headerColor} fontSize={{ base: "lg", md: "2xl" }}>
+        <ModalHeader
+          textAlign="center"
+          color={headerColor}
+          fontSize={{ base: "lg", md: "2xl" }}
+        >
           Student Details
         </ModalHeader>
         <ModalCloseButton />
@@ -55,31 +59,55 @@ const StudentDetailsModal = ({ isOpen, onClose, student }) => {
             >
               <VStack spacing={{ base: 3, md: 4 }} align="stretch">
                 <HStack spacing={3}>
-                  <Icon as={FaIdBadge} boxSize={{ base: 4, md: 5 }} color={headerColor} />
-                  <Text fontWeight="bold" color={textColor} fontSize={{ base: "sm", md: "md" }}>
+                  <Icon
+                    as={FaIdBadge}
+                    boxSize={{ base: 4, md: 5 }}
+                    color={headerColor}
+                  />
+                  <Text
+                    fontWeight="bold"
+                    color={textColor}
+                    fontSize={{ base: "sm", md: "md" }}
+                  >
                     {student.name}
                   </Text>
                 </HStack>
                 <HStack spacing={3}>
-                  <Icon as={FaEnvelope} boxSize={{ base: 4, md: 5 }} color={headerColor} />
+                  <Icon
+                    as={FaEnvelope}
+                    boxSize={{ base: 4, md: 5 }}
+                    color={headerColor}
+                  />
                   <Text color={textColor} fontSize={{ base: "sm", md: "md" }}>
                     {student.email}
                   </Text>
                 </HStack>
                 <HStack spacing={3}>
-                  <Icon as={FaGraduationCap} boxSize={{ base: 4, md: 5 }} color={headerColor} />
+                  <Icon
+                    as={FaGraduationCap}
+                    boxSize={{ base: 4, md: 5 }}
+                    color={headerColor}
+                  />
                   <Text color={textColor} fontSize={{ base: "sm", md: "md" }}>
                     Grid: {student.grid}
                   </Text>
                 </HStack>
                 <HStack spacing={3}>
-                  <Icon as={FaUniversity} boxSize={{ base: 4, md: 5 }} color={headerColor} />
+                  <Icon
+                    as={FaUniversity}
+                    boxSize={{ base: 4, md: 5 }}
+                    color={headerColor}
+                  />
                   <Text color={textColor} fontSize={{ base: "sm", md: "md" }}>
                     Course: {student.course}
                   </Text>
                 </HStack>
                 <HStack spacing={3}>
-                  <Icon as={FaUniversity} boxSize={{ base: 4, md: 5 }} color={headerColor} />
+                  <Icon
+                    as={FaUniversity}
+                    boxSize={{ base: 4, md: 5 }}
+                    color={headerColor}
+                  />
                   <Text color={textColor} fontSize={{ base: "sm", md: "md" }}>
                     Branch Code: {student.branchCode}
                   </Text>
@@ -93,4 +121,4 @@ const StudentDetailsModal = ({ isOpen, onClose, student }) => {
   );
 };
 
-export default StudentDetailsModal;
+export default React.memo(StudentDetailsModal);

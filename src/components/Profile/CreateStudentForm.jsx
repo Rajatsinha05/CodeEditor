@@ -108,4 +108,4 @@ const CreateStudentForm = ({ studentData, setStudentData }) => {
   );
 };
 
-export default CreateStudentForm;
+export default React.memo(CreateStudentForm);

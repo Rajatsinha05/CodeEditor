@@ -6,4 +6,4 @@ const ContestSubmit = () => {
   )
 }
 
-export default ContestSubmit
+export default React.memo(ContestSubmit)

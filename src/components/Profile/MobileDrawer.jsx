@@ -36,4 +36,4 @@ const MobileDrawer = ({ isOpen, onClose, isAdmin, isSuperAdmin }) => {
   );
 };
 
-export default MobileDrawer;
+export default React.memo(MobileDrawer);

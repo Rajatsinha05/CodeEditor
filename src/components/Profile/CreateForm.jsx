@@ -70,4 +70,4 @@ const CreateForm = ({ formType, studentData, setStudentData }) => {
   );
 };
 
-export default CreateForm;
+export default React.memo(CreateForm);

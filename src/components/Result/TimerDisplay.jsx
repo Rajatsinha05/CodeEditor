@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import { HStack, Text } from '@chakra-ui/react';
-import { MdTimer } from 'react-icons/md';
+import React, { useEffect, useState } from "react";
+import { HStack, Text } from "@chakra-ui/react";
+import { MdTimer } from "react-icons/md";
 
 const TimerDisplay = ({ endTime }) => {
-  const [remainingTime, setRemainingTime] = useState('');
+  const [remainingTime, setRemainingTime] = useState("");
 
   useEffect(() => {
     if (endTime) {
@@ -13,7 +13,7 @@ const TimerDisplay = ({ endTime }) => {
         const difference = endTimeInMs - currentTime;
 
         if (difference <= 0) {
-          setRemainingTime('Contest Ended');
+          setRemainingTime("Contest Ended");
           return;
         }
 
@@ -22,7 +22,7 @@ const TimerDisplay = ({ endTime }) => {
         const seconds = Math.floor((difference / 1000) % 60);
 
         setRemainingTime(
-          `${hours > 0 ? `${hours}h ` : ''}${minutes}m ${seconds}s`
+          `${hours > 0 ? `${hours}h ` : ""}${minutes}m ${seconds}s`
         );
       };
 
@@ -39,4 +39,4 @@ const TimerDisplay = ({ endTime }) => {
   );
 };
 
-export default TimerDisplay;
+export default React.memo(TimerDisplay);

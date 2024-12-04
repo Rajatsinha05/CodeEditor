@@ -18,7 +18,12 @@ import {
 import { useDispatch } from "react-redux";
 import { updateStudent } from "../../redux/Student/studentsSlice";
 
-const UpdateStudentModal = ({ isOpen, onClose, studentData, refreshStudents }) => {
+const UpdateStudentModal = ({
+  isOpen,
+  onClose,
+  studentData,
+  refreshStudents,
+}) => {
   const [formData, setFormData] = useState(studentData || {});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
@@ -54,7 +59,9 @@ const UpdateStudentModal = ({ isOpen, onClose, studentData, refreshStudents }) =
 
     setIsSubmitting(true);
     try {
-      await dispatch(updateStudent({ id: formData.id, studentData: formData })).unwrap();
+      await dispatch(
+        updateStudent({ id: formData.id, studentData: formData })
+      ).unwrap();
       toast({
         title: "Student updated successfully.",
         status: "success",
@@ -136,7 +143,9 @@ const UpdateStudentModal = ({ isOpen, onClose, studentData, refreshStudents }) =
               <option value="rw4">Branch RW4</option>
               <option value="rw5">Branch RW5</option>
             </Select>
-            {errors.branchCode && <p style={{ color: "red" }}>{errors.branchCode}</p>}
+            {errors.branchCode && (
+              <p style={{ color: "red" }}>{errors.branchCode}</p>
+            )}
           </FormControl>
         </ModalBody>
         <ModalFooter>
@@ -157,4 +166,4 @@ const UpdateStudentModal = ({ isOpen, onClose, studentData, refreshStudents }) =
   );
 };
 
-export default UpdateStudentModal;
+export default React.memo(UpdateStudentModal);

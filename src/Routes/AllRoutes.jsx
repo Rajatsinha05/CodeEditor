@@ -12,6 +12,7 @@ import { useSelector } from "react-redux";
 import Home from "../Pages/Home";
 import ContestDetails from "../Pages/ContestDetails";
 import PrivateRoute from "./PrivateRoute";
+import NotFoundPage from "../Pages/NotFoundPage";
 
 const AllRoutes = () => {
   let { user, isLogin } = useSelector((store) => store.data);
@@ -38,14 +39,14 @@ const AllRoutes = () => {
       <Route path="/contest/:id" element={<ContestDetails />} />
 
       <Route
-        path="/contest/:contestId/attempt/:questionId"
+        path="/contests/:contestId/questions/:questionId/attempts/:attemptId"
         element={<SingleProblem type="contest" />}
       />
       {/* Private Routes only for admin or superAdmin */}
       {isLogin && (user?.role === "ADMIN" || user?.role === "SUPERADMIN") && (
         <>
           <Route
-            path="/createContest"
+            path="/admin/create-contest"
             element={
               <PrivateRouteAdmin>
                 <CreateContest />
@@ -53,7 +54,8 @@ const AllRoutes = () => {
             }
           />
           <Route
-            path="/addQuestion"
+            path="/admin/add-question
+"
             element={
               <PrivateRouteAdmin>
                 <AddQuestions />
@@ -62,6 +64,8 @@ const AllRoutes = () => {
           />
         </>
       )}
+
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
 };

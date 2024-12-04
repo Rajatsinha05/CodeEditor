@@ -94,7 +94,10 @@ const StudentRankings = ({ studentRankings, contest, user }) => {
               </HStack>
               <HStack spacing={3}>
                 {isTopRank && (
-                  <Tooltip label={`Rank ${index + 1}`} aria-label="Trophy Tooltip">
+                  <Tooltip
+                    label={`Rank ${index + 1}`}
+                    aria-label="Trophy Tooltip"
+                  >
                     <Icon as={FaTrophy} color="teal.400" w={5} h={5} />
                   </Tooltip>
                 )}
@@ -114,4 +117,4 @@ const StudentRankings = ({ studentRankings, contest, user }) => {
   );
 };
 
-export default StudentRankings;
+export default React.memo(StudentRankings);

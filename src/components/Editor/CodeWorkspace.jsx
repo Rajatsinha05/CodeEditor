@@ -1,26 +1,41 @@
-import React from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  useMemo,
+} from "react";
 import {
   Box,
   VStack,
-  HStack,
   Stack,
-  useBreakpointValue,
+  HStack,
   useColorModeValue,
+  IconButton,
+  Text,
+  Icon,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+  Button,
 } from "@chakra-ui/react";
-import { Editor } from "@monaco-editor/react";
-import CodeSuggestions from "./CodeSuggestions";
-import LanguageSelector from "./LanguageSelector";
-import CustomSelect from "./CustomSelect";
+import { FiSettings } from "react-icons/fi";
+import { FaClock, FaSync, FaHistory } from "react-icons/fa";
+const MonacoEditor = React.lazy(() => import("@monaco-editor/react"));
 import TimerDisplay from "../Result/TimerDisplay";
 import Output from "../Result/Output";
 import TestResultsDrawer from "../Result/TestResultsDrawer";
+import { CODE_SNIPPETS } from "./constants";
+import { useParams } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchByStudentIdAndQuestionId } from "../../redux/Question/questionSolvedSlice";
+import SettingsModal from "./SettingsModal";
 
 const CodeWorkspace = ({
-  language,
   theme,
   fontSize,
   value,
-  setLanguage,
   setTheme,
   setFontSize,
   setValue,
@@ -30,104 +45,223 @@ const CodeWorkspace = ({
   isDrawerOpen,
   toggleDrawer,
   editorRef,
-  monaco,
   data,
   question,
 }) => {
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [layout, setLayout] = useState("single");
+  const [preferences, setPreferences] = useState({
+    showSnippets: true,
+    showLineNumbers: true,
+    language: "java",
+  });
+
+  const inactiveTimeRef = useRef(0);
+  const tabChangeCountRef = useRef(0);
+  const intervalIdRef = useRef(null);
+
   const boxBg = useColorModeValue("gray.50", "gray.700");
+  const outputBg = useColorModeValue("white", "gray.800");
   const borderColor = useColorModeValue("gray.300", "gray.600");
 
-  // Responsive styles
-  const controlFlexDirection = useBreakpointValue({
-    base: "column", // Stack controls vertically on smaller screens
-    md: "row", // Stack controls horizontally on medium and larger screens
-  });
+  const { combinedRecord } = useSelector((store) => store.questionSolved);
+  const { questionId, contestId } = useParams();
+  const dispatch = useDispatch();
+  const { user } = useSelector((store) => store.user);
 
-  const editorHeight = useBreakpointValue({
-    base: "40vh", // Smaller editor height for smaller screens
-    md: "50vh", // Default height for medium and larger screens
-  });
+  const studentId = useMemo(() => user?.id, [user]);
+
+  // Fetch question-solved data
+  useEffect(() => {
+    if (studentId && questionId && !contestId) {
+      dispatch(fetchByStudentIdAndQuestionId({ studentId, questionId }));
+    }
+  }, [dispatch, studentId, questionId, contestId]);
+
+  // Initialize language preferences
+  useEffect(() => {
+    const storedLanguage = localStorage.getItem("defaultLanguage") || "java";
+    setPreferences((prev) => ({ ...prev, language: storedLanguage }));
+    setValue(CODE_SNIPPETS[storedLanguage] || "");
+  }, [setValue]);
+
+  // Handle language change
+  const handleLanguageChange = useCallback(
+    (newLanguage) => {
+      setPreferences((prev) => ({ ...prev, language: newLanguage }));
+      setValue(CODE_SNIPPETS[newLanguage] || "");
+      localStorage.setItem("defaultLanguage", newLanguage);
+    },
+    [setValue]
+  );
+
+  // Handle version selection
+  const handleVersionSelect = useCallback(
+    (record) => {
+      setPreferences((prev) => ({ ...prev, language: record.language }));
+      setValue(record.code);
+    },
+    [setPreferences, setValue]
+  );
+
+  // Handle visibility changes and tab activity tracking
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        tabChangeCountRef.current += 1;
+        intervalIdRef.current = setInterval(() => {
+          inactiveTimeRef.current += 1;
+        }, 1000);
+      } else {
+        clearInterval(intervalIdRef.current);
+        intervalIdRef.current = null;
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      clearInterval(intervalIdRef.current);
+    };
+  }, []);
 
   return (
-    <Box flex={1}>
-      <VStack spacing={6} align="stretch">
-        {/* Language and Settings Controls */}
-        <Stack
-          direction={controlFlexDirection}
-          spacing={4}
-          justifyContent="space-between"
-          flexWrap="wrap"
-        >
-          <LanguageSelector language={language} onSelect={setLanguage} />
-
-          <CustomSelect
-            value={theme}
-            onChange={(e) => setTheme(e.target.value)}
-            options={[
-              { value: "vs-dark", label: "Dark Theme" },
-              { value: "vs-light", label: "Light Theme" },
-            ]}
-            width={{ base: "100%", md: "150px" }}
+    <Box flex={1} p={4} bg={boxBg} borderRadius="md" shadow="lg" width="100%">
+      <VStack spacing={6} align="stretch" width="100%">
+        {/* Timer, Settings Icon, and Version Control */}
+        <Stack direction="row" justifyContent="space-between" align="center">
+          {data?.contest?.endTime && (
+            <TimerDisplay endTime={data?.contest?.endTime} />
+          )}
+          <HStack spacing={4} align="center">
+            <HStack spacing={2} align="center">
+              <Icon as={FaClock} color="blue.500" w={4} h={4} />
+              <Text fontSize="sm">
+                Inactive Time: {inactiveTimeRef.current}s
+              </Text>
+            </HStack>
+            <HStack spacing={2} align="center">
+              <Icon as={FaSync} color="green.500" w={4} h={4} />
+              <Text fontSize="sm">
+                Tab Changes: {tabChangeCountRef.current}
+              </Text>
+            </HStack>
+            {/* Version Control Menu */}
+            {combinedRecord.length > 0 && (
+              <Menu>
+                <MenuButton
+                  as={Button}
+                  leftIcon={<FaHistory />}
+                  variant="ghost"
+                  size="md"
+                  _hover={{ bg: useColorModeValue("gray.200", "gray.600") }}
+                />
+                <MenuList>
+                  {combinedRecord.map((record) => (
+                    <MenuItem
+                      key={record.id}
+                      onClick={() => handleVersionSelect(record)}
+                    >
+                      <Text fontSize="sm">
+                        {new Date(record.solvedAt).toLocaleString()} -{" "}
+                        {record.testCase === "PASSED" ? (
+                          <Text as="span" color="green.500">
+                            Passed
+                          </Text>
+                        ) : (
+                          <Text as="span" color="red.500">
+                            Failed
+                          </Text>
+                        )}
+                      </Text>
+                    </MenuItem>
+                  ))}
+                </MenuList>
+              </Menu>
+            )}
+          </HStack>
+          <IconButton
+            icon={<FiSettings />}
+            aria-label="Settings"
+            variant="ghost"
+            size="lg"
+            onClick={() => setIsSettingsOpen(true)}
+            _hover={{ bg: useColorModeValue("gray.200", "gray.600") }}
           />
-
-          <CustomSelect
-            value={fontSize}
-            onChange={(e) => setFontSize(parseInt(e.target.value))}
-            options={[
-              { value: 14, label: "14px" },
-              { value: 16, label: "16px" },
-              { value: 18, label: "18px" },
-            ]}
-            width={{ base: "100%", md: "120px" }}
-          />
-
-          <TimerDisplay endTime={data?.contest?.endTime} />
         </Stack>
 
-        {/* Code Editor Section */}
+        {/* Resizable Code Editor */}
         <Box
-          // bg={boxBg}
-          borderRadius="md"
-          p={4}
-          border={`1px solid ${borderColor}`}
           position="relative"
+          borderRadius="lg"
+          border={`1px solid ${borderColor}`}
+          bg={useColorModeValue("white", "gray.900")}
+          shadow="md"
           width="100%"
+          height="70vh"
         >
-          <Editor
+          <MonacoEditor
             options={{
-              minimap: { enabled: true },
+              minimap: { enabled: preferences.showSnippets },
               fontSize: fontSize,
               wordWrap: "on",
+              lineNumbers: preferences.showLineNumbers ? "on" : "off",
             }}
-            height={editorHeight}
+            height="100%"
             width="100%"
             theme={theme}
-            language={language}
+            language={preferences.language}
             onMount={onMount}
             value={value}
             onChange={(v) => setValue(v)}
           />
-          <CodeSuggestions monaco={monaco} language={language} />
         </Box>
 
-        {/* Output and Test Results */}
-        <Box>
+        {/* Output Section */}
+        <Box
+          borderRadius="lg"
+          p={4}
+          border={`1px solid ${borderColor}`}
+          bg={outputBg}
+          shadow="lg"
+          transition="all 0.3s"
+          _hover={{
+            shadow: "xl",
+          }}
+        >
           <Output
             editorRef={editorRef}
-            language={language}
+            language={preferences.language}
             inputData={question?.input}
             expectedOutput={question?.expectedOutput}
           />
-          <TestResultsDrawer
-            isLoading={isLoading}
-            isDrawerOpen={isDrawerOpen}
-            toggleDrawer={toggleDrawer}
-            testResults={testResults}
-          />
         </Box>
+
+        <TestResultsDrawer
+          isLoading={isLoading}
+          isDrawerOpen={isDrawerOpen}
+          toggleDrawer={toggleDrawer}
+          testResults={testResults}
+        />
       </VStack>
+
+      {/* Settings Modal */}
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        preferences={preferences}
+        setPreferences={setPreferences}
+        theme={theme}
+        setTheme={setTheme}
+        fontSize={fontSize}
+        setFontSize={setFontSize}
+        layout={layout}
+        setLayout={setLayout}
+        onLanguageChange={handleLanguageChange}
+      />
     </Box>
   );
 };
 
-export default CodeWorkspace
+export default React.memo(CodeWorkspace);

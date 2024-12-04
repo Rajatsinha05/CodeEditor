@@ -28,7 +28,16 @@ const Navbar = ({ onOpen }) => {
   const textColor = useColorModeValue("white", "gray.200");
 
   return (
-    <Box bg={bgColor} color={textColor} px={6} py={4} position="fixed" top="0" width="100%" zIndex="10">
+    <Box
+      bg={bgColor}
+      color={textColor}
+      px={6}
+      py={4}
+      position="fixed"
+      top="0"
+      width="100%"
+      zIndex="10"
+    >
       <Flex h={16} alignItems="center" justifyContent="space-between">
         <IconButton
           icon={<FaBars />}
@@ -57,7 +66,9 @@ const Navbar = ({ onOpen }) => {
               Rankings
             </Button>
           </NavLink>
-          <Tooltip label={`${colorMode === "light" ? "Dark Mode" : "Light Mode"}`}>
+          <Tooltip
+            label={`${colorMode === "light" ? "Dark Mode" : "Light Mode"}`}
+          >
             <IconButton
               icon={colorMode === "light" ? <FaMoon /> : <FaSun />}
               onClick={toggleColorMode}
@@ -81,4 +92,4 @@ const Navbar = ({ onOpen }) => {
   );
 };
 
-export default Navbar;
+export default React.memo(Navbar);

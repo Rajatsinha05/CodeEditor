@@ -36,4 +36,4 @@ const EditorWithSuggestions = ({
   );
 };
 
-export default EditorWithSuggestions;
+export default React.memo(EditorWithSuggestions);

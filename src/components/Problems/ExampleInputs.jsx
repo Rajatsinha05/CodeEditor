@@ -153,4 +153,4 @@ const ExampleInputs = ({
   );
 };
 
-export default ExampleInputs;
+export default React.memo(ExampleInputs);

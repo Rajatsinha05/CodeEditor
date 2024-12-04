@@ -74,10 +74,14 @@ const CreateStudentModal = ({ isOpen, onClose }) => {
       });
       onClose();
     } catch (error) {
-      if (error.response && error.response.data.message.includes("email already exists")) {
+      if (
+        error.response &&
+        error.response.data.message.includes("email already exists")
+      ) {
         toast({
           title: "Duplicate Entry",
-          description: "A student with the same email already exists. Please use a different email.",
+          description:
+            "A student with the same email already exists. Please use a different email.",
           status: "error",
           duration: 5000,
           isClosable: true,
@@ -85,13 +89,13 @@ const CreateStudentModal = ({ isOpen, onClose }) => {
       } else {
         toast({
           title: "Error",
-          description: "An error occurred while creating the student. Please try again.",
+          description:
+            "An error occurred while creating the student. Please try again.",
           status: "error",
           duration: 3000,
           isClosable: true,
         });
       }
-      
     }
   };
 
@@ -99,7 +103,8 @@ const CreateStudentModal = ({ isOpen, onClose }) => {
     if (uploadedData.length === 0) {
       toast({
         title: "No Data",
-        description: "Please upload a valid Excel file before creating students.",
+        description:
+          "Please upload a valid Excel file before creating students.",
         status: "error",
         duration: 3000,
         isClosable: true,
@@ -115,7 +120,11 @@ const CreateStudentModal = ({ isOpen, onClose }) => {
           if (error.response && error.response.data) {
             const errorMessage = error.response.data.message;
 
-            if (errorMessage && (errorMessage.includes("email already exists") || errorMessage.includes("grid already exists"))) {
+            if (
+              errorMessage &&
+              (errorMessage.includes("email already exists") ||
+                errorMessage.includes("grid already exists"))
+            ) {
               toast({
                 title: `Duplicate Entry for ${student.email}`,
                 description: `A student with the same email (${student.email}) or grid already exists. Skipping this entry.`,
@@ -145,12 +154,12 @@ const CreateStudentModal = ({ isOpen, onClose }) => {
     } catch (error) {
       toast({
         title: "Error Creating Students",
-        description: "An error occurred while creating the students. Please try again.",
+        description:
+          "An error occurred while creating the students. Please try again.",
         status: "error",
         duration: 3000,
         isClosable: true,
       });
-      
     }
   };
 
@@ -180,7 +189,10 @@ const CreateStudentModal = ({ isOpen, onClose }) => {
                 Create Student Manually
               </Heading>
               <Divider mb={4} />
-              <CreateStudentForm studentData={studentData} setStudentData={setStudentData} />
+              <CreateStudentForm
+                studentData={studentData}
+                setStudentData={setStudentData}
+              />
             </Box>
           </VStack>
         </ModalBody>
@@ -219,4 +231,4 @@ const CreateStudentModal = ({ isOpen, onClose }) => {
   );
 };
 
-export default CreateStudentModal;
+export default React.memo(CreateStudentModal);

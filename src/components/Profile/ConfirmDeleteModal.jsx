@@ -30,4 +30,4 @@ const ConfirmDeleteModal = ({ isOpen, onClose, confirmAction }) => (
   </Modal>
 );
 
-export default ConfirmDeleteModal;
+export default React.memo(ConfirmDeleteModal);

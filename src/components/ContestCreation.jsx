@@ -107,4 +107,4 @@ const ContestCreation = ({ addContest }) => {
   );
 };
 
-export default ContestCreation;
+export default React.memo(ContestCreation);

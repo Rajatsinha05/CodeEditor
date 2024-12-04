@@ -110,4 +110,4 @@ const CreateUserModal = ({
   );
 };
 
-export default CreateUserModal;
+export default React.memo(CreateUserModal);

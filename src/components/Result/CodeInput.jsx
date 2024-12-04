@@ -15,4 +15,4 @@ const CodeInput = ({ input, handleInputChange, handleKeyDown }) => (
   />
 );
 
-export default CodeInput;
+export default React.memo(CodeInput);

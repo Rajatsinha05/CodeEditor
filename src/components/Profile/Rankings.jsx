@@ -14,11 +14,12 @@ import {
   useDisclosure,
 } from "@chakra-ui/react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchTop20RankedStudents } from "../../redux/QuestionSolvedSplice";
+
 import { FaCrown, FaMedal, FaStar, FaTrophy } from "react-icons/fa";
 import { keyframes } from "@emotion/react";
 import StudentDetailsModal from "./StudentDetailsModal"; // Modal Component
 import { fetchStudentById } from "../../redux/Student/studentsSlice";
+import { fetchTop20RankedStudents } from "../../redux/ContestQuestionSolvedSplice";
 
 const Leaderboard = () => {
   const dispatch = useDispatch();
@@ -273,4 +274,4 @@ const Leaderboard = () => {
   );
 };
 
-export default Leaderboard;
+export default React.memo(Leaderboard);

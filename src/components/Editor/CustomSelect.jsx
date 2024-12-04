@@ -13,4 +13,4 @@ const CustomSelect = ({ value, onChange, options, ...rest }) => {
   );
 };
 
-export default CustomSelect;
+export default React.memo(CustomSelect);

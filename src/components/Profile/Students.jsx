@@ -323,4 +323,4 @@ const Students = ({ branchCode }) => {
   );
 };
 
-export default Students;
+export default React.memo(Students);

@@ -194,4 +194,4 @@ const SidebarButton = ({ icon, label, onClick, hoverBg, iconColor }) => {
   );
 };
 
-export default Sidebar;
+export default React.memo(Sidebar);

@@ -44,7 +44,6 @@ const ProblemItem = ({ question, currentUserId, currentUserRole }) => {
   const handleBookmark = (e) => {
     e.preventDefault();
     // Logic for bookmarking the question
-    
   };
 
   return (
@@ -73,18 +72,12 @@ const ProblemItem = ({ question, currentUserId, currentUserRole }) => {
               variant="ghost"
             />
             <MenuList>
-              <MenuItem
-                icon={<MdBookmark />}
-                onClick={handleBookmark}
-              >
+              <MenuItem icon={<MdBookmark />} onClick={handleBookmark}>
                 Bookmark
               </MenuItem>
               {canModify && (
                 <>
-                  <MenuItem
-                    icon={<MdEdit />}
-                    onClick={handleEdit}
-                  >
+                  <MenuItem icon={<MdEdit />} onClick={handleEdit}>
                     Edit
                   </MenuItem>
                   <MenuItem
@@ -121,4 +114,4 @@ const ProblemItem = ({ question, currentUserId, currentUserRole }) => {
   );
 };
 
-export default ProblemItem;
+export default React.memo(ProblemItem);

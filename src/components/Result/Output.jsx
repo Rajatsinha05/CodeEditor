@@ -17,19 +17,25 @@ import {
   Icon,
   Flex,
 } from "@chakra-ui/react";
+
 import { CheckCircleIcon, WarningIcon } from "@chakra-ui/icons";
 import { executeCode, getCodeResult } from "../../api";
-import Cookie from "js-cookie";
+
 import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
   saveOrUpdateSolvedQuestion,
   updateObtainedMarks,
-} from "../../redux/QuestionSolvedSplice";
-import { MdTimer } from "react-icons/md";
-import TimerDisplay from "./TimerDisplay";
+} from "../../redux/ContestQuestionSolvedSplice";
+
 import { getContestById } from "../../redux/contestSlice";
 import { showToast } from "../../utils/toastUtils";
+import { saveQuestionSolved } from "../../redux/Question/questionSolvedSlice";
+import {
+  endContestAttempt,
+  fetchContestAttemptsByStudentAndContest,
+} from "../../redux/contestAttemptSlice";
+import TestCasesDrawer from "./TestResultsDrawer";
 
 const Output = ({
   editorRef,
@@ -40,20 +46,59 @@ const Output = ({
 }) => {
   const toast = useToast();
   const dispatch = useDispatch();
-
+  const [isNeedAttemptedId, setIsNeedAttemptedId] = useState(false);
   // Selectors at the top level
-  const { questionId, contestId } = useParams();
+  const { questionId, contestId,attemptId } = useParams();
+
+
   const { user, contest, solvedQuestions } = useSelector((store) => ({
     user: store.data.user,
     contest: store.contest.contest,
     solvedQuestions: store.solved.solvedQuestions,
   }));
   const studentId = user?.id;
+
   useEffect(() => {
     if (contestId && !contest) {
       dispatch(getContestById(contestId));
     }
   }, [contestId, contest, dispatch]);
+
+  useEffect(() => {
+    if (studentId && contestId && isNeedAttemptedId) {
+      // Dispatch the thunk with the required parameters
+      dispatch(
+        fetchContestAttemptsByStudentAndContest({ studentId, contestId })
+      );
+    }
+  }, [studentId, contestId, dispatch]);
+
+  const handleEndContest = () => {
+    if (!attemptId) {
+      console.error("Attempt ID is missing.");
+      showToast(
+        toast,
+        "Unable to end the contest. Attempt ID is missing.",
+        "error"
+      );
+      return;
+    }
+
+    console.log("Attempting to end contest with attemptId:", attemptId);
+
+    // Dispatching the action to end the contest attempt
+    dispatch(endContestAttempt({ attemptId }))
+      .unwrap()
+      .then((data) => {
+        console.log("Contest ended successfully:", data);
+        showToast(toast, "Submitted Successfully", "success");
+      })
+      .catch((error) => {
+        console.error("Error ending contest:", error);
+        showToast(toast, error || "Failed to end the contest.", "error");
+      });
+  };
+
   // State management
   const [output, setOutput] = useState(null);
   const [input, setInput] = useState("");
@@ -61,13 +106,6 @@ const Output = ({
   const [isError, setIsError] = useState(false);
   const [testResults, setTestResults] = useState([]);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [token, setToken] = useState("");
-  const [remainingTime, setRemainingTime] = useState("");
-
-  useEffect(() => {
-    const fetchedToken = Cookie.get("token");
-    setToken(fetchedToken || "");
-  }, []);
 
   const handleInputChange = useCallback((e) => {
     setInput(e.target.value);
@@ -97,18 +135,23 @@ const Output = ({
     setOutput(null);
 
     try {
-      const res = await executeCode(language, sourceCode, input.trim());
+      if (input.length == 0) {
+        showToast(toast, "Enter number of test case to run.", "warning");
+        return;
+      } else {
+        const res = await executeCode(language, sourceCode, input.trim());
 
-      const result = await getCodeResult(res.requestId);
+        const result = await getCodeResult(res.requestId);
 
-      const resultOutput =
-        result.output?.split("\n").filter((line) => line.trim() !== "") || [];
+        const resultOutput =
+          result.output?.split("\n").filter((line) => line.trim() !== "") || [];
 
-      setOutput(resultOutput);
-      setIsError(!!result.stderr);
+        setOutput(resultOutput);
+        setIsError(!!result.stderr);
 
-      if (result.stderr) {
-        showToast(toast, result.stderr, "error", 6000);
+        if (result.stderr) {
+          showToast(toast, result.stderr, "error", 6000);
+        }
       }
     } catch (error) {
       showToast(toast, error.message || "Execution failed", "error", 6000);
@@ -173,17 +216,31 @@ const Output = ({
       }));
 
       setTestResults(results);
+      // store data for records
 
       // Calculate the number of passed test cases
       const passedTests = results.filter((test) => test.passed).length;
-
       const percentagePassed = (passedTests / totalTests) * 100;
+
+      let solvedQuestion = {
+        questionId,
+        studentId,
+        executionTime: result.executionTime,
+        memoryUsage: result.memoryUsed,
+        language,
+        code: sourceCode,
+        testCase: percentagePassed === 100 ? "PASSED" : "FAILED",
+      };
+      if (!contestId) {
+        dispatch(saveQuestionSolved(solvedQuestion));
+      }
 
       // Get marks from contest question and calculate obtained marks
       if (contestId) {
         const marks = contest?.contestQuestions.find(
           (que) => que.questionId == questionId
         );
+
         const totalMarks = marks?.marks || 0;
         const obtainedMarks = Math.round((percentagePassed / 100) * totalMarks);
 
@@ -207,19 +264,24 @@ const Output = ({
               );
               setIsLoading(false);
               return; // Do not update if the previous marks are greater or equal
-            }
-
-            // Update obtained marks if the current obtained marks are higher
-            await dispatch(
-              updateObtainedMarks({
-                id: existingSolvedQuestion.id,
-                questionId,
-                contestId,
-                studentId,
-                obtainedMarks,
-                contestQuestionId: marks?.id || 1,
-              })
-            ).unwrap(); // Ensure that errors are caught
+            } else {
+              // Update obtained marks if the current obtained marks are higher
+              await dispatch(
+                updateObtainedMarks({
+                  id: existingSolvedQuestion.id,
+                  questionId,
+                  contestId,
+                  studentId,
+                  obtainedMarks,
+                  contestQuestionId: marks?.contestQuestionId,
+                })
+              ).unwrap();
+              showToast(
+                toast,
+                `You have obtained ${obtainedMarks} out of ${totalMarks} marks.`,
+                "success"
+              );
+            } // Ensure that errors are caught
           } else {
             // Save or create new solved question if no previous record exists
             await dispatch(
@@ -228,17 +290,16 @@ const Output = ({
                 contestId,
                 studentId,
                 obtainedMarks,
-                contestQuestionId: marks?.id || 1,
+                contestQuestionId: marks?.contestQuestionId,
               })
             ).unwrap();
+            showToast(
+              toast,
+              `You have obtained ${obtainedMarks} out of ${totalMarks} marks.`,
+              "success",
+              6000
+            );
           }
-
-          showToast(
-            toast,
-            `You have obtained ${obtainedMarks} out of ${totalMarks} marks.`,
-            "success",
-            6000
-          );
         } catch (error) {
           showToast(
             toast,
@@ -306,84 +367,76 @@ const Output = ({
         color="gray.100"
         borderColor="gray.600"
       />
-      <HStack spacing={4}>
-        <Button
-          variant="solid"
-          colorScheme="teal"
-          isLoading={isLoading}
-          onClick={runCode}
+      <HStack spacing={4} mt={6} w="100%">
+        <Flex
+          justifyContent={{ base: "center", md: "space-between" }}
+          align="center"
+          w="100%"
+          flexDirection={{ base: "column", md: "row" }}
         >
-          Run Code
-        </Button>
-        <Button
-          variant="outline"
-          colorScheme="teal"
-          isLoading={isLoading}
-          onClick={submitCode}
-        >
-          Submit
-        </Button>
+          {/* Left-aligned buttons */}
+          <HStack
+            spacing={4}
+            mb={{ base: 4, md: 0 }}
+            justifyContent={{ base: "center", md: "flex-start" }}
+          >
+            <Button
+              variant="solid"
+              colorScheme="teal"
+              size="lg"
+              isLoading={isLoading}
+              onClick={runCode}
+              _hover={{ bg: "teal.500", shadow: "lg" }}
+              shadow="md"
+              transition="all 0.3s"
+            >
+              Run Code
+            </Button>
+            <Button
+              variant="outline"
+              colorScheme="teal"
+              size="lg"
+              isLoading={isLoading}
+              onClick={submitCode}
+              border="2px"
+              borderColor="teal.400"
+              _hover={{ bg: "teal.600", color: "white", shadow: "lg" }}
+              shadow="md"
+              transition="all 0.3s"
+            >
+              Submit
+            </Button>
+          </HStack>
+
+          {/* Right-aligned button */}
+          {contestId && (
+            <Button
+              variant="outline"
+              colorScheme="teal"
+              size="lg"
+              isLoading={isLoading}
+              px={8}
+              onClick={handleEndContest}
+              border="2px"
+              borderColor="teal.400"
+              _hover={{ bg: "teal.600", color: "white", shadow: "lg" }}
+              shadow="md"
+              transition="all 0.3s"
+            >
+              Submit Contest
+            </Button>
+          )}
+        </Flex>
       </HStack>
 
-      {/* Timer Display */}
-
-      {/* Drawer Component */}
-      <Drawer
-        placement="right"
-        onClose={toggleDrawer}
-        isOpen={isDrawerOpen}
-        size="md"
-      >
-        <DrawerOverlay />
-        <DrawerContent bg="gray.900" color="gray.100">
-          <DrawerCloseButton />
-          <DrawerHeader bg="teal.500" color="white">
-            Test Cases Result
-          </DrawerHeader>
-          <DrawerBody>
-            {isLoading ? (
-              <Flex justify="center" align="center" h="100%">
-                <Spinner size="xl" color="teal.500" />
-              </Flex>
-            ) : testResults.length > 0 ? (
-              <VStack spacing={4} align="stretch">
-                {testResults.map((test, index) => (
-                  <Box
-                    key={index}
-                    p={4}
-                    borderRadius="md"
-                    bg={test.passed ? "green.100" : "red.100"}
-                    display="flex"
-                    alignItems="center"
-                  >
-                    <Icon
-                      as={test.passed ? CheckCircleIcon : WarningIcon}
-                      color={test.passed ? "green.500" : "red.500"}
-                      mr={4}
-                      boxSize={6}
-                    />
-                    <Box>
-                      <Text fontWeight="bold" color="gray.800">
-                        {test.passed ? "Passed" : "Failed"}
-                      </Text>
-                      <Text fontSize="sm" color="gray.600">
-                        Expected: {test.expected}
-                      </Text>
-                      <Text fontSize="sm" color="gray.600">
-                        Got: {test.output}
-                      </Text>
-                    </Box>
-                  </Box>
-                ))}
-              </VStack>
-            ) : (
-              <Text>No test results available.</Text>
-            )}
-          </DrawerBody>
-        </DrawerContent>
-      </Drawer>
+      <TestCasesDrawer
+        isDrawerOpen={isDrawerOpen}
+        toggleDrawer={toggleDrawer}
+        isLoading={false}
+        testResults={testResults}
+      />
     </Box>
   );
 };
 
-export default Output;
+export default React.memo(Output);

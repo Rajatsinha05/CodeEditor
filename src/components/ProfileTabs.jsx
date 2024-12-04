@@ -37,4 +37,4 @@ const ProfileTabs = ({ isAdmin }) => {
   );
 };
 
-export default ProfileTabs;
+export default React.memo(ProfileTabs);

@@ -104,4 +104,4 @@ const EnrolledStudents = ({ contest }) => {
   );
 };
 
-export default EnrolledStudents;
+export default React.memo(EnrolledStudents);

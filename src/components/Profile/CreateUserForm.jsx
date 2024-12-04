@@ -135,4 +135,4 @@ const CreateUserForm = ({ userData = {}, setUserData, isSubmitting, apiError }) 
   );
 };
 
-export default CreateUserForm;
+export default React.memo(CreateUserForm);
