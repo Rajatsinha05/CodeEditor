@@ -21,6 +21,7 @@ import {
   ModalHeader,
   ModalBody,
   ModalCloseButton,
+  useDisclosure,
 } from "@chakra-ui/react";
 import { CalendarIcon } from "@chakra-ui/icons";
 import {
@@ -31,7 +32,7 @@ import {
   FaEye,
 } from "react-icons/fa";
 
-import { MdPlayArrow } from "react-icons/md";
+import { MdEdit, MdPlayArrow } from "react-icons/md";
 import { FiMoreVertical } from "react-icons/fi";
 import dayjs from "dayjs";
 import { useDispatch, useSelector } from "react-redux";
@@ -46,7 +47,7 @@ const ContestCard = ({ contest, onStartClick }) => {
   const navigate = useNavigate();
   const toast = useToast();
   const { user } = useSelector((state) => state.user);
-
+  const { isOpen, onOpen, onClose } = useDisclosure();
   const currentTime = dayjs();
   const contestActive =
     currentTime.isAfter(dayjs(contest.startTime)) &&
@@ -79,6 +80,11 @@ const ContestCard = ({ contest, onStartClick }) => {
 
   const handleRedirectToContest = () => {
     navigate(`/contest/${contest.id}`);
+  };
+  const handleEdit = (e) => {
+    e.preventDefault(); // Prevent page reload
+    console.log("Edit clicked");
+    navigate(`/admin/update-contest/${contest.id}`);
   };
 
   return (
@@ -180,14 +186,7 @@ const ContestCard = ({ contest, onStartClick }) => {
           {/* Conditional Options for SUPERADMIN or ADMIN */}
           {(user?.role === "SUPERADMIN" || user?.role === "ADMIN") && (
             <>
-              <MenuItem
-                icon={<FaEdit />}
-                onClick={(e) => {
-                  // e.preventDefault(); // Prevent default behavior
-                  setIsEditing(true); // Update state
-                  console.log("Edit clicked, isEditing:", isEditing);
-                }}
-              >
+              <MenuItem icon={<MdEdit />} onClick={handleEdit}>
                 Edit
               </MenuItem>
               <MenuItem icon={<FaTrashAlt />} onClick={handleDelete}>
@@ -205,22 +204,6 @@ const ContestCard = ({ contest, onStartClick }) => {
           </MenuItem>
         </MenuList>
       </Menu>
-
-      {/* Edit Contest Modal */}
-      <Modal isOpen={isEditing} onClose={() => setIsEditing(false)}>
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Edit Contest</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            <CreateContest
-              initialData={contest}
-              onClose={() => setIsEditing(false)}
-              isEditing
-            />
-          </ModalBody>
-        </ModalContent>
-      </Modal>
     </Box>
   );
 };
