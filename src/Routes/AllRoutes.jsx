@@ -37,7 +37,10 @@ const AllRoutes = () => {
       />
       <Route path="/profile" element={<Profile />} />
       <Route path="/contest/:id" element={<ContestDetails />} />
-      <Route path="/admin/update-contest/:contestId" element={<CreateContest/>} />
+      <Route
+        path="/admin/update-contest/:contestId"
+        element={<CreateContest />}
+      />
       <Route
         path="/contests/:contestId/questions/:questionId/attempts/:attemptId"
         element={<SingleProblem type="contest" />}
@@ -54,8 +57,7 @@ const AllRoutes = () => {
             }
           />
           <Route
-            path="/admin/add-question
-"
+            path="admin/add-question"
             element={
               <PrivateRouteAdmin>
                 <AddQuestions />
