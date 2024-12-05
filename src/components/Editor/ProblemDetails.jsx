@@ -46,7 +46,7 @@ const ProblemDetails = ({ question }) => {
       const prevQuestionId =
         contestQuestions[currentQuestionIndex - 1].questionId;
       navigate(
-        `/contest/${contestId}/questions/${prevQuestionId}/attempts/${attemptId}`
+        `/contests/${contestId}/questions/${prevQuestionId}/attempts/${attemptId}`
       );
     }
   };
@@ -56,7 +56,7 @@ const ProblemDetails = ({ question }) => {
       const nextQuestionId =
         contestQuestions[currentQuestionIndex + 1].questionId;
       navigate(
-        `/contest/${contestId}/questions/${nextQuestionId}/attempts/${attemptId}`
+        `/contests/${contestId}/questions/${nextQuestionId}/attempts/${attemptId}`
       );
     }
   };
