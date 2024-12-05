@@ -48,8 +48,7 @@ const Output = ({
   const dispatch = useDispatch();
   const [isNeedAttemptedId, setIsNeedAttemptedId] = useState(false);
   // Selectors at the top level
-  const { questionId, contestId,attemptId } = useParams();
-
+  const { questionId, contestId, attemptId } = useParams();
 
   const { user, contest, solvedQuestions } = useSelector((store) => ({
     user: store.data.user,
@@ -231,9 +230,8 @@ const Output = ({
         code: sourceCode,
         testCase: percentagePassed === 100 ? "PASSED" : "FAILED",
       };
-      if (!contestId) {
-        dispatch(saveQuestionSolved(solvedQuestion));
-      }
+
+      dispatch(saveQuestionSolved(solvedQuestion));
 
       // Get marks from contest question and calculate obtained marks
       if (contestId) {
