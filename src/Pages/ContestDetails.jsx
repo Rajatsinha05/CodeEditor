@@ -47,6 +47,8 @@ const ContestDetails = () => {
       },
     }));
 
+  console.log("user", user);
+
   // Fetch contest-related data
   useEffect(() => {
     if (id) {
@@ -149,7 +151,7 @@ const ContestDetails = () => {
           <EnrolledStudents contest={contest} colorMode={colorMode} />
         </>
       )}
-      {currentAttempt?.endTime == null || (user.role === "ADMIN" || user.role === "SUPERADMIN") (
+      {currentAttempt?.endTime == null && (
         <Button mt={4} colorScheme="teal" onClick={handleSubmitContest}>
           Submit Contest
         </Button>

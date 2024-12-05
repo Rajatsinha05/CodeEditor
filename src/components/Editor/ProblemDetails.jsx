@@ -16,7 +16,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchContests } from "../../redux/contestSlice";
 
 const ProblemDetails = ({ question }) => {
-  
   const boxBg = useColorModeValue("gray.50", "gray.800");
   const sectionBg = useColorModeValue("white", "gray.900");
   const borderColor = useColorModeValue("gray.300", "gray.600");
@@ -24,7 +23,7 @@ const ProblemDetails = ({ question }) => {
   const { contests } = useSelector((store) => store.contest);
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { questionId, contestId } = useParams();
+  const { questionId, contestId, attemptId } = useParams();
 
   useEffect(() => {
     if (contestId && contests.length === 0) {
@@ -46,7 +45,9 @@ const ProblemDetails = ({ question }) => {
     if (currentQuestionIndex > 0) {
       const prevQuestionId =
         contestQuestions[currentQuestionIndex - 1].questionId;
-      navigate(`/contest/${contestId}/attempt/${prevQuestionId}`);
+      navigate(
+        `/contest/${contestId}/questions/${prevQuestionId}/attempts/${attemptId}`
+      );
     }
   };
 
@@ -54,7 +55,9 @@ const ProblemDetails = ({ question }) => {
     if (currentQuestionIndex < contestQuestions.length - 1) {
       const nextQuestionId =
         contestQuestions[currentQuestionIndex + 1].questionId;
-      navigate(`/contest/${contestId}/attempt/${nextQuestionId}`);
+      navigate(
+        `/contest/${contestId}/questions/${nextQuestionId}/attempts/${attemptId}`
+      );
     }
   };
 
