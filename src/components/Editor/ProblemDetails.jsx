@@ -16,6 +16,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchContests } from "../../redux/contestSlice";
 
 const ProblemDetails = ({ question }) => {
+  
   const boxBg = useColorModeValue("gray.50", "gray.800");
   const sectionBg = useColorModeValue("white", "gray.900");
   const borderColor = useColorModeValue("gray.300", "gray.600");
@@ -143,9 +144,13 @@ const ProblemDetails = ({ question }) => {
           <Text fontWeight="bold" mb={2} color={textColor}>
             Expected Output:
           </Text>
-          <Text>
-            {question?.expectedOutput || "Output format is not provided."}
-          </Text>
+          {question?.expectedOutput ? (
+            <Text as="pre" whiteSpace="pre-wrap">
+              {question.expectedOutput}
+            </Text>
+          ) : (
+            <Text>Output format is not provided.</Text>
+          )}
         </Box>
         {question?.examples?.length > 0 ? (
           <Box>

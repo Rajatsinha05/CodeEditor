@@ -1,12 +1,5 @@
 import React, { useRef, useState, useEffect, useMemo } from "react";
-import {
-  Box,
-
-  useToast,
-  useColorModeValue,
-  Flex,
-
-} from "@chakra-ui/react";
+import { Box, useToast, useColorModeValue, Flex } from "@chakra-ui/react";
 import * as monaco from "monaco-editor";
 
 import { useDispatch, useSelector } from "react-redux";
@@ -26,8 +19,9 @@ const CodeEditor = ({ problemId }) => {
   const [fontSize, setFontSize] = useState(14);
 
   const [dividerX, setDividerX] = useState(40); // Percentage for initial ProblemDetails width
- 
 
+  const { user } = useSelector((store) => store.user);
+  
   const [testResults, setTestResults] = useState([]);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -55,6 +49,17 @@ const CodeEditor = ({ problemId }) => {
     editorRef.current = editor;
     editor.focus();
 
+    // Allow copy-paste for SUPERADMIN or ADMIN roles
+    if (
+      user.role === "SUPERADMIN" ||
+      user.role === "ADMIN" ||
+      user.email == "test@gmail.com"
+    ) {
+      
+      return; // Exit early to allow default behavior
+    }
+
+    // Disable copy-paste for other roles
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyC, () => {
       showToast(toast, "Copy Disabled", "warning");
     });
@@ -162,7 +167,6 @@ const CodeEditor = ({ problemId }) => {
           />
         </Box>
       </Flex>
-     
     </Box>
   );
 };
