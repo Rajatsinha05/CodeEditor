@@ -10,7 +10,7 @@ const baseURL =
 
 // Create an axios instance with the dynamic baseURL
 const axiosInstance = axios.create({
-  baseURL: PRODUCTION_URL,
+  baseURL: LOCAL_URL,
 });
 
 // Add a request interceptor to attach the token to all requests except login and signup

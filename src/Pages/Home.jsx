@@ -1,14 +1,22 @@
 import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
-import { fetchContests, fetchContestsByStudent } from "../redux/contestSlice";
+import {
+  fetchContests,
+  fetchContestsByBatchId,
+  fetchContestsByStudent,
+} from "../redux/contestSlice";
 import { Box, useDisclosure, useColorModeValue } from "@chakra-ui/react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration";
 import ContestFilter from "../components/Home/ContestFilter";
 import ContestList from "../components/Home/ContestList";
 import StartContestModal from "../components/Home/StartContestModal";
 import MotivationalLoadingSpinner from "../components/Spinner/MotivationalLoadingSpinner";
+import {
+  fetchAllActiveBatches,
+  fetchBatchById,
+} from "../redux/Batch/batchSlice";
 
 dayjs.extend(duration);
 
@@ -27,15 +35,21 @@ const Home = () => {
     shallowEqual
   );
 
+  const { batchId } = useParams();
+
+  useEffect(() => {
+    dispatch(fetchBatchById(batchId));
+  }, []);
   useEffect(() => {
     if (isFetched) return;
 
     const fetchData = () => {
-      if (user?.role === "STUDENT") {
-        dispatch(fetchContestsByStudent(user.id));
-      } else {
-        dispatch(fetchContests());
-      }
+      dispatch(fetchContestsByBatchId(batchId));
+      // if (user?.role === "STUDENT") {
+      //   dispatch(fetchContestsByStudent(user.id));
+      // } else {
+      //   dispatch(fetchContests());
+      // }
     };
 
     fetchData();
@@ -90,7 +104,13 @@ const Home = () => {
       borderRadius="lg"
       shadow="md"
     >
-      <ContestFilter filter={filter} setFilter={setFilter} />
+      <ContestFilter
+        filter={filter}
+        setFilter={setFilter}
+        onCreateContest={() =>
+          navigate(`/admin/batch/${batchId}/create-contest`)
+        }
+      />
       <ContestList
         contests={filteredContests}
         onStartContestClick={handleStartContestClick}

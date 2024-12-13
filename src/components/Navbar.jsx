@@ -39,7 +39,7 @@ import "../CSS/Navbar.css";
 import Login from "../Pages/Login";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../redux/apiSlice";
-
+import { FiFolderPlus } from "react-icons/fi";
 const Navbar = () => {
   const { colorMode, toggleColorMode } = useColorMode();
   const iconSize = "1.5rem";
@@ -67,78 +67,136 @@ const Navbar = () => {
   const hoverColor = useColorModeValue("#f44336", "teal.400");
   const hoverBg = useColorModeValue("white", "gray.200");
 
-  const renderNavLinks = () => (
-    <>
-      <NavLink
-        to="/"
-        className={({ isActive }) =>
-          isActive ? "nav-link active" : "nav-link"
-        }
+  const renderNavLinks = () => {
+    const iconSize = 20; // Small icon size
+
+    return (
+      <Flex
+        justify="space-around"
+        align="center"
+        px={4}
+        py={2}
+        borderColor="gray.300"
       >
-        <Tooltip label="Home" placement="bottom">
-          <IconButton
-            icon={<FaHome size={iconSize} />}
-            aria-label="Home"
-            variant="ghost"
-            _hover={{ color: hoverColor, bg: hoverBg }}
+        <NavLink
+          to="/"
+          className={({ isActive }) =>
+            isActive ? "nav-link active" : "nav-link"
+          }
+        >
+          <Flex
+            direction="column"
+            align="center"
+            justify="center"
+            mx={3}
+            px={2}
+            py={1}
+            borderRadius="md"
             transition="all 0.3s"
-          />
-        </Tooltip>
-      </NavLink>
-      <NavLink
-        to="/problems"
-        className={({ isActive }) =>
-          isActive ? "nav-link active" : "nav-link"
-        }
-      >
-        <Tooltip label="Problems" placement="bottom">
-          <IconButton
-            icon={<FaCode size={iconSize} />}
-            aria-label="Problems"
-            variant="ghost"
-            _hover={{ color: hoverColor, bg: hoverBg }}
+          >
+            <IconButton
+              icon={<FaHome size={iconSize} />}
+              aria-label="Home"
+              variant="ghost"
+              _hover={{ color: hoverColor }}
+              mb={1}
+            />
+            <Text fontSize="xs" fontWeight="medium">
+              Home
+            </Text>
+          </Flex>
+        </NavLink>
+        <NavLink
+          to="/problems"
+          className={({ isActive }) =>
+            isActive ? "nav-link active" : "nav-link"
+          }
+        >
+          <Flex
+            direction="column"
+            align="center"
+            justify="center"
+            mx={3}
+            px={2}
+            py={1}
+            borderRadius="md"
             transition="all 0.3s"
-          />
-        </Tooltip>
-      </NavLink>
-      {isLogin && (user?.role === "ADMIN" || user?.role === "SUPERADMIN") && (
-        <>
-          <NavLink
-            to="/admin/add-question"
-            className={({ isActive }) =>
-              isActive ? "nav-link active" : "nav-link"
-            }
           >
-            <Tooltip label="Add Question" placement="bottom">
-              <IconButton
-                icon={<FaPlus size={iconSize} />}
-                aria-label="Add Question"
-                variant="ghost"
-                _hover={{ color: hoverColor, bg: hoverBg }}
+            <IconButton
+              icon={<FaCode size={iconSize} />}
+              aria-label="Questions"
+              variant="ghost"
+              _hover={{ color: hoverColor }}
+              mb={1}
+            />
+            <Text fontSize="xs" fontWeight="medium">
+              Questions
+            </Text>
+          </Flex>
+        </NavLink>
+        {isLogin && (user?.role === "ADMIN" || user?.role === "SUPERADMIN") && (
+          <>
+            <NavLink
+              to="/admin/add-question"
+              className={({ isActive }) =>
+                isActive ? "nav-link active" : "nav-link"
+              }
+            >
+              <Flex
+                direction="column"
+                align="center"
+                justify="center"
+                mx={3}
+                px={2}
+                py={1}
+                borderRadius="md"
                 transition="all 0.3s"
-              />
-            </Tooltip>
-          </NavLink>
-          <NavLink
-            to="/admin/create-contest"
-            className={({ isActive }) =>
-              isActive ? "nav-link active" : "nav-link"
-            }
-          >
-            <Tooltip label="Create Contest" placement="bottom">
-              <IconButton
-                icon={<FaPlus size={iconSize} />}
-                aria-label="Create Contest"
-                variant="ghost"
-                _hover={{ color: hoverColor, bg: hoverBg }}
+              >
+                <IconButton
+                  icon={<FaPlus size={iconSize} />}
+                  aria-label="Add Question"
+                  variant="ghost"
+                  _hover={{ color: hoverColor }}
+                  mb={1}
+                />
+                <Text fontSize="xs" fontWeight="medium">
+                  Add Question
+                </Text>
+              </Flex>
+            </NavLink>
+            <NavLink
+              to="/admin/create-batch"
+              className={({ isActive }) =>
+                isActive ? "nav-link active" : "nav-link"
+              }
+            >
+              <Flex
+                direction="column"
+                align="center"
+                justify="center"
+                mx={3}
+                px={2}
+                py={1}
+                borderRadius="md"
                 transition="all 0.3s"
-              />
-            </Tooltip>
-          </NavLink>
-        </>
-      )}
-    </>
-  );
+              >
+                <IconButton
+                  icon={<FiFolderPlus size={iconSize} />}
+                  aria-label="Create Batch"
+                  variant="ghost"
+                  _hover={{ color: hoverColor }}
+                  mb={1}
+                />
+                <Text fontSize="xs" fontWeight="medium">
+                  Create Batch
+                </Text>
+              </Flex>
+            </NavLink>
+          </>
+        )}
+      </Flex>
+    );
+  };
 
   return (
     <Box
@@ -146,7 +204,9 @@ const Navbar = () => {
       zIndex="10"
       bg={useColorModeValue("gray.50", "gray.900")}
       boxShadow="sm"
+      pb={3}
       px={4}
+      pt={2}
     >
       <Flex h={16} alignItems="center" justifyContent="space-between">
         {isMobileOrTablet ? (
@@ -178,7 +238,7 @@ const Navbar = () => {
               onClick={toggleColorMode}
               aria-label="Toggle Color Mode"
               variant="ghost"
-              _hover={{ color: hoverColor, bg: hoverBg }}
+              _hover={{ color: hoverColor }}
               transition="all 0.3s"
             />
           </Tooltip>
@@ -211,7 +271,7 @@ const Navbar = () => {
                     aria-label="Profile"
                     ml={4}
                     variant="ghost"
-                    _hover={{ color: hoverColor, bg: hoverBg }}
+                    _hover={{ color: hoverColor }}
                     transition="all 0.3s"
                   />
                 </Tooltip>
@@ -283,13 +343,13 @@ const Navbar = () => {
                         Add Question
                       </NavLink>
                       <NavLink
-                        to="/admin/create-contest"
+                        to="/admin/create-batch"
                         className={({ isActive }) =>
                           isActive ? "nav-link active" : "nav-link"
                         }
                         onClick={handleDrawerClose}
                       >
-                        Create Contest
+                        Create Batch
                       </NavLink>
                     </>
                   ) : null}

@@ -34,6 +34,19 @@ export const fetchContests = createAsyncThunk(
   }
 );
 
+// Async thunk to fetch all contests by batch id
+export const fetchContestsByBatchId = createAsyncThunk(
+  "contests/fetchContestsByBatchId",
+  async (batchId, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.get(`/contests/batch/${batchId}`);
+      return response.data;
+    } catch (error) {
+      return handleApiError(error, rejectWithValue);
+    }
+  }
+);
+
 // Async thunk to fetch contests by student ID
 export const fetchContestsByStudent = createAsyncThunk(
   "contests/fetchContestsByStudent",
@@ -133,6 +146,22 @@ export const contestSlice = createSlice({
         state.isFetched = true;
       })
       .addCase(fetchContests.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      .addCase(fetchContestsByBatchId.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.isFetched = false;
+      })
+
+      .addCase(fetchContestsByBatchId.fulfilled, (state, action) => {
+        state.contests = action.payload;
+        state.loading = false;
+        state.isFetched = true;
+      })
+      .addCase(fetchContestsByBatchId.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })

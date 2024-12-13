@@ -25,6 +25,7 @@ import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
   saveOrUpdateSolvedQuestion,
+  SolvedQuestionInContest,
   updateObtainedMarks,
 } from "../../redux/ContestQuestionSolvedSplice";
 
@@ -242,53 +243,19 @@ const Output = ({
         const totalMarks = marks?.marks || 0;
         const obtainedMarks = Math.round((percentagePassed / 100) * totalMarks);
 
-        // Check if this question has already been solved by this student in this contest
-        const existingSolvedQuestion = solvedQuestions.find(
-          (sq) =>
-            sq.questionId == questionId &&
-            sq.contestId == contestId &&
-            sq.studentId == studentId
-        );
-
+        // saving code in contest
         try {
-          if (existingSolvedQuestion) {
-            // Compare current obtained marks with previous marks
-            if (existingSolvedQuestion.obtainedMarks >= obtainedMarks) {
-              showToast(
-                toast,
-                `Your previous score of ${existingSolvedQuestion.obtainedMarks} is higher or equal to the current score of ${obtainedMarks}.`,
-                "info",
-                5000
-              );
-              setIsLoading(false);
-              return; // Do not update if the previous marks are greater or equal
-            } else {
-              // Update obtained marks if the current obtained marks are higher
-              await dispatch(
-                updateObtainedMarks({
-                  id: existingSolvedQuestion.id,
-                  questionId,
-                  contestId,
-                  studentId,
-                  obtainedMarks,
-                  contestQuestionId: marks?.contestQuestionId,
-                })
-              ).unwrap();
-              showToast(
-                toast,
-                `You have obtained ${obtainedMarks} out of ${totalMarks} marks.`,
-                "success"
-              );
-            } // Ensure that errors are caught
-          } else {
-            // Save or create new solved question if no previous record exists
+          if (contestId) {
             await dispatch(
-              saveOrUpdateSolvedQuestion({
+              SolvedQuestionInContest({
                 questionId,
                 contestId,
                 studentId,
                 obtainedMarks,
                 contestQuestionId: marks?.contestQuestionId,
+                language,
+                code: sourceCode,
+                testCase: percentagePassed === 100 ? "PASSED" : "FAILED",
               })
             ).unwrap();
             showToast(
@@ -301,8 +268,7 @@ const Output = ({
         } catch (error) {
           showToast(
             toast,
-            error.message ||
-              "Something went wrong while saving the submission.",
+            error || "Something went wrong while saving the submission.",
             "error",
             6000
           );
@@ -311,7 +277,7 @@ const Output = ({
         setIsError(!!result.stderr);
       }
     } catch (error) {
-      showToast(toast, error.message || "Unable to submit code", "error", 6000);
+      showToast(toast, error || "Unable to submit code", "error", 6000);
     } finally {
       setIsLoading(false);
       setIsDrawerOpen(true);

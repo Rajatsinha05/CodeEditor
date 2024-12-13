@@ -18,12 +18,17 @@ import {
   useColorModeValue,
 } from "@chakra-ui/react";
 import { useDispatch, useSelector } from "react-redux";
+import "react-quill/dist/quill.snow.css"; // Import Quill's CSS
+
+import ReactQuill from "react-quill";
+import DOMPurify from "dompurify";
 
 import ExampleInputs from "../components/Problems/ExampleInputs";
 import { formDataValidator } from "../components/Problems/formDataValidator";
 import { postQuestion, updateQuestion } from "../redux/Question/questionApi";
 import { Topics } from "../components/data/Dsa"; // Import the Topics function
 import { generateLongIdFromUUID } from "../utils/idHelper";
+import { showToast } from "../utils/toastUtils";
 
 const AddQuestions = ({ isOpen, onClose, initialData, isEditing }) => {
   // Component logic
@@ -40,7 +45,6 @@ const AddQuestions = ({ isOpen, onClose, initialData, isEditing }) => {
       title: initialData?.title || "",
       description: initialData?.description || "",
       difficultLevel: initialData?.difficultLevel || "",
-      constraintValue: initialData?.constraintValue || "",
       input: initialData?.input || "",
       expectedOutput: initialData?.expectedOutput || "",
       tag: initialData?.tag || "",
@@ -80,7 +84,7 @@ const AddQuestions = ({ isOpen, onClose, initialData, isEditing }) => {
 
   const handleTagChange = useCallback((e) => {
     const { value } = e.target;
-    
+
     setFormData((prevData) => ({
       ...prevData,
       tag: value,
@@ -149,14 +153,13 @@ const AddQuestions = ({ isOpen, onClose, initialData, isEditing }) => {
       const validationErrors = formDataValidator(formData);
       if (Object.keys(validationErrors).length > 0) {
         setErrors(validationErrors);
-        toast({
-          title: `Failed to ${isEditing ? "Update" : "Add"} Question`,
-          description: "Please fill all fields correctly.",
-          status: "error",
-          duration: 5000,
-          isClosable: true,
-          position: "top",
-        });
+        showToast(
+          toast,
+          `Failed to ${isEditing ? "Update" : "Add"} Question`,
+          "error"
+        );
+        console.log("formData", formData);
+
         return;
       }
 
@@ -176,7 +179,7 @@ const AddQuestions = ({ isOpen, onClose, initialData, isEditing }) => {
             postQuestion({
               ...formData,
               user: {
-                id: Number(user.id),
+                id: user.id,
               },
               examples,
             })
@@ -185,33 +188,21 @@ const AddQuestions = ({ isOpen, onClose, initialData, isEditing }) => {
 
         setFormData(initialFormData);
         setExamples([]);
+        showToast(
+          toast,
+          `Question ${isEditing ? "Updated" : "Added"}`,
+          "success"
+        );
 
-        toast({
-          title: `Question ${isEditing ? "Updated" : "Added"}`,
-          description: `Your question has been successfully ${
-            isEditing ? "updated" : "added"
-          }!`,
-          status: "success",
-          duration: 3000,
-          isClosable: true,
-          position: "top",
-        });
         if (onClose) {
           onClose();
         } // Close the modal after submission
       } catch (err) {
-        toast({
-          title: `Failed to ${isEditing ? "Update" : "Add"} Question`,
-          description:
-            err.message ||
-            `An error occurred while ${
-              isEditing ? "updating" : "adding"
-            } the question.`,
-          status: "error",
-          duration: 5000,
-          isClosable: true,
-          position: "top",
-        });
+        showToast(
+          toast,
+          `Failed to ${isEditing ? "Update" : "Add"} Question`,
+          "error"
+        );
       }
     },
     [
@@ -227,13 +218,15 @@ const AddQuestions = ({ isOpen, onClose, initialData, isEditing }) => {
     ]
   );
 
-  const bgColor = useColorModeValue("white", "gray.700");
-  const textColor = useColorModeValue("gray.800", "gray.200");
-  const formLabelColor = useColorModeValue("teal.600", "teal.200");
+  const bgColor = useColorModeValue("white", "gray.800");
+  const textColor = useColorModeValue("gray.900", "gray.100"); // Adjusted for better visibility
+  const formLabelColor = useColorModeValue("teal.700", "teal.300"); // Adjusted for better contrast
+  const inputBgColor = useColorModeValue("gray.100", "gray.700"); // Background for inputs
 
   return (
     <Box p={6} bg={bgColor} borderRadius="lg" boxShadow="xl">
       <form onSubmit={handleSubmit}>
+        {/* Title Field */}
         <FormControl mb={4} isInvalid={errors.title}>
           <FormLabel color={formLabelColor}>Title</FormLabel>
           <Input
@@ -241,29 +234,39 @@ const AddQuestions = ({ isOpen, onClose, initialData, isEditing }) => {
             name="title"
             value={formData.title}
             onChange={handleChange}
-            bg={useColorModeValue("gray.50", "gray.800")}
+            bg={inputBgColor}
             color={textColor}
           />
         </FormControl>
-        <FormControl mb={4} isInvalid={errors.description}>
+
+        {/* Description Field with Rich Text Editor */}
+        <FormControl mb={4} isInvalid={errors?.description}>
           <FormLabel color={formLabelColor}>Description</FormLabel>
-          <Textarea
-            name="description"
+          <ReactQuill
             value={formData.description}
-            onChange={handleChange}
-            ref={textAreaRefs.description}
-            style={{ minHeight: "100px", resize: "none" }}
-            bg={useColorModeValue("gray.50", "gray.800")}
-            color={textColor}
+            onChange={(value) =>
+              handleChange({ target: { name: "description", value } })
+            }
+            theme="snow"
+            style={{
+              backgroundColor: inputBgColor,
+              color: textColor,
+              border: "1px solid",
+              borderColor: useColorModeValue("gray.300", "gray.600"),
+              borderRadius: "5px",
+              minHeight: "150px",
+            }}
           />
         </FormControl>
+
+        {/* Difficulty Level */}
         <FormControl mb={4} isInvalid={errors.difficultLevel}>
-          <FormLabel color={formLabelColor}>Difficult Level</FormLabel>
+          <FormLabel color={formLabelColor}>Difficulty Level</FormLabel>
           <Select
             name="difficultLevel"
             value={formData.difficultLevel}
             onChange={handleChange}
-            bg={useColorModeValue("gray.50", "gray.800")}
+            bg={inputBgColor}
             color={textColor}
           >
             <option value="">Select</option>
@@ -272,17 +275,8 @@ const AddQuestions = ({ isOpen, onClose, initialData, isEditing }) => {
             <option value="HARD">HARD</option>
           </Select>
         </FormControl>
-        <FormControl mb={4} isInvalid={errors.constraintValue}>
-          <FormLabel color={formLabelColor}>Constraint Value</FormLabel>
-          <Input
-            type="text"
-            name="constraintValue"
-            value={formData.constraintValue}
-            onChange={handleChange}
-            bg={useColorModeValue("gray.50", "gray.800")}
-            color={textColor}
-          />
-        </FormControl>
+
+        {/* Input */}
         <FormControl mb={4} isInvalid={errors.input}>
           <FormLabel color={formLabelColor}>Input</FormLabel>
           <Textarea
@@ -291,10 +285,12 @@ const AddQuestions = ({ isOpen, onClose, initialData, isEditing }) => {
             onChange={handleChange}
             ref={textAreaRefs.input}
             style={{ minHeight: "100px", resize: "none" }}
-            bg={useColorModeValue("gray.50", "gray.800")}
+            bg={inputBgColor}
             color={textColor}
           />
         </FormControl>
+
+        {/* Expected Output */}
         <FormControl mb={4} isInvalid={errors.expectedOutput}>
           <FormLabel color={formLabelColor}>Expected Output</FormLabel>
           <Textarea
@@ -303,17 +299,19 @@ const AddQuestions = ({ isOpen, onClose, initialData, isEditing }) => {
             onChange={handleChange}
             ref={textAreaRefs.expectedOutput}
             style={{ minHeight: "100px", resize: "none" }}
-            bg={useColorModeValue("gray.50", "gray.800")}
+            bg={inputBgColor}
             color={textColor}
           />
         </FormControl>
+
+        {/* Tag Field */}
         <FormControl mb={4} isInvalid={errors.tag}>
           <FormLabel color={formLabelColor}>Tag (Select a Topic)</FormLabel>
           <Select
             name="tag"
             value={formData.tag}
             onChange={handleTagChange}
-            bg={useColorModeValue("gray.50", "gray.800")}
+            bg={inputBgColor}
             color={textColor}
           >
             <option value="">Select a topic</option>
@@ -324,7 +322,8 @@ const AddQuestions = ({ isOpen, onClose, initialData, isEditing }) => {
             ))}
           </Select>
         </FormControl>
-        {/* Include the ExampleInputs component */}
+
+        {/* Example Inputs */}
         <ExampleInputs
           examples={examples}
           newExample={newExample}
@@ -332,6 +331,8 @@ const AddQuestions = ({ isOpen, onClose, initialData, isEditing }) => {
           setNewExample={setNewExample}
           toast={toast}
         />
+
+        {/* Submit Button */}
         <Button type="submit" colorScheme="teal" mt={4}>
           {isEditing ? "Update" : "Submit"}
         </Button>

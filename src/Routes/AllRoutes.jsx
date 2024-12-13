@@ -13,6 +13,8 @@ import Home from "../Pages/Home";
 import ContestDetails from "../Pages/ContestDetails";
 import PrivateRoute from "./PrivateRoute";
 import NotFoundPage from "../Pages/NotFoundPage";
+import CreateBatch from "../Pages/CreateBatch";
+import BatchListPage from "../Pages/Batch";
 
 const AllRoutes = () => {
   let { user, isLogin } = useSelector((store) => store.data);
@@ -22,6 +24,15 @@ const AllRoutes = () => {
       <Route
         exact
         path="/"
+        element={
+          <PrivateRoute>
+            <BatchListPage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        exact
+        path="/batch/:batchId"
         element={
           <PrivateRoute>
             <Home />
@@ -49,7 +60,15 @@ const AllRoutes = () => {
       {isLogin && (user?.role === "ADMIN" || user?.role === "SUPERADMIN") && (
         <>
           <Route
-            path="/admin/create-contest"
+            path="/admin/create-batch"
+            element={
+              <PrivateRouteAdmin>
+                <CreateBatch />
+              </PrivateRouteAdmin>
+            }
+          />
+          <Route
+            path="/admin/batch/:batchId/create-contest"
             element={
               <PrivateRouteAdmin>
                 <CreateContest />

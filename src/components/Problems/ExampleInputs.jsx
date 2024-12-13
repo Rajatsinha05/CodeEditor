@@ -36,7 +36,6 @@ const ExampleInputs = ({
     }
 
     setExamples([...examples, newExample]);
-    
 
     setNewExample({
       input: "",
@@ -146,7 +145,7 @@ const ExampleInputs = ({
           style={{ minHeight: "100px", resize: "none" }}
         />
       </FormControl>
-      <Button type="button" colorScheme="blue" onClick={handleAddExample}>
+      <Button type="button" colorScheme="teal" onClick={handleAddExample}>
         Add Example
       </Button>
     </FormControl>

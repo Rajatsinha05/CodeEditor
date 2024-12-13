@@ -31,6 +31,11 @@ import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchByStudentIdAndQuestionId } from "../../redux/Question/questionSolvedSlice";
 import SettingsModal from "./SettingsModal";
+import {
+  fetchSolvedQuestionsByContestStudentAndQuestion,
+  fetchSolvedQuestionsByStudentIdAndContestId,
+} from "../../redux/ContestQuestionSolvedSplice";
+import useTabActivityTracker from "./useTabActivityTracker";
 
 const CodeWorkspace = ({
   theme,
@@ -56,8 +61,8 @@ const CodeWorkspace = ({
     language: "java",
   });
 
-  const inactiveTimeRef = useRef(0);
-  const tabChangeCountRef = useRef(0);
+  // const inactiveTimeRef = useRef(0);
+  // const tabChangeCountRef = useRef(0);
   const intervalIdRef = useRef(null);
 
   const boxBg = useColorModeValue("gray.50", "gray.700");
@@ -73,8 +78,18 @@ const CodeWorkspace = ({
 
   // Fetch question-solved data
   useEffect(() => {
-    if (studentId && questionId && !contestId) {
-      dispatch(fetchByStudentIdAndQuestionId({ studentId, questionId }));
+    if (studentId && questionId) {
+      if (contestId) {
+        dispatch(
+          fetchSolvedQuestionsByContestStudentAndQuestion({
+            contestId,
+            studentId,
+            questionId,
+          })
+        );
+      } else {
+        dispatch(fetchByStudentIdAndQuestionId({ studentId, questionId }));
+      }
     }
   }, [dispatch, studentId, questionId, contestId]);
 
@@ -84,6 +99,10 @@ const CodeWorkspace = ({
     setPreferences((prev) => ({ ...prev, language: storedLanguage }));
     setValue(CODE_SNIPPETS[storedLanguage] || "");
   }, [setValue]);
+
+  // solved in contest
+
+  const { solvedQuestions } = useSelector((store) => store.solved);
 
   // Handle language change
   const handleLanguageChange = useCallback(
@@ -104,28 +123,7 @@ const CodeWorkspace = ({
     [setPreferences, setValue]
   );
 
-  // Handle visibility changes and tab activity tracking
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.hidden) {
-        tabChangeCountRef.current += 1;
-        intervalIdRef.current = setInterval(() => {
-          inactiveTimeRef.current += 1;
-        }, 1000);
-      } else {
-        clearInterval(intervalIdRef.current);
-        intervalIdRef.current = null;
-      }
-    };
-
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-
-    return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-      clearInterval(intervalIdRef.current);
-    };
-  }, []);
-
+  const { inactiveTime, tabChangeCount } = useTabActivityTracker();
   return (
     <Box flex={1} p={4} bg={boxBg} borderRadius="md" shadow="lg" width="100%">
       <VStack spacing={6} align="stretch" width="100%">
@@ -137,18 +135,14 @@ const CodeWorkspace = ({
           <HStack spacing={4} align="center">
             <HStack spacing={2} align="center">
               <Icon as={FaClock} color="blue.500" w={4} h={4} />
-              <Text fontSize="sm">
-                Inactive Time: {inactiveTimeRef.current}s
-              </Text>
+              <Text fontSize="sm">Inactive Time: {inactiveTime}s</Text>
             </HStack>
             <HStack spacing={2} align="center">
               <Icon as={FaSync} color="green.500" w={4} h={4} />
-              <Text fontSize="sm">
-                Tab Changes: {tabChangeCountRef.current}
-              </Text>
+              <Text fontSize="sm">Tab Changes: {tabChangeCount}</Text>
             </HStack>
             {/* Version Control Menu */}
-            {combinedRecord.length > 0 && (
+            {(combinedRecord.length > 0 || solvedQuestions.length > 0) && (
               <Menu>
                 <MenuButton
                   as={Button}
@@ -158,6 +152,27 @@ const CodeWorkspace = ({
                   _hover={{ bg: useColorModeValue("gray.200", "gray.600") }}
                 />
                 <MenuList>
+                  {solvedQuestions.length > 0 &&
+                    solvedQuestions.map((record) => (
+                      <MenuItem
+                        key={record.id}
+                        onClick={() => handleVersionSelect(record)}
+                      >
+                        <Text fontSize="sm">
+                          {new Date(record.solvedAt).toLocaleString()} -{" "}
+                          {record.testCase === "PASSED" ? (
+                            <Text as="span" color="green.500">
+                              Passed
+                            </Text>
+                          ) : (
+                            <Text as="span" color="red.500">
+                              Failed
+                            </Text>
+                          )}{" "}
+                          - Marks: {record.obtainedMarks}/{record.questionMark}
+                        </Text>
+                      </MenuItem>
+                    ))}
                   {combinedRecord.map((record) => (
                     <MenuItem
                       key={record.id}

@@ -221,7 +221,7 @@ const Leaderboard = () => {
                         size="lg"
                         mr={4}
                         name={student.studentName}
-                        bgGradient="linear(to-r, teal.400, blue.500)"
+                        // bgGradient="linear(to-r, teal.400, blue.500)"
                         cursor="pointer"
                         onClick={() => handleOpenModal(student)}
                       />

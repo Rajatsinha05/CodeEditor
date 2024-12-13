@@ -17,15 +17,21 @@ import { useDispatch, useSelector } from "react-redux";
 import { getStudents } from "../redux/apiSlice";
 import { createContest } from "../redux/contestSlice";
 import { fetchQuestions } from "../redux/Question/questionApi";
+import { showToast } from "../utils/toastUtils";
+import { fetchBatchById } from "../redux/Batch/batchSlice";
+import { useParams } from "react-router-dom";
 
 const CreateContest = ({ onCreate, initialData = {}, onClose, isEditing }) => {
-  const { user, question } = useSelector((store) => store.data);
+  const { user } = useSelector((store) => store.data);
   const { questions } = useSelector((store) => store.question);
   const toast = useToast();
   const { colorMode } = useColorMode();
   const theme = useTheme();
   const dispatch = useDispatch();
-
+  const { batchId } = useParams();
+  useEffect(() => {
+    dispatch(fetchBatchById(batchId));
+  }, []);
   const isDarkMode = colorMode === "dark";
   const bgColor = isDarkMode ? theme.colors.gray[800] : theme.colors.gray[100];
   const textColor = isDarkMode
@@ -58,50 +64,36 @@ const CreateContest = ({ onCreate, initialData = {}, onClose, isEditing }) => {
     enrolledStudents: initialData.enrolledStudents || [],
   });
 
-  const [searchQuery, setSearchQuery] = useState("");
-  const [filteredStudents, setFilteredStudents] = useState([]);
+  const [isAutoDescription, setIsAutoDescription] = useState(true);
 
-  const { students } = useSelector((store) => store.data);
+  // Generate auto-description
+  useEffect(() => {
+    if (isAutoDescription) {
+      const generatedDescription = `Step into the ${
+        contestData.title
+      } contest—a ${
+        contestData.difficultyLevel?.toLowerCase() || "dynamic"
+      }-level challenge designed to push your limits and sharpen your skills. Whether you're a seasoned expert or eager to learn, this contest offers a chance to showcase your knowledge and achieve greatness. Best of luck!`;
+
+      setContestData((prev) => ({
+        ...prev,
+        description: generatedDescription,
+      }));
+    }
+  }, [contestData.title, contestData.difficultyLevel, isAutoDescription]);
+
+  const handleDescriptionChange = (e) => {
+    setContestData({ ...contestData, description: e.target.value });
+    setIsAutoDescription(false); // Disable auto-generation once edited manually
+  };
 
   useEffect(() => {
-    dispatch(getStudents());
     dispatch(fetchQuestions());
   }, [dispatch]);
-
-  useEffect(() => {
-    if (students) {
-      const formattedStudents = students?.map((student) => ({
-        id: student.id,
-        name: student.name,
-        grid: student.grid,
-        branchCode: student.branchCode,
-        course: student.course,
-      }));
-      setFilteredStudents(formattedStudents);
-    }
-  }, [students]);
-
-  useEffect(() => {
-    const lowercasedQuery = searchQuery.toLowerCase();
-    setFilteredStudents(
-      students.filter(
-        (student) =>
-          student?.name?.toLowerCase().includes(lowercasedQuery) ||
-          student?.id?.toString().includes(lowercasedQuery) ||
-          student?.grid?.toLowerCase().includes(lowercasedQuery) ||
-          student?.branchCode?.toLowerCase().includes(lowercasedQuery) ||
-          student?.course?.toLowerCase().includes(lowercasedQuery)
-      )
-    );
-  }, [searchQuery, students]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setContestData({ ...contestData, [name]: value });
-  };
-
-  const handleAttemptQuestion = (questionId) => {
-    navigate(`/contest/${id}/attempt/${questionId}`);
   };
 
   const handleSelectQuestions = (selectedOptions) => {
@@ -118,22 +110,18 @@ const CreateContest = ({ onCreate, initialData = {}, onClose, isEditing }) => {
     setContestData({ ...contestData, contestQuestions: updatedQuestions });
   };
 
-  const handleSelectStudents = (selectedOptions) => {
-    const enrolledStudents = selectedOptions.map((option) => ({
-      id: option.value,
-      name: option.label.split(" - ")[0], // Extracting name from label
-      email: "", // Placeholder, assuming you may fill it based on other info or API
-    }));
-    setContestData({ ...contestData, enrolledStudents });
-  };
-
   const handleSelectDifficultyLevel = (selectedOption) => {
     setContestData({ ...contestData, difficultyLevel: selectedOption.value });
   };
 
+  const { selectedBatch } = useSelector((store) => store.batch);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    let studentsIds = [];
+    selectedBatch?.students.map((id) => {
+      studentsIds.push(id);
+    });
     // Calculate the sum of marks for all questions
     const sumOfQuestionMarks = contestData.contestQuestions.reduce(
       (acc, question) => acc + question.marks,
@@ -142,70 +130,33 @@ const CreateContest = ({ onCreate, initialData = {}, onClose, isEditing }) => {
 
     // Validate totalMarks vs sumOfQuestionMarks
     if (sumOfQuestionMarks !== parseInt(contestData.totalMarks, 10)) {
-      toast({
-        title: "Total Marks Mismatch",
-        description: `The sum of question marks (${sumOfQuestionMarks}) does not match the total marks (${contestData.totalMarks}). Please correct this before submitting.`,
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-        position: "top-center",
-      });
+      showToast(toast, "Total Marks Mismatch", "error");
+
       return;
     }
 
-    if (
-      !contestData.title ||
-      !contestData.contestQuestions.length ||
-      !contestData.enrolledStudents.length
-    ) {
-      toast({
-        title: "Missing Information",
-        description:
-          "Please ensure all fields are filled and selections are made.",
-        status: "warning",
-        duration: 5000,
-        isClosable: true,
-        position: "top-center",
-      });
+    if (!contestData.title || !contestData.contestQuestions.length) {
+      showToast(toast, "Missing Information", "warning");
+
       return;
     }
 
     const contestPayload = {
       ...contestData,
       createdBy: user?.id,
+      enrolledStudents: studentsIds,
+      batchId: batchId,
     };
 
     try {
-      if (isEditing) {
-        await dispatch(updateContest(contestPayload)).unwrap();
-        toast({
-          title: "Contest Updated",
-          description: "The contest has been successfully updated.",
-          status: "success",
-          duration: 5000,
-          isClosable: true,
-        });
-      } else {
-        await dispatch(createContest(contestPayload)).unwrap();
-        toast({
-          title: "Contest Created",
-          description: "The contest has been successfully created.",
-          status: "success",
-          duration: 5000,
-          isClosable: true,
-        });
-      }
+      await dispatch(createContest(contestPayload)).unwrap();
+      showToast(toast, "Contest Created", "success");
+
       if (onClose) {
         onClose();
       }
     } catch (error) {
-      toast({
-        title: "Error",
-        description: error.message || "An error occurred.",
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-      });
+      showToast(toast, error, "error");
     }
   };
 
@@ -256,17 +207,18 @@ const CreateContest = ({ onCreate, initialData = {}, onClose, isEditing }) => {
           />
         </FormControl>
         <FormControl id="description" mt={4}>
-          <FormLabel color={textColor}>Description</FormLabel>
+          <FormLabel color={textColor}>Description </FormLabel>
           <Textarea
             name="description"
             value={contestData.description}
-            onChange={handleChange}
+            onChange={handleDescriptionChange}
             bg={primaryColor}
             color={textColor}
             border={`1px solid ${borderColor}`}
             _placeholder={{ color: placeholderColor }}
           />
         </FormControl>
+
         <FormControl id="startTime" mt={4}>
           <FormLabel color={textColor}>Start Time</FormLabel>
           <Input
@@ -324,20 +276,7 @@ const CreateContest = ({ onCreate, initialData = {}, onClose, isEditing }) => {
             styles={customSelectStyles}
           />
         </FormControl>
-        <FormControl id="selectedStudents" mt={4}>
-          <FormLabel color={textColor}>Select Students</FormLabel>
-          <Select
-            options={filteredStudents.map((student) => ({
-              value: student.id,
-              label: `${student.name} - ${student.id} - ${student.grid} - ${student.course} - ${student.branchCode}`,
-            }))}
-            onChange={handleSelectStudents}
-            isMulti
-            closeMenuOnSelect={false}
-            styles={customSelectStyles}
-            onInputChange={(inputValue) => setSearchQuery(inputValue)}
-          />
-        </FormControl>
+
         <FormControl id="selectedQuestions" mt={4}>
           <FormLabel color={textColor}>Select Questions</FormLabel>
           <Select
@@ -373,7 +312,7 @@ const CreateContest = ({ onCreate, initialData = {}, onClose, isEditing }) => {
             </Box>
           ))}
         </FormControl>
-        <Button mt={4} colorScheme="blue" type="submit">
+        <Button mt={4} colorScheme="teal" type="submit">
           Create Contest
         </Button>
       </form>

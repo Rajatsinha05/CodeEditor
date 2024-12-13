@@ -55,8 +55,8 @@ const themes = {
 
 const theme = extendTheme({
   config: {
-    initialColorMode: "dark", // Set the initial color mode to dark
-    useSystemColorMode: true, // Disable using system color mode
+    initialColorMode: "colors",
+    useSystemColorMode: true,
   },
   // Merge the default theme with additional themes
   ...themes.default,
@@ -68,44 +68,43 @@ const theme = extendTheme({
 export default theme;
 
 // theme.js
-import { createTheme } from '@mui/material/styles';
+import { createTheme } from "@mui/material/styles";
 
-export const getTheme = (mode) => createTheme({
-  palette: {
-    mode: mode, // 'light' or 'dark'
-    background: {
-      default: mode === 'light' ? '#FFFFFF' : '#1A202C',
-      paper: mode === 'light' ? '#F7FAFC' : '#2D3748',
-      custom: mode === 'light' ? '#F7FAFC' : '#1A202C',
-      box: mode === 'light' ? '#EDF2F7' : '#2D3748',
-    },
-    text: {
-      primary: mode === 'light' ? '#000000' : '#FFFFFF',
-      secondary: mode === 'light' ? '#2D3748' : '#E2E8F0',
-    },
-    primary: {
-      main: mode === 'light' ? '#3182CE' : '#63B3ED',
-    },
-    secondary: {
-      main: mode === 'light' ? '#9B2C2C' : '#ED8936',
-    },
-    customColors: {
-      redWhite: {
-        main: '#FF0000',
-        contrastText: '#FFFFFF',
+export const getTheme = (mode) =>
+  createTheme({
+    palette: {
+      mode: mode, // 'light' or 'dark'
+      background: {
+        default: mode === "light" ? "#FFFFFF" : "#1A202C",
+        paper: mode === "light" ? "#F7FAFC" : "#2D3748",
+        custom: mode === "light" ? "#F7FAFC" : "#1A202C",
+        box: mode === "light" ? "#EDF2F7" : "#2D3748",
       },
-      gray: {
-        light: '#F7FAFC',
-        main: '#EDF2F7',
-        dark: '#2D3748',
+      text: {
+        primary: mode === "light" ? "#000000" : "#FFFFFF",
+        secondary: mode === "light" ? "#2D3748" : "#E2E8F0",
       },
-      border: mode === 'light' ? '#CBD5E0' : '#4A5568',
+      primary: {
+        main: mode === "light" ? "#3182CE" : "#63B3ED",
+      },
+      secondary: {
+        main: mode === "light" ? "#9B2C2C" : "#ED8936",
+      },
+      customColors: {
+        redWhite: {
+          main: "#FF0000",
+          contrastText: "#FFFFFF",
+        },
+        gray: {
+          light: "#F7FAFC",
+          main: "#EDF2F7",
+          dark: "#2D3748",
+        },
+        border: mode === "light" ? "#CBD5E0" : "#4A5568",
+      },
     },
-  },
-  typography: {
-    // Customize typography if needed
-  },
-  // You can add more customizations here
-});
-
-
+    typography: {
+      // Customize typography if needed
+    },
+    // You can add more customizations here
+  });

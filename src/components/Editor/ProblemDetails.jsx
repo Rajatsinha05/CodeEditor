@@ -9,6 +9,7 @@ import {
   Flex,
   IconButton,
   HStack,
+  Stack,
 } from "@chakra-ui/react";
 import { ArrowBackIcon, ArrowForwardIcon } from "@chakra-ui/icons";
 import { useNavigate, useParams } from "react-router-dom";
@@ -20,6 +21,7 @@ const ProblemDetails = ({ question }) => {
   const sectionBg = useColorModeValue("white", "gray.900");
   const borderColor = useColorModeValue("gray.300", "gray.600");
   const textColor = useColorModeValue("gray.800", "gray.200");
+
   const { contests } = useSelector((store) => store.contest);
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -38,8 +40,6 @@ const ProblemDetails = ({ question }) => {
   const currentQuestionIndex = contestQuestions.findIndex(
     (q) => q.questionId == questionId
   );
-
-  const currentQuestion = contestQuestions[currentQuestionIndex];
 
   const handlePrevious = () => {
     if (currentQuestionIndex > 0) {
@@ -63,18 +63,17 @@ const ProblemDetails = ({ question }) => {
 
   return (
     <Box
-      p={6}
-      borderRadius="md"
-      shadow="base"
-      border={`1px solid ${borderColor}`}
+      p={{ base: 4, md: 6 }}
+      borderRadius="lg"
+      shadow="md"
       bg={boxBg}
-      _hover={{ transform: "scale(1.01)", shadow: "lg" }}
       transition="all 0.3s ease"
+      _hover={{ transform: "scale(1.01)", shadow: "lg" }}
     >
       <VStack align="stretch" spacing={6}>
-        {/* Conditionally show navigation buttons only if contestId exists */}
-        {contestId && (
-          <HStack justify="space-between">
+        {/* Title and Navigation Section */}
+        <Flex justify="space-between" align="center" pb={3} textAlign="center">
+          {contest && (
             <IconButton
               aria-label="Previous Question"
               icon={<ArrowBackIcon />}
@@ -84,6 +83,17 @@ const ProblemDetails = ({ question }) => {
               variant="outline"
               isDisabled={currentQuestionIndex <= 0}
             />
+          )}
+          <Text
+            fontSize={{ base: "lg", md: "2xl" }}
+            fontWeight="bold"
+            color={textColor}
+            flex="1"
+            mx={6} // Adjust spacing around the text for balance
+          >
+            {question?.title || "Problem Title"}
+          </Text>
+          {contest && (
             <IconButton
               aria-label="Next Question"
               icon={<ArrowForwardIcon />}
@@ -93,17 +103,11 @@ const ProblemDetails = ({ question }) => {
               variant="outline"
               isDisabled={currentQuestionIndex >= contestQuestions.length - 1}
             />
-          </HStack>
-        )}
-        <Flex
-          justify="space-between"
-          align="center"
-          pb={3}
-          borderBottom={`1px solid ${borderColor}`}
-        >
-          <Text fontSize="2xl" fontWeight="bold" color={textColor}>
-            {question?.title || "Problem Title"}
-          </Text>
+          )}
+        </Flex>
+
+        {/* Difficulty Level */}
+        {/* <Flex justifyContent={{ base: "center", md: "flex-end" }} pb={3}>
           <Tag
             size="md"
             colorScheme={
@@ -116,45 +120,61 @@ const ProblemDetails = ({ question }) => {
           >
             {question?.difficultLevel || "N/A"}
           </Tag>
-        </Flex>
-        <Box>
-          <Text fontSize="lg" fontWeight="medium" color={textColor}>
+        </Flex> */}
+
+        {/* Description Section */}
+        <Box
+          bg={sectionBg}
+          p={{ base: 4, md: 6 }}
+          borderRadius="md"
+          shadow="sm"
+          border={`1px solid ${borderColor}`}
+        >
+          <Text fontWeight="medium" mb={4} color={textColor}>
             Description:
           </Text>
-          <Text mt={2} color={textColor}>
-            {question?.description || "Problem description goes here..."}
-          </Text>
+          <Box
+            mt={2}
+            color={textColor}
+            dangerouslySetInnerHTML={{
+              __html: question?.description || "No description provided.",
+            }}
+          />
         </Box>
-        <Box
-          bg={sectionBg}
-          p={4}
-          borderRadius="md"
-          shadow="sm"
-          border={`1px solid ${borderColor}`}
-        >
-          <Text fontWeight="bold" mb={2} color={textColor}>
-            Input:
-          </Text>
-          <Text>{question?.input || "Input format is not provided."}</Text>
-        </Box>
-        <Box
-          bg={sectionBg}
-          p={4}
-          borderRadius="md"
-          shadow="sm"
-          border={`1px solid ${borderColor}`}
-        >
-          <Text fontWeight="bold" mb={2} color={textColor}>
-            Expected Output:
-          </Text>
-          {question?.expectedOutput ? (
-            <Text as="pre" whiteSpace="pre-wrap">
-              {question.expectedOutput}
+
+        {/* Input/Output Boxes */}
+        <Stack spacing={4}>
+          <Box
+            bg={sectionBg}
+            p={4}
+            borderRadius="md"
+            shadow="sm"
+            border={`1px solid ${borderColor}`}
+            flex="1"
+          >
+            <Text fontWeight="bold" mb={2} color={textColor}>
+              Input:
             </Text>
-          ) : (
-            <Text>Output format is not provided.</Text>
-          )}
-        </Box>
+            <Text>{question?.input || "Input format not provided."}</Text>
+          </Box>
+          <Box
+            bg={sectionBg}
+            p={4}
+            borderRadius="md"
+            shadow="sm"
+            border={`1px solid ${borderColor}`}
+            flex="1"
+          >
+            <Text fontWeight="bold" mb={2} color={textColor}>
+              Expected Output:
+            </Text>
+            <Text>
+              {question?.expectedOutput || "Output format not provided."}
+            </Text>
+          </Box>
+        </Stack>
+
+        {/* Examples Section */}
         {question?.examples?.length > 0 ? (
           <Box>
             <Text fontWeight="bold" mb={2} color={textColor}>
@@ -173,11 +193,11 @@ const ProblemDetails = ({ question }) => {
                   <Text>
                     <strong>Input:</strong> {example.input || "N/A"}
                   </Text>
-                  <Divider my={2} borderColor={borderColor} />
+                  <Divider my={2} />
                   <Text>
                     <strong>Output:</strong> {example.output || "N/A"}
                   </Text>
-                  <Divider my={2} borderColor={borderColor} />
+                  <Divider my={2} />
                   <Text>
                     <strong>Explanation:</strong> {example.explanation || "N/A"}
                   </Text>

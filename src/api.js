@@ -10,7 +10,7 @@ export const executeCode = async (language, code, inputData) => {
       code,
       inputData,
     });
-    console.log("response: " + response.data);
+    
 
     return response.data;
   } catch (error) {
@@ -21,7 +21,7 @@ export const executeCode = async (language, code, inputData) => {
 export const getCodeResult = async (requestId) => {
   try {
     const response = await axiosInstance.get(`/result/${requestId}`);
-    console.log("Fetched result: ", response.data);
+    
     return response.data;
   } catch (error) {
     console.error(

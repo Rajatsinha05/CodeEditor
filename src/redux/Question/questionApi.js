@@ -12,10 +12,10 @@ export const postQuestion = createAsyncThunk(
         ...data,
         id: generateULID(),
       });
-      
+      console.log("response.data: ", response.data);
       return response.data;
     } catch (error) {
-      
+      console.log("error: ", error);
       return rejectWithValue(
         error.response?.data || "An error occurred while posting the question."
       );
@@ -90,17 +90,14 @@ export const getsolvedQuestions = createAsyncThunk(
 export const updateQuestion = createAsyncThunk(
   "questions/updateQuestion",
   async ({ questionId, data }, { rejectWithValue }) => {
-    
-    
     try {
       const response = await axiosInstance.put(
         `/questions/${questionId}`,
         data
       );
-      
+
       return response.data;
     } catch (error) {
-      
       return rejectWithValue(
         error.response?.data || "An error occurred while updating the question."
       );

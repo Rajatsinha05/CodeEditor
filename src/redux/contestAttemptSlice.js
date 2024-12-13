@@ -26,17 +26,17 @@ export const startContestAttempt = createAsyncThunk(
 export const endContestAttempt = createAsyncThunk(
   "contestAttempts/end",
   async ({ attemptId }, { rejectWithValue }) => {
-    console.log("Processing endContestAttempt for attemptId:", attemptId);
+    
     try {
       // Sending request to the backend with query parameters
       const response = await axiosInstance.post("/contest-attempts/end", null, {
         params: { attemptId }, // These will be sent as query parameters
       });
 
-      console.log("Response received:", response.data);
+      
       return response.data; // Return the response data to the caller
     } catch (error) {
-      console.error("Error ending contest attempt:", error);
+      
       return rejectWithValue(
         error.response?.data || "An error occurred while ending the contest attempt."
       );

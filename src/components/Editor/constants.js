@@ -21,3 +21,41 @@ export const CODE_SNIPPETS = {
   c: `#include <stdio.h>\n\nvoid solve() {\n    // Write the logic to solve each test case here\n}\n\nint main() {\n    int tc;\n    scanf("%d", &tc);\n    \n    while (tc-- > 0) {\n        solve();\n    }\n    \n    return 0;\n}\n`,
   cpp: `#include <iostream>\nusing namespace std;\n\nvoid solve() {\n    // Write the logic to solve each test case here\n}\n\nint main() {\n    int tc;\n    cin >> tc;\n    \n    while (tc-- > 0) {\n        solve();\n    }\n    \n    return 0;\n}\n`,
 };
+
+// 'use strict';
+
+// process.stdin.resume();
+// process.stdin.setEncoding('utf-8');
+
+// let inputString = '';
+// let currentLine = 0;
+
+// process.stdin.on('data', inputStdin => {
+//     inputString += inputStdin;
+// });
+
+// process.stdin.on('end', _ => {
+//     inputString = inputString.trim()
+//         .split('\n')
+//         .map(string => string.trim());
+//     main();
+// });
+
+// function readLine() {
+//     return inputString[currentLine++];
+// }
+
+// function solve(input) {
+//     // Solve logic for the current test case
+
+// }
+
+// function main() {
+//     const tc = parseInt(readLine(), 10); // Read the number of test cases
+//     // console.log(`Number of test cases: ${tc}`);
+//     for (let i = 0; i < tc; i++) {
+//         let input = readLine(); // Read each test case input
+//         console.log(input);
+//         solve(input);
+//     }
+// }

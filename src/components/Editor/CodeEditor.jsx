@@ -1,6 +1,8 @@
 import React, { useRef, useState, useEffect, useMemo } from "react";
 import { Box, useToast, useColorModeValue, Flex } from "@chakra-ui/react";
 import * as monaco from "monaco-editor";
+import { BsThreeDotsVertical } from "react-icons/bs";
+// Resize arrows icon
 
 import { useDispatch, useSelector } from "react-redux";
 import { CODE_SNIPPETS } from "./constants";
@@ -10,6 +12,8 @@ import { getQuestionById } from "../../redux/Question/questionApi";
 import { showToast } from "../../utils/toastUtils";
 import ProblemDetails from "./ProblemDetails";
 import CodeWorkspace from "./CodeWorkspace";
+import { AiOutlineColumnWidth } from "react-icons/ai"; // Resizable indicator
+// Drag handle
 
 const CodeEditor = ({ problemId }) => {
   const editorRef = useRef();
@@ -21,7 +25,7 @@ const CodeEditor = ({ problemId }) => {
   const [dividerX, setDividerX] = useState(40); // Percentage for initial ProblemDetails width
 
   const { user } = useSelector((store) => store.user);
-  
+
   const [testResults, setTestResults] = useState([]);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -53,9 +57,8 @@ const CodeEditor = ({ problemId }) => {
     if (
       user.role === "SUPERADMIN" ||
       user.role === "ADMIN" ||
-      user.email == "test@gmail.com"
+      user.email === "test@gmail.com"
     ) {
-      
       return; // Exit early to allow default behavior
     }
 
@@ -77,8 +80,8 @@ const CodeEditor = ({ problemId }) => {
     const handleMouseMove = (e) => {
       const deltaX = e.clientX - startX;
       const newDividerX = Math.max(
-        20,
-        Math.min(80, startDividerX + (deltaX / window.innerWidth) * 100)
+        10, // Minimum limit
+        Math.min(90, startDividerX + (deltaX / window.innerWidth) * 100) // Maximum limit
       );
       setDividerX(newDividerX);
     };
@@ -94,7 +97,7 @@ const CodeEditor = ({ problemId }) => {
 
   return (
     <Box
-      p={4}
+      p={6}
       bgGradient={useColorModeValue(
         "linear(to-r, gray.100, gray.200)",
         "linear(to-r, gray.700, gray.800)"
@@ -104,6 +107,7 @@ const CodeEditor = ({ problemId }) => {
       overflow="hidden"
       display="flex"
       flexDirection="column"
+      
     >
       <CameraDisplay />
 
@@ -112,13 +116,15 @@ const CodeEditor = ({ problemId }) => {
         overflow="hidden"
         direction={{ base: "column", md: "row" }}
         gap={{ base: 4, md: 0 }}
+        position="relative"
       >
         {/* Problem Details */}
         <Box
           flex={`0 0 ${dividerX}%`}
           height={{ base: "40vh", md: "100%" }}
           overflowY="auto"
-          minW="300px"
+          minW="10%"
+          maxW="90%"
           borderRight={{ base: "none", md: `1px solid ${textColor}` }}
           shadow="md"
           borderRadius="lg"
@@ -130,13 +136,25 @@ const CodeEditor = ({ problemId }) => {
 
         {/* Resizer */}
         <Box
-          display={{ base: "none", md: "block" }}
-          width="4px"
-          bg="gray.500"
+          width="10px"
           cursor="ew-resize"
+          bg={useColorModeValue("gray.200", "gray.700")}
+          position="absolute"
+          top="0"
+          bottom="0"
+          left={`${dividerX}%`}
+          zIndex={2}
           onMouseDown={handleMouseDown}
-          zIndex="10"
-        />
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+          _hover={{ bg: useColorModeValue("gray.300", "gray.600") }}
+        >
+          <BsThreeDotsVertical
+            size={20}
+            color={useColorModeValue("gray.500", "white")}
+          />
+        </Box>
 
         {/* Code Workspace */}
         <Box

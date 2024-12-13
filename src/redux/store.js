@@ -10,6 +10,7 @@ import { userReducer } from "./User/userSlice";
 import { studentsReducer } from "./Student/studentsSlice";
 import { solvedQuestionReducer } from "./ContestQuestionSolvedSplice";
 import { questionSolvedReducer } from "./Question/questionSolvedSlice";
+import { batchReducer } from "./Batch/batchSlice";
 
 // Combine all reducers into a single rootReducer
 const rootReducer = combineReducers({
@@ -23,6 +24,7 @@ const rootReducer = combineReducers({
   theme: themeReducer,
   student: studentsReducer,
   questionSolved: questionSolvedReducer,
+  batch: batchReducer,
 });
 
 // Configure the store with the rootReducer
