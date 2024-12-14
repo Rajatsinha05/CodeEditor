@@ -86,7 +86,17 @@ const ContestCard = ({ contest, onStartClick }) => {
     console.log("Edit clicked");
     navigate(`/admin/update-contest/${contest.id}`);
   };
+  const truncateDescription = (description) => {
+    // Strip HTML tags and truncate to 2 lines worth of characters
+    const strippedText = description.replace(/<\/?[^>]+(>|$)/g, "");
+    const maxLength = 150; // Approximate character limit for 2 lines
 
+    if (strippedText.length > maxLength) {
+      return `${strippedText.substring(0, maxLength)}...`;
+    }
+
+    return strippedText;
+  };
   return (
     <Box
       borderWidth="1px"
@@ -106,9 +116,22 @@ const ContestCard = ({ contest, onStartClick }) => {
       <Text fontSize="xl" fontWeight="bold" color={titleColor}>
         {contest.title}
       </Text>
-      <Text fontSize="md" color={textColor} mt={2}>
+      {/* <Text fontSize="md" color={textColor} mt={2}>
         {contest.description}
-      </Text>
+      </Text> */}
+      <Box
+        mt={2}
+        color={textColor}
+        overflow="hidden"
+        display="-webkit-box"
+        style={{
+          WebkitLineClamp: 2, // Limit to 2 lines
+          WebkitBoxOrient: "vertical", // Set the box orientation to vertical
+        }}
+        dangerouslySetInnerHTML={{
+          __html: contest?.description || "No description provided.",
+        }}
+      />
 
       {/* Start and End Times */}
       <Stack mt={3} spacing={4}>

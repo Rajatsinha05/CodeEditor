@@ -12,6 +12,7 @@ import BatchList from "../components/Batch/BatchList";
 import Loader from "../components/Batch/Loader";
 import ErrorDisplay from "../components/Batch/ErrorDisplay";
 import dayjs from "dayjs";
+
 const BatchListPage = () => {
   const dispatch = useDispatch();
   const toast = useToast();
@@ -77,12 +78,18 @@ const BatchListPage = () => {
       mx="auto"
       px={6}
       py={10}
+      mt={2} // Added margin from the top
       bg={bgColor}
       rounded="lg"
       shadow="lg"
     >
-      <FilterSection filters={filters} setFilters={setFilters} />
-      <BatchList batches={filteredBatches} />
+      <VStack spacing={6} align="stretch">
+        {/* Filter Section */}
+        <FilterSection filters={filters} setFilters={setFilters} />
+
+        {/* Batch List */}
+        <BatchList batches={filteredBatches} />
+      </VStack>
     </Box>
   );
 };

@@ -251,7 +251,7 @@ const Navbar = () => {
                   variant="ghost"
                   colorScheme="teal"
                 >
-                  <Text fontWeight="bold">Hello, {user.name}</Text>
+                  <Text fontWeight="bold">Hello, {user.name.split(" ")[0]}</Text>
                 </MenuButton>
                 <MenuList>
                   <MenuItem onClick={handleLogOut}>

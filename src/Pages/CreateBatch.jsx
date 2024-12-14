@@ -10,6 +10,7 @@ import {
   useColorMode,
   useTheme,
   useToast,
+  useColorModeValue,
 } from "@chakra-ui/react";
 import ReactSelect from "react-select";
 import { useDispatch, useSelector } from "react-redux";
@@ -55,9 +56,8 @@ const CreateBatchForm = ({ batch = null, onClose }) => {
   const borderColor = isDarkMode
     ? theme.colors.whiteAlpha[300]
     : theme.colors.blackAlpha[300];
-  const primaryColor = isDarkMode
-    ? theme.colors.teal[600]
-    : theme.colors.teal[400];
+  const primaryColor = useColorModeValue("red.400", "teal.400");
+  const hoverBgColor = useColorModeValue("gray.200", "gray.600");
 
   const customSelectStyles = {
     control: (provided) => ({
@@ -65,11 +65,18 @@ const CreateBatchForm = ({ batch = null, onClose }) => {
       backgroundColor: bgColor,
       color: textColor,
       borderColor: borderColor,
+      padding: "6px",
     }),
     option: (provided, state) => ({
       ...provided,
-      backgroundColor: state.isSelected ? primaryColor : bgColor,
-      color: state.isSelected ? "white" : textColor,
+      backgroundColor: state.isSelected
+        ? primaryColor
+        : state.isFocused
+        ? hoverBgColor
+        : bgColor,
+      color: state.isSelected || state.isFocused ? "white" : textColor,
+      cursor: "pointer",
+      transition: "background-color 0.2s ease",
     }),
     singleValue: (provided) => ({
       ...provided,
@@ -110,8 +117,10 @@ const CreateBatchForm = ({ batch = null, onClose }) => {
   const generateTimeOptions = () => {
     const options = [];
     for (let hour = 8; hour <= 20; hour++) {
-      const time = `${hour}:00`;
-      options.push({ value: time, label: time });
+      const time12Hour = `${hour > 12 ? hour - 12 : hour}:00 ${
+        hour >= 12 ? "PM" : "AM"
+      }`;
+      options.push({ value: time12Hour, label: time12Hour });
     }
     return options;
   };
@@ -164,18 +173,15 @@ const CreateBatchForm = ({ batch = null, onClose }) => {
     if (onClose) {
       try {
         dispatch(updateBatch(payload)).unwrap();
-        console.log("payload: ", payload);
         showToast(toast, "Batch updated Successfully", "success");
       } catch (error) {
         showToast(toast, "Error updating batch", "error");
       }
-
       onClose();
     } else {
       try {
         const response = await dispatch(saveBatch(payload)).unwrap();
         showToast(toast, "Batch Created Successfully", "success");
-        setLastAddedBatch(response);
         setFormData(initialFormData);
         setFinalBatchName("");
       } catch (error) {
@@ -187,17 +193,18 @@ const CreateBatchForm = ({ batch = null, onClose }) => {
   return (
     <Box
       bg={bgColor}
-      p={[4, 6]}
+      p={[6, 8]}
       rounded="lg"
       shadow="lg"
-      maxW={["95%", "600px"]}
+      maxW={["90%", "600px"]}
       mx="auto"
+      mt={10} // Added margin from the top
       color={textColor}
     >
       <form onSubmit={handleSubmit}>
-        <VStack spacing={[3, 4]} align="stretch">
+        <VStack spacing={[4, 6]} align="stretch">
           <FormControl id="batchNameInput" isRequired>
-            <FormLabel>Enter Batch Name</FormLabel>
+            <FormLabel fontWeight="bold">Enter Batch Name</FormLabel>
             <Input
               type="text"
               name="batchNameInput"
@@ -207,11 +214,13 @@ const CreateBatchForm = ({ batch = null, onClose }) => {
               bg={bgColor}
               color={textColor}
               border={`1px solid ${borderColor}`}
+              p={4} // Added padding
+              rounded="md"
             />
           </FormControl>
 
           <FormControl id="time" isRequired>
-            <FormLabel>Select Batch Time</FormLabel>
+            <FormLabel fontWeight="bold">Select Batch Time</FormLabel>
             <ReactSelect
               options={generateTimeOptions()}
               styles={customSelectStyles}
@@ -224,7 +233,7 @@ const CreateBatchForm = ({ batch = null, onClose }) => {
           </FormControl>
 
           <FormControl id="students" isRequired>
-            <FormLabel>Select Students</FormLabel>
+            <FormLabel fontWeight="bold">Select Students</FormLabel>
             <ReactSelect
               options={filteredStudents}
               isMulti
@@ -238,29 +247,32 @@ const CreateBatchForm = ({ batch = null, onClose }) => {
             />
           </FormControl>
 
-          <Box
-            bg={isDarkMode ? "gray.700" : "gray.50"}
-            p={[2, 3]}
-            rounded="md"
-            shadow="inner"
-          >
-            <Text fontWeight="bold" fontSize={["sm", "md"]}>
-              Batch Name:
-            </Text>
-            <Text fontSize={["sm", "md"]}>
-              {formData.batchNameInput.length > 0
-                ? finalBatchName
-                : "Your batch name will appear here."}
-            </Text>
-          </Box>
+          {formData.batchNameInput.length > 0 ? (
+            <Box
+              bg={isDarkMode ? "gray.700" : "gray.50"}
+              p={[3, 4]}
+              rounded="md"
+              shadow="inner"
+            >
+              <Text fontWeight="bold" fontSize={["md", "lg"]}>
+                Batch Name:
+              </Text>
+              <Text fontSize={["sm", "md"]}>
+                {formData.batchNameInput.length > 0
+                  ? finalBatchName
+                  : "Your batch name will appear here."}
+              </Text>
+            </Box>
+          ) : null}
 
           <Button
             type="submit"
             colorScheme="teal"
             bg={primaryColor}
-            _hover={{ bg: isDarkMode ? "teal.500" : "teal.600" }}
+            _hover={{ bg: useColorModeValue("red.500", "teal.500") }}
             color="white"
             width="full"
+            py={6} // Added vertical padding for larger button
           >
             {isEditing ? "Update Batch" : "Create Batch"}
           </Button>

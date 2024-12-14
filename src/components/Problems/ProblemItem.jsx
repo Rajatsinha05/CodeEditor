@@ -18,6 +18,9 @@ import {
   ModalCloseButton,
   ModalBody,
   Button,
+  useColorModeValue,
+  Divider,
+  VStack,
 } from "@chakra-ui/react";
 import { MdMoreVert, MdDelete, MdEdit, MdBookmark } from "react-icons/md";
 import { useDispatch } from "react-redux";
@@ -45,7 +48,8 @@ const ProblemItem = ({ question, currentUserId, currentUserRole }) => {
     e.preventDefault();
     // Logic for bookmarking the question
   };
-
+  const headerBgColor = useColorModeValue("gray.100", "gray.700");
+  const bodyBgColor = useColorModeValue("white", "gray.800");
   return (
     <>
       <ListItem borderRadius="md" backgroundColor="rgba(0, 0, 0, 0.03)">
@@ -98,8 +102,6 @@ const ProblemItem = ({ question, currentUserId, currentUserRole }) => {
       <Modal isOpen={isOpen} onClose={onClose} size="xl">
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>Edit Question</ModalHeader>
-          <ModalCloseButton />
           <ModalBody>
             <AddQuestions
               isOpen={isOpen}

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {
+  Box,
   Button,
   FormControl,
   FormErrorMessage,
@@ -13,6 +14,9 @@ import {
   ModalBody,
   ModalFooter,
   useToast,
+  useColorModeValue,
+  Text,
+  VStack,
 } from "@chakra-ui/react";
 import { useDispatch, useSelector } from "react-redux";
 import { login } from "../redux/apiSlice";
@@ -28,11 +32,20 @@ const Login = ({ isOpen, onClose }) => {
   const [errors, setErrors] = useState({
     email: "",
     password: "",
+    server: "",
   });
 
   const toast = useToast();
-  const { isLogin, loginError } = useSelector((store) => store.data);
+  const { isLogin } = useSelector((store) => store.data);
   const navigate = useNavigate();
+
+  // Theme colors
+  const modalBg = useColorModeValue("white", "gray.800");
+  const modalHeaderColor = useColorModeValue("teal.600", "teal.300");
+  const inputBg = useColorModeValue("gray.50", "gray.700");
+  const inputFocusBorderColor = useColorModeValue("teal.500", "teal.300");
+  const buttonBg = useColorModeValue("red.400", "teal.400");
+  const buttonHoverBg = useColorModeValue("red.500", "teal.500");
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -43,6 +56,7 @@ const Login = ({ isOpen, onClose }) => {
     setErrors((prevErrors) => ({
       ...prevErrors,
       [name]: "",
+      server: "", // Reset server error when user interacts
     }));
   };
 
@@ -54,9 +68,16 @@ const Login = ({ isOpen, onClose }) => {
     if (!formData.email) {
       validationErrors.email = "Email is required";
       isValid = false;
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      validationErrors.email = "Invalid email format";
+      isValid = false;
     }
+
     if (!formData.password) {
       validationErrors.password = "Password is required";
+      isValid = false;
+    } else if (formData.password.length < 7) {
+      validationErrors.password = "Password must be at least 8 characters long";
       isValid = false;
     }
 
@@ -69,15 +90,13 @@ const Login = ({ isOpen, onClose }) => {
       const result = await dispatch(login(formData)).unwrap(); // Unwraps the Redux promise
       showToast(toast, "Login successful", "success");
       setFormData({ email: "", password: "" });
-      // onClose();
       navigate("/");
     } catch (error) {
-      
-      showToast(
-        toast,
-        error ? error : "An error occurred during login",
-        "error"
-      );
+      setErrors((prevErrors) => ({
+        ...prevErrors,
+        server: error || "An error occurred during login",
+      }));
+      showToast(toast, error || "An error occurred during login", "error");
     }
   };
 
@@ -87,48 +106,80 @@ const Login = ({ isOpen, onClose }) => {
         email: "",
         password: "",
       });
-      // onClose();
       navigate("/");
     }
-  }, [isLogin, navigate, onClose]);
+  }, [isLogin, navigate]);
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="md">
+    <Modal isOpen={isOpen} onClose={onClose} size="md" isCentered>
       <ModalOverlay />
-      <ModalContent>
-        <ModalHeader textAlign="center">Login</ModalHeader>
+      <ModalContent bg={modalBg} borderRadius="lg" boxShadow="lg">
+        <ModalHeader
+          textAlign="center"
+          fontSize="2xl"
+          fontWeight="bold"
+          color={modalHeaderColor}
+        >
+          Welcome Back
+        </ModalHeader>
         <ModalCloseButton />
         <ModalBody>
-          <form onSubmit={handleSubmit}>
-            <FormControl mb={4} isInvalid={!!errors.email}>
-              <FormLabel>Email</FormLabel>
-              <Input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="Enter your email"
-              />
-              <FormErrorMessage>{errors.email}</FormErrorMessage>
-            </FormControl>
-            <FormControl mb={4} isInvalid={!!errors.password}>
-              <FormLabel>Password</FormLabel>
-              <Input
-                type="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                placeholder="Enter your password"
-              />
-              <FormErrorMessage>{errors.password}</FormErrorMessage>
-            </FormControl>
-            <Button type="submit" colorScheme="blue" w="100%">
-              Login
-            </Button>
-          </form>
+          <VStack spacing={5}>
+            {errors.server && (
+              <Text color="red.500" fontSize="sm" textAlign="center">
+                {errors.server}
+              </Text>
+            )}
+            <form onSubmit={handleSubmit} style={{ width: "100%" }}>
+              <FormControl mb={4} isInvalid={!!errors.email}>
+                <FormLabel>Email</FormLabel>
+                <Input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  placeholder="Enter your email"
+                  bg={inputBg}
+                  focusBorderColor={inputFocusBorderColor}
+                  borderRadius="md"
+                />
+                <FormErrorMessage>{errors.email}</FormErrorMessage>
+              </FormControl>
+              <FormControl mb={4} isInvalid={!!errors.password}>
+                <FormLabel>Password</FormLabel>
+                <Input
+                  type="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  placeholder="Enter your password"
+                  bg={inputBg}
+                  focusBorderColor={inputFocusBorderColor}
+                  borderRadius="md"
+                />
+                <FormErrorMessage>{errors.password}</FormErrorMessage>
+              </FormControl>
+              <Button
+                type="submit"
+                w="100%"
+                bg={buttonBg}
+                _hover={{ bg: buttonHoverBg }}
+                color="white"
+                borderRadius="md"
+                size="lg"
+              >
+                Login
+              </Button>
+            </form>
+          </VStack>
         </ModalBody>
         <ModalFooter justifyContent="center">
-          <Button variant="ghost" onClick={onClose}>
+          <Button
+            variant="ghost"
+            onClick={onClose}
+            fontSize="sm"
+            colorScheme="gray"
+          >
             Cancel
           </Button>
         </ModalFooter>

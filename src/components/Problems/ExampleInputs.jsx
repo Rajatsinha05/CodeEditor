@@ -1,4 +1,3 @@
-// ExampleInputs.jsx
 import React from "react";
 import {
   Box,
@@ -8,8 +7,11 @@ import {
   Textarea,
   IconButton,
   Button,
+  useColorMode,
+  useColorModeValue,
 } from "@chakra-ui/react";
-import { CloseIcon } from "@chakra-ui/icons";
+import { CloseIcon, AddIcon } from "@chakra-ui/icons";
+import { showToast } from "../../utils/toastUtils";
 
 const ExampleInputs = ({
   examples,
@@ -19,24 +21,21 @@ const ExampleInputs = ({
   toast,
 }) => {
   // Handle adding a new example
-  const handleAddExample = () => {
+  const handleAddExample = (e) => {
+    e.preventDefault(); // Prevent form submission
     if (
       newExample.input.trim() === "" ||
       newExample.output.trim() === "" ||
       newExample.explanation.trim() === ""
     ) {
-      toast({
-        title: "Error",
-        description: "All example fields must be filled out.",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
+      showToast(toast, "All example fields must be filled out.", "error");
       return;
     }
 
+    // Add the new example to the list
     setExamples([...examples, newExample]);
 
+    // Reset the new example fields
     setNewExample({
       input: "",
       output: "",
@@ -46,12 +45,21 @@ const ExampleInputs = ({
 
   // Handle removing an existing example
   const handleRemoveExample = (indexToRemove) => {
-    setExamples(examples.filter((_, index) => index !== indexToRemove));
+    const updatedExamples = examples.filter(
+      (_, index) => index !== indexToRemove
+    );
+    setExamples(updatedExamples);
   };
+
+  // Theme-based colors
+  const { colorMode } = useColorMode();
+  const buttonColor = useColorModeValue("red.300", "teal.200");
+  const isDarkMode = colorMode === "dark";
 
   return (
     <FormControl mb={4}>
       <FormLabel>Examples</FormLabel>
+      {/* Render Existing Examples */}
       {examples.map((example, index) => (
         <Box
           key={index}
@@ -62,7 +70,7 @@ const ExampleInputs = ({
           position="relative"
         >
           <IconButton
-            aria-label="Close"
+            aria-label="Remove example"
             icon={<CloseIcon />}
             variant="ghost"
             colorScheme="red"
@@ -112,6 +120,8 @@ const ExampleInputs = ({
           </FormControl>
         </Box>
       ))}
+
+      {/* New Example Fields */}
       <FormLabel>Add New Example</FormLabel>
       <FormControl mb={2}>
         <Input
@@ -145,7 +155,22 @@ const ExampleInputs = ({
           style={{ minHeight: "100px", resize: "none" }}
         />
       </FormControl>
-      <Button type="button" colorScheme="teal" onClick={handleAddExample}>
+
+      {/* Add Example Button */}
+      <Button
+        type="button" // Ensure this button does not trigger form submission
+        colorScheme={isDarkMode ? "teal" : "red"}
+        bg={buttonColor}
+        leftIcon={<AddIcon />}
+        _hover={{
+          bg: isDarkMode ? "teal.300" : "red.400",
+        }}
+        _active={{
+          bg: isDarkMode ? "teal.400" : "red.500",
+        }}
+        mt={4}
+        onClick={handleAddExample}
+      >
         Add Example
       </Button>
     </FormControl>

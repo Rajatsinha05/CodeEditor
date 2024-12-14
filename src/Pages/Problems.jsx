@@ -82,7 +82,7 @@ const Problems = () => {
       <VStack spacing={6} align="stretch">
         {/* Header Section */}
         <HStack justifyContent="space-between">
-          <Heading size="lg">Problem List</Heading>
+          <Heading size="lg">Question List</Heading>
           <HStack>
             <IconButton
               icon={<FaFilter />}

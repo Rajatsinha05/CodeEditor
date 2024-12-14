@@ -16,17 +16,21 @@ function App() {
   const { isLogin } = useSelector((store) => store.data);
   const { colorMode } = useColorMode();
   const handleDrawerClose = () => setIsDrawerOpen(false);
+  const hoverBg = useColorModeValue("red.400", "teal.400"); // Dynamic hover color
 
+  // Define background and text colors
+  const bgColor = useColorModeValue("gray.50", "gray.900");
+  const textColor = useColorModeValue("gray.800", "white");
+  const cardBgColor = useColorModeValue("white", "gray.800");
   // Define hover styles based on color mode
-  const hoverBg = useColorModeValue("#f44336", "blue.600");
+
   const hoverColor = useColorModeValue("white", "white");
   const { user } = useSelector((store) => store.data);
 
   return (
     <>
-      
-        <Navbar />
-        <AllRoutes />
+      <Navbar />
+      <AllRoutes />
 
       {!isLogin && (
         <Box
@@ -64,10 +68,16 @@ function App() {
               You are not logged in. Please log in to access the content.
             </Text>
             <Button
-              colorScheme="blue"
+              bg={useColorModeValue("red.400", "teal.400")} // Base button color
+              color="white"
               size="lg"
               onClick={() => window.location.reload()}
-              _hover={{ bg: hoverBg, color: hoverColor }}
+              _hover={{
+                bg: hoverBg,
+                color: hoverColor,
+                transform: "scale(1.05)",
+                transition: "all 0.3s",
+              }}
             >
               Login
             </Button>

@@ -18,18 +18,19 @@ import {
   useColorModeValue,
   useColorMode,
   useTheme,
+  Heading,
+  Divider,
 } from "@chakra-ui/react";
 import { useDispatch, useSelector } from "react-redux";
 import "react-quill/dist/quill.snow.css"; // Import Quill's CSS
 
 import ReactQuill from "react-quill";
-import DOMPurify from "dompurify";
-import ReactSelect from "react-select";
+
 import ExampleInputs from "../components/Problems/ExampleInputs";
 import { formDataValidator } from "../components/Problems/formDataValidator";
 import { postQuestion, updateQuestion } from "../redux/Question/questionApi";
 import { Topics } from "../components/data/Dsa"; // Import the Topics function
-import { generateLongIdFromUUID } from "../utils/idHelper";
+
 import { showToast } from "../utils/toastUtils";
 import { Languages } from "../components/data/Modules";
 import ModuleSelector from "../components/Problems/ModuleSelector";
@@ -39,11 +40,6 @@ const AddQuestions = ({ isOpen, onClose, initialData, isEditing }) => {
   const [selectedModules, setSelectedModules] = useState(
     Languages().map((language) => language.value)
   );
-
-  // Handle module selection
-  const handleModuleSelect = (selectedOptions) => {
-    setSelectedModules(selectedOptions.map((option) => option.value));
-  };
 
   useEffect(() => {
     if (initialData?.modules) {
@@ -240,16 +236,11 @@ const AddQuestions = ({ isOpen, onClose, initialData, isEditing }) => {
   const theme = useTheme();
   const { colorMode } = useColorMode();
   const isDarkMode = colorMode === "dark";
-  const bgColor = isDarkMode ? theme.colors.gray[800] : theme.colors.gray[100];
-  const textColor = isDarkMode
-    ? theme.colors.whiteAlpha[900]
-    : theme.colors.blackAlpha[900];
+
   const primaryColor = isDarkMode
     ? theme.colors.gray[700]
     : theme.colors.gray[200];
-  const borderColor = isDarkMode
-    ? theme.colors.whiteAlpha[300]
-    : theme.colors.blackAlpha[300];
+
   const placeholderColor = isDarkMode
     ? theme.colors.gray[400]
     : theme.colors.gray[600];
@@ -259,56 +250,54 @@ const AddQuestions = ({ isOpen, onClose, initialData, isEditing }) => {
   const optionHoverBgColor = isDarkMode
     ? theme.colors.gray[600]
     : theme.colors.gray[200];
+
   // Adjusted for better visibility
-  const formLabelColor = useColorModeValue("teal.700", "teal.300"); // Adjusted for better contrast
-  const inputBgColor = useColorModeValue("gray.100", "gray.700");
-  const customSelectStyles = {
-    control: (provided) => ({
-      ...provided,
-      backgroundColor: bgColor,
-      color: textColor,
-      borderColor: borderColor,
-    }),
-    option: (provided, state) => ({
-      ...provided,
-      backgroundColor: state.isSelected ? primaryColor : optionBgColor,
-      color: textColor,
-      "&:hover": {
-        backgroundColor: optionHoverBgColor,
-      },
-    }),
-    singleValue: (provided) => ({
-      ...provided,
-      color: textColor,
-    }),
-    menu: (provided) => ({
-      ...provided,
-      backgroundColor: bgColor,
-      zIndex: 9999,
-    }),
-    placeholder: (provided) => ({
-      ...provided,
-      color: placeholderColor,
-    }),
-  };
+
+  const bgColor = isDarkMode ? theme.colors.gray[800] : theme.colors.gray[50];
+  const textColor = isDarkMode
+    ? theme.colors.whiteAlpha[900]
+    : theme.colors.blackAlpha[900];
+  const borderColor = isDarkMode ? "gray.600" : "gray.300";
+  const boxShadowColor = isDarkMode
+    ? "rgba(0, 0, 0, 0.4)"
+    : "rgba(0, 0, 0, 0.1)";
+  const buttonColor = isDarkMode ? "teal.400" : "red.400";
+
   return (
-    <Box p={6} bg={bgColor} borderRadius="lg" boxShadow="xl">
+    <Box
+      width={isEditing ? "100%" : "60%"}
+      margin="5rem auto" // Centering the form on the screen
+      p={8}
+      bg={bgColor}
+      borderRadius="lg"
+      boxShadow={`0 4px 12px ${boxShadowColor}`} // Subtle shadow for better appearance
+      border="1px solid"
+      borderColor={borderColor}
+    >
+      {/* Form Title */}
+      <Heading as="h2" size="lg" textAlign="center" color={textColor} mb={6}>
+        {isEditing ? "Update Question" : "Add Question"}
+      </Heading>
+
+      <Divider mb={6} />
+
       <form onSubmit={handleSubmit}>
         {/* Title Field */}
         <FormControl mb={4} isInvalid={errors.title}>
           <FormLabel color={textColor}>Title</FormLabel>
           <Input
-            type="text"
             name="title"
             value={formData.title}
             onChange={handleChange}
-            bg={inputBgColor}
+            bg={bgColor}
             color={textColor}
+            borderColor={borderColor}
+            _hover={{ borderColor: buttonColor }}
           />
         </FormControl>
 
-        {/* Description Field with Rich Text Editor */}
-        <FormControl mb={4} isInvalid={errors?.description}>
+        {/* Description Field */}
+        <FormControl mb={4} isInvalid={errors.description}>
           <FormLabel color={textColor}>Description</FormLabel>
           <ReactQuill
             value={formData.description}
@@ -317,10 +306,10 @@ const AddQuestions = ({ isOpen, onClose, initialData, isEditing }) => {
             }
             theme="snow"
             style={{
-              backgroundColor: inputBgColor,
+              backgroundColor: bgColor,
               color: textColor,
               border: "1px solid",
-              borderColor: useColorModeValue("gray.300", "gray.600"),
+              borderColor: borderColor,
               borderRadius: "5px",
               minHeight: "150px",
             }}
@@ -334,8 +323,10 @@ const AddQuestions = ({ isOpen, onClose, initialData, isEditing }) => {
             name="difficultLevel"
             value={formData.difficultLevel}
             onChange={handleChange}
-            bg={inputBgColor}
+            bg={bgColor}
             color={textColor}
+            borderColor={borderColor}
+            _hover={{ borderColor: buttonColor }}
           >
             <option value="">Select</option>
             <option value="EASY">EASY</option>
@@ -343,22 +334,25 @@ const AddQuestions = ({ isOpen, onClose, initialData, isEditing }) => {
             <option value="HARD">HARD</option>
           </Select>
         </FormControl>
+
+        {/* Module Selector */}
         <ModuleSelector
           selectedModules={selectedModules}
           setSelectedModules={setSelectedModules}
-          customSelectStyles={customSelectStyles}
         />
-        {/* Input */}
+
+        {/* Input Field */}
         <FormControl mb={4} isInvalid={errors.input}>
           <FormLabel color={textColor}>Input</FormLabel>
           <Textarea
             name="input"
             value={formData.input}
             onChange={handleChange}
-            ref={textAreaRefs.input}
-            style={{ minHeight: "100px", resize: "none" }}
-            bg={inputBgColor}
+            bg={bgColor}
             color={textColor}
+            borderColor={borderColor}
+            _hover={{ borderColor: buttonColor }}
+            style={{ resize: "none" }}
           />
         </FormControl>
 
@@ -369,25 +363,28 @@ const AddQuestions = ({ isOpen, onClose, initialData, isEditing }) => {
             name="expectedOutput"
             value={formData.expectedOutput}
             onChange={handleChange}
-            ref={textAreaRefs.expectedOutput}
-            style={{ minHeight: "100px", resize: "none" }}
-            bg={inputBgColor}
+            bg={bgColor}
             color={textColor}
+            borderColor={borderColor}
+            _hover={{ borderColor: buttonColor }}
+            style={{ resize: "none" }}
           />
         </FormControl>
 
-        {/* Tag Field */}
+        {/* Tag Selector */}
         <FormControl mb={4} isInvalid={errors.tag}>
-          <FormLabel color={textColor}>Tag (Select a Topic)</FormLabel>
+          <FormLabel color={textColor}>Tag</FormLabel>
           <Select
             name="tag"
             value={formData.tag}
-            onChange={handleTagChange}
-            bg={inputBgColor}
+            onChange={handleChange}
+            bg={bgColor}
             color={textColor}
+            borderColor={borderColor}
+            _hover={{ borderColor: buttonColor }}
           >
             <option value="">Select a topic</option>
-            {dsaTopics.map((topic) => (
+            {Topics().map((topic) => (
               <option key={topic.value} value={topic.value}>
                 {topic.label}
               </option>
@@ -405,8 +402,15 @@ const AddQuestions = ({ isOpen, onClose, initialData, isEditing }) => {
         />
 
         {/* Submit Button */}
-        <Button type="submit" colorScheme="teal" mt={4}>
-          {isEditing ? "Update" : "Submit"}
+        <Button
+          type="submit"
+          width="100%"
+          mt={6}
+          bg={buttonColor}
+          color="white"
+          _hover={{ bg: isDarkMode ? "teal.500" : "red.500" }}
+        >
+          {isEditing ? "Update Question" : "Add Question"}
         </Button>
       </form>
     </Box>

@@ -12,6 +12,11 @@ import {
   Box,
   Text,
   useColorModeValue,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalBody,
+  useDisclosure,
 } from "@chakra-ui/react";
 import { FiMoreVertical, FiTrash2, FiEye, FiEdit } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
@@ -19,6 +24,9 @@ import dayjs from "dayjs";
 import BatchEditModal from "./BatchEditModal";
 import Ability from "../../Permissions/Ability";
 import { GetRoles } from "../../Permissions/Roles";
+import { useDispatch } from "react-redux";
+import { deleteBatch } from "../../redux/Batch/batchSlice";
+import CreateBatchForm from "../../Pages/CreateBatch";
 
 const BatchCard = ({ batch }) => {
   const navigate = useNavigate();
@@ -32,7 +40,8 @@ const BatchCard = ({ batch }) => {
   const hoverBorderColor = useColorModeValue("red.300", "teal.200");
   const cardBgColor = useColorModeValue("gray.50", "gray.800");
   const textColor = useColorModeValue("gray.800", "whiteAlpha.900");
-
+  const dispatch = useDispatch();
+  const { isOpen, onOpen, onClose } = useDisclosure();
   return (
     <Flex
       direction="column"
@@ -79,7 +88,11 @@ const BatchCard = ({ batch }) => {
               <MenuItem icon={<FiEdit />} onClick={openEditModal}>
                 Edit Batch
               </MenuItem>
-              <MenuItem icon={<FiTrash2 />} color="red.500">
+              <MenuItem
+                icon={<FiTrash2 />}
+                color="red.500"
+                onClick={() => dispatch(deleteBatch(batch.id))}
+              >
                 Delete Batch
               </MenuItem>
             </Ability>
@@ -111,6 +124,19 @@ const BatchCard = ({ batch }) => {
         onClose={closeEditModal}
         batch={batch}
       />
+      <Modal isOpen={isOpen} onClose={onClose} size="xl">
+        <ModalOverlay />
+        <ModalContent>
+          <ModalBody>
+            <CreateBatchForm
+              isOpen={isOpen}
+              onClose={onClose}
+              initialData={batch}
+              isEditing={true}
+            />
+          </ModalBody>
+        </ModalContent>
+      </Modal>
     </Flex>
   );
 };

@@ -106,22 +106,7 @@ const ProblemDetails = ({ question }) => {
           )}
         </Flex>
 
-        {/* Difficulty Level */}
-        {/* <Flex justifyContent={{ base: "center", md: "flex-end" }} pb={3}>
-          <Tag
-            size="md"
-            colorScheme={
-              question?.difficultLevel === "EASY"
-                ? "green"
-                : question?.difficultLevel === "MEDIUM"
-                ? "yellow"
-                : "red"
-            }
-          >
-            {question?.difficultLevel || "N/A"}
-          </Tag>
-        </Flex> */}
-
+      
         {/* Description Section */}
         <Box
           bg={sectionBg}

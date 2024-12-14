@@ -94,9 +94,13 @@ const ContestDetailsSection = ({ contest, user }) => {
           <Text fontSize="lg" fontWeight="semibold" mb={2} color={textColor}>
             Description
           </Text>
-          <Text fontSize="md" color={subTextColor} lineHeight="1.6">
-            {contest.description}
-          </Text>
+          <Box
+            mt={2}
+            color={textColor}
+            dangerouslySetInnerHTML={{
+              __html: contest?.description || "No description provided.",
+            }}
+          />
         </Box>
       )}
 
@@ -113,4 +117,4 @@ const ContestDetailsSection = ({ contest, user }) => {
   );
 };
 
-export default React.memo (ContestDetailsSection);
+export default React.memo(ContestDetailsSection);

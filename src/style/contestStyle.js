@@ -1,5 +1,13 @@
-// styles/formStyles.js
-export const getCustomSelectStyles = () => ({
+export const customContestCreateStyle = (
+  bgColor,
+  textColor,
+  borderColor,
+  placeholderColor,
+  primaryColor,
+  buttonColor,
+  buttonHoverBg,
+  optionBgColor
+) => ({
   control: (provided) => ({
     ...provided,
     backgroundColor: bgColor,
@@ -28,4 +36,3 @@ export const getCustomSelectStyles = () => ({
     color: placeholderColor,
   }),
 });
-
