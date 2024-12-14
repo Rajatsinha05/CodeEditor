@@ -16,22 +16,40 @@ import {
   Textarea,
   useToast,
   useColorModeValue,
+  useColorMode,
+  useTheme,
 } from "@chakra-ui/react";
 import { useDispatch, useSelector } from "react-redux";
 import "react-quill/dist/quill.snow.css"; // Import Quill's CSS
 
 import ReactQuill from "react-quill";
 import DOMPurify from "dompurify";
-
+import ReactSelect from "react-select";
 import ExampleInputs from "../components/Problems/ExampleInputs";
 import { formDataValidator } from "../components/Problems/formDataValidator";
 import { postQuestion, updateQuestion } from "../redux/Question/questionApi";
 import { Topics } from "../components/data/Dsa"; // Import the Topics function
 import { generateLongIdFromUUID } from "../utils/idHelper";
 import { showToast } from "../utils/toastUtils";
+import { Languages } from "../components/data/Modules";
+import ModuleSelector from "../components/Problems/ModuleSelector";
 
 const AddQuestions = ({ isOpen, onClose, initialData, isEditing }) => {
   // Component logic
+  const [selectedModules, setSelectedModules] = useState(
+    Languages().map((language) => language.value)
+  );
+
+  // Handle module selection
+  const handleModuleSelect = (selectedOptions) => {
+    setSelectedModules(selectedOptions.map((option) => option.value));
+  };
+
+  useEffect(() => {
+    if (initialData?.modules) {
+      setSelectedModules(initialData.modules);
+    }
+  }, [initialData]);
 
   const dispatch = useDispatch();
   const toast = useToast();
@@ -171,6 +189,7 @@ const AddQuestions = ({ isOpen, onClose, initialData, isEditing }) => {
               data: {
                 ...formData,
                 examples,
+                modules: selectedModules,
               },
             })
           ).unwrap();
@@ -181,6 +200,7 @@ const AddQuestions = ({ isOpen, onClose, initialData, isEditing }) => {
               user: {
                 id: user.id,
               },
+              modules: selectedModules,
               examples,
             })
           ).unwrap();
@@ -217,18 +237,66 @@ const AddQuestions = ({ isOpen, onClose, initialData, isEditing }) => {
       onClose,
     ]
   );
-
-  const bgColor = useColorModeValue("white", "gray.800");
-  const textColor = useColorModeValue("gray.900", "gray.100"); // Adjusted for better visibility
+  const theme = useTheme();
+  const { colorMode } = useColorMode();
+  const isDarkMode = colorMode === "dark";
+  const bgColor = isDarkMode ? theme.colors.gray[800] : theme.colors.gray[100];
+  const textColor = isDarkMode
+    ? theme.colors.whiteAlpha[900]
+    : theme.colors.blackAlpha[900];
+  const primaryColor = isDarkMode
+    ? theme.colors.gray[700]
+    : theme.colors.gray[200];
+  const borderColor = isDarkMode
+    ? theme.colors.whiteAlpha[300]
+    : theme.colors.blackAlpha[300];
+  const placeholderColor = isDarkMode
+    ? theme.colors.gray[400]
+    : theme.colors.gray[600];
+  const optionBgColor = isDarkMode
+    ? theme.colors.gray[700]
+    : theme.colors.gray[100];
+  const optionHoverBgColor = isDarkMode
+    ? theme.colors.gray[600]
+    : theme.colors.gray[200];
+  // Adjusted for better visibility
   const formLabelColor = useColorModeValue("teal.700", "teal.300"); // Adjusted for better contrast
-  const inputBgColor = useColorModeValue("gray.100", "gray.700"); // Background for inputs
-
+  const inputBgColor = useColorModeValue("gray.100", "gray.700");
+  const customSelectStyles = {
+    control: (provided) => ({
+      ...provided,
+      backgroundColor: bgColor,
+      color: textColor,
+      borderColor: borderColor,
+    }),
+    option: (provided, state) => ({
+      ...provided,
+      backgroundColor: state.isSelected ? primaryColor : optionBgColor,
+      color: textColor,
+      "&:hover": {
+        backgroundColor: optionHoverBgColor,
+      },
+    }),
+    singleValue: (provided) => ({
+      ...provided,
+      color: textColor,
+    }),
+    menu: (provided) => ({
+      ...provided,
+      backgroundColor: bgColor,
+      zIndex: 9999,
+    }),
+    placeholder: (provided) => ({
+      ...provided,
+      color: placeholderColor,
+    }),
+  };
   return (
     <Box p={6} bg={bgColor} borderRadius="lg" boxShadow="xl">
       <form onSubmit={handleSubmit}>
         {/* Title Field */}
         <FormControl mb={4} isInvalid={errors.title}>
-          <FormLabel color={formLabelColor}>Title</FormLabel>
+          <FormLabel color={textColor}>Title</FormLabel>
           <Input
             type="text"
             name="title"
@@ -241,7 +309,7 @@ const AddQuestions = ({ isOpen, onClose, initialData, isEditing }) => {
 
         {/* Description Field with Rich Text Editor */}
         <FormControl mb={4} isInvalid={errors?.description}>
-          <FormLabel color={formLabelColor}>Description</FormLabel>
+          <FormLabel color={textColor}>Description</FormLabel>
           <ReactQuill
             value={formData.description}
             onChange={(value) =>
@@ -261,7 +329,7 @@ const AddQuestions = ({ isOpen, onClose, initialData, isEditing }) => {
 
         {/* Difficulty Level */}
         <FormControl mb={4} isInvalid={errors.difficultLevel}>
-          <FormLabel color={formLabelColor}>Difficulty Level</FormLabel>
+          <FormLabel color={textColor}>Difficulty Level</FormLabel>
           <Select
             name="difficultLevel"
             value={formData.difficultLevel}
@@ -275,10 +343,14 @@ const AddQuestions = ({ isOpen, onClose, initialData, isEditing }) => {
             <option value="HARD">HARD</option>
           </Select>
         </FormControl>
-
+        <ModuleSelector
+          selectedModules={selectedModules}
+          setSelectedModules={setSelectedModules}
+          customSelectStyles={customSelectStyles}
+        />
         {/* Input */}
         <FormControl mb={4} isInvalid={errors.input}>
-          <FormLabel color={formLabelColor}>Input</FormLabel>
+          <FormLabel color={textColor}>Input</FormLabel>
           <Textarea
             name="input"
             value={formData.input}
@@ -292,7 +364,7 @@ const AddQuestions = ({ isOpen, onClose, initialData, isEditing }) => {
 
         {/* Expected Output */}
         <FormControl mb={4} isInvalid={errors.expectedOutput}>
-          <FormLabel color={formLabelColor}>Expected Output</FormLabel>
+          <FormLabel color={textColor}>Expected Output</FormLabel>
           <Textarea
             name="expectedOutput"
             value={formData.expectedOutput}
@@ -306,7 +378,7 @@ const AddQuestions = ({ isOpen, onClose, initialData, isEditing }) => {
 
         {/* Tag Field */}
         <FormControl mb={4} isInvalid={errors.tag}>
-          <FormLabel color={formLabelColor}>Tag (Select a Topic)</FormLabel>
+          <FormLabel color={textColor}>Tag (Select a Topic)</FormLabel>
           <Select
             name="tag"
             value={formData.tag}

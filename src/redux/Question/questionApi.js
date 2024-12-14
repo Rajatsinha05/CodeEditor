@@ -1,21 +1,14 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-
 import axiosInstance from "../../config/axiosConfig";
-import { generateLongIdFromUUID, generateULID } from "../../utils/idHelper";
 
 // Async thunk to post a question
 export const postQuestion = createAsyncThunk(
   "questions/postQuestion",
   async (data, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.post("/questions", {
-        ...data,
-        id: generateULID(),
-      });
-      console.log("response.data: ", response.data);
+      const response = await axiosInstance.post("/api/v1/questions", data);
       return response.data;
     } catch (error) {
-      console.log("error: ", error);
       return rejectWithValue(
         error.response?.data || "An error occurred while posting the question."
       );
@@ -28,7 +21,9 @@ export const getQuestionById = createAsyncThunk(
   "questions/getQuestionById",
   async (questionId, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.get(`/questions/${questionId}`);
+      const response = await axiosInstance.get(
+        `/api/v1/questions/${questionId}`
+      );
       return response.data;
     } catch (error) {
       return rejectWithValue(
@@ -38,12 +33,12 @@ export const getQuestionById = createAsyncThunk(
   }
 );
 
-// Async thunk to fetch questions
+// Async thunk to fetch all questions
 export const fetchQuestions = createAsyncThunk(
   "questions/fetchQuestions",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.get("/questions");
+      const response = await axiosInstance.get("/api/v1/questions");
       return response.data;
     } catch (error) {
       return rejectWithValue(
@@ -53,49 +48,38 @@ export const fetchQuestions = createAsyncThunk(
   }
 );
 
-// Async thunk to update solved questions for a student
-export const solvedQuestions = createAsyncThunk(
-  "questions/solvedQuestions",
-  async ({ questionId, studentId }, { rejectWithValue }) => {
+// Async thunk to fetch questions with filters
+export const fetchQuestionsWithFilters = createAsyncThunk(
+  "questions/fetchQuestionsWithFilters",
+  async (filters = {}, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.put(
-        `/students/${studentId}/solve/${questionId}`
-      );
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(
-        error.response?.data ||
-          "An error occurred while updating solved questions."
-      );
-    }
-  }
-);
-export const getsolvedQuestions = createAsyncThunk(
-  "api/getsolvedQuestions",
-  async ({ studentId }, { rejectWithValue }) => {
-    try {
+      const { module} = filters;
+
+      // Construct query string
+      const queryParams = new URLSearchParams();
+      if (module) queryParams.append("module", module);
+
       const response = await axiosInstance.get(
-        `/students/${studentId}/solved-questions`
+        `/api/v1/questions/filter?${queryParams.toString()}`
       );
       return response.data;
     } catch (error) {
       return rejectWithValue(
-        error.response?.data ||
-          "An error occurred while fetching solved questions."
+        error.response?.data || "An error occurred while fetching questions."
       );
     }
   }
 );
 
+// Async thunk to update a question by ID
 export const updateQuestion = createAsyncThunk(
   "questions/updateQuestion",
   async ({ questionId, data }, { rejectWithValue }) => {
     try {
       const response = await axiosInstance.put(
-        `/questions/${questionId}`,
+        `/api/v1/questions/${questionId}`,
         data
       );
-
       return response.data;
     } catch (error) {
       return rejectWithValue(
@@ -105,12 +89,12 @@ export const updateQuestion = createAsyncThunk(
   }
 );
 
-// Async thunk to delete a question
+// Async thunk to delete a question by ID
 export const deleteQuestion = createAsyncThunk(
   "questions/deleteQuestion",
   async (questionId, { rejectWithValue }) => {
     try {
-      await axiosInstance.delete(`/questions/${questionId}`);
+      await axiosInstance.delete(`/api/v1/questions/${questionId}`);
       return questionId; // Return the ID so we can remove it from the state
     } catch (error) {
       return rejectWithValue(

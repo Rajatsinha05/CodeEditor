@@ -3,9 +3,9 @@ import {
   postQuestion,
   getQuestionById,
   fetchQuestions,
-  solvedQuestions,
   deleteQuestion,
   updateQuestion,
+  fetchQuestionsWithFilters,
 } from "./questionApi";
 
 // Initial state for the questions slice
@@ -59,17 +59,7 @@ const questionsSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-      .addCase(solvedQuestions.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(solvedQuestions.fulfilled, (state, action) => {
-        state.loading = false;
-      })
-      .addCase(solvedQuestions.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
+
       .addCase(updateQuestion.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -110,6 +100,18 @@ const questionsSlice = createSlice({
         }
       })
       .addCase(deleteQuestion.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(fetchQuestionsWithFilters.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchQuestionsWithFilters.fulfilled, (state, action) => {
+        state.questions = action.payload;
+        state.loading = false;
+      })
+      .addCase(fetchQuestionsWithFilters.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });
