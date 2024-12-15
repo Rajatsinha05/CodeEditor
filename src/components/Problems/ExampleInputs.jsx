@@ -68,6 +68,8 @@ const ExampleInputs = ({
           p={4}
           mb={4}
           position="relative"
+          bg={useColorModeValue("white", "gray.700")}
+          boxShadow="md"
         >
           <IconButton
             aria-label="Remove example"
@@ -76,47 +78,42 @@ const ExampleInputs = ({
             colorScheme="red"
             onClick={() => handleRemoveExample(index)}
             position="absolute"
-            top={1}
-            right={1}
+            top={2}
+            right={2}
           />
           <FormLabel mb={2}>Example {index + 1}</FormLabel>
           <FormControl mb={2}>
-            <Input
-              name={`input${index}`}
-              value={example.input}
-              onChange={(e) => {
-                const updatedExamples = [...examples];
-                updatedExamples[index].input = e.target.value;
-                setExamples(updatedExamples);
-              }}
-              placeholder="Input"
-            />
+            <FormLabel fontSize="sm">Input</FormLabel>
+            <Box
+              p={2}
+              borderRadius="md"
+              bg={useColorModeValue("gray.100", "gray.600")}
+              whiteSpace="pre-wrap" // Render newline characters as line breaks
+            >
+              {example.input}
+            </Box>
           </FormControl>
           <FormControl mb={2}>
-            <Textarea
-              name={`output${index}`}
-              value={example.output}
-              onChange={(e) => {
-                const updatedExamples = [...examples];
-                updatedExamples[index].output = e.target.value;
-                setExamples(updatedExamples);
-              }}
-              placeholder="Output"
-              style={{ minHeight: "100px", resize: "none" }}
-            />
+            <FormLabel fontSize="sm">Output</FormLabel>
+            <Box
+              p={2}
+              borderRadius="md"
+              bg={useColorModeValue("gray.100", "gray.600")}
+              whiteSpace="pre-wrap" // Render newline characters as line breaks
+            >
+              {example.output}
+            </Box>
           </FormControl>
           <FormControl mb={2}>
-            <Textarea
-              name={`explanation${index}`}
-              value={example.explanation}
-              onChange={(e) => {
-                const updatedExamples = [...examples];
-                updatedExamples[index].explanation = e.target.value;
-                setExamples(updatedExamples);
-              }}
-              placeholder="Explanation"
-              style={{ minHeight: "100px", resize: "none" }}
-            />
+            <FormLabel fontSize="sm">Explanation</FormLabel>
+            <Box
+              p={2}
+              borderRadius="md"
+              bg={useColorModeValue("gray.100", "gray.600")}
+              whiteSpace="pre-wrap" // Render newline characters as line breaks
+            >
+              {example.explanation}
+            </Box>
           </FormControl>
         </Box>
       ))}
@@ -124,7 +121,7 @@ const ExampleInputs = ({
       {/* New Example Fields */}
       <FormLabel>Add New Example</FormLabel>
       <FormControl mb={2}>
-        <Input
+        <Textarea
           name="newInput"
           value={newExample.input}
           onChange={(e) =>

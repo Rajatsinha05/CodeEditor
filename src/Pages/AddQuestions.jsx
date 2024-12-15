@@ -61,6 +61,8 @@ const AddQuestions = ({ isOpen, onClose, initialData, isEditing }) => {
       difficultLevel: initialData?.difficultLevel || "",
       input: initialData?.input || "",
       expectedOutput: initialData?.expectedOutput || "",
+      sampleInput: initialData?.sampleInput || "", // Added sampleInput
+      sampleExpectedOutput: initialData?.sampleExpectedOutput || "", // Added sampleExpectedOutput
       tag: initialData?.tag || "",
       userId: user?.id,
     }),
@@ -84,28 +86,17 @@ const AddQuestions = ({ isOpen, onClose, initialData, isEditing }) => {
 
   const handleChange = useCallback((e) => {
     const { name, value } = e.target;
+
+    // Update the formData state
     setFormData((prevData) => ({
       ...prevData,
-      [name]: value,
+      [name]: value, // Directly update the corresponding field
     }));
 
-    // Clear error if the user starts typing after an error
+    // Clear errors for the current field
     setErrors((prevErrors) => ({
       ...prevErrors,
       [name]: false,
-    }));
-  }, []);
-
-  const handleTagChange = useCallback((e) => {
-    const { value } = e.target;
-
-    setFormData((prevData) => ({
-      ...prevData,
-      tag: value,
-    }));
-    setErrors((prevErrors) => ({
-      ...prevErrors,
-      tag: false,
     }));
   }, []);
 
@@ -132,6 +123,8 @@ const AddQuestions = ({ isOpen, onClose, initialData, isEditing }) => {
       constraintValue: initialData?.constraintValue || "",
       input: initialData?.input || "",
       expectedOutput: initialData?.expectedOutput || "",
+      sampleInput: initialData?.sampleInput || "", // Added sampleInput
+      sampleExpectedOutput: initialData?.sampleExpectedOutput || "", // Added sampleExpectedOutput
       tag: initialData?.tag || "",
       userId: user?.id,
     }));
@@ -147,16 +140,29 @@ const AddQuestions = ({ isOpen, onClose, initialData, isEditing }) => {
   const handleSubmit = useCallback(
     async (e) => {
       e.preventDefault();
+      console.log("form", formData, examples);
 
+      // Clean input and expectedOutput fields by removing trailing spaces
+      const cleanedFormData = {
+        ...formData,
+        input: formData.input
+          .split("\n")
+          .map((line) => line.trimEnd()) // Remove trailing spaces from each line
+          .join("\n"),
+        expectedOutput: formData.expectedOutput
+          .split("\n")
+          .map((line) => line.trimEnd()) // Remove trailing spaces from each line
+          .join("\n"),
+      };
+      console.log("cleanedFormData", cleanedFormData);
+
+      // Add new example if fields are non-empty
       if (
         newExample.input.trim() !== "" ||
         newExample.output.trim() !== "" ||
         newExample.explanation.trim() !== ""
       ) {
-        // Add the newExample to examples array
-
         setExamples((prevExamples) => [...prevExamples, newExample]);
-        // Reset newExample
         setNewExample({
           input: "",
           output: "",
@@ -164,7 +170,8 @@ const AddQuestions = ({ isOpen, onClose, initialData, isEditing }) => {
         });
       }
 
-      const validationErrors = formDataValidator(formData);
+      // Validate formData (use cleaned data)
+      const validationErrors = formDataValidator(cleanedFormData);
       if (Object.keys(validationErrors).length > 0) {
         setErrors(validationErrors);
         showToast(
@@ -172,8 +179,7 @@ const AddQuestions = ({ isOpen, onClose, initialData, isEditing }) => {
           `Failed to ${isEditing ? "Update" : "Add"} Question`,
           "error"
         );
-        console.log("formData", formData);
-
+        console.log("formData", cleanedFormData);
         return;
       }
 
@@ -183,7 +189,7 @@ const AddQuestions = ({ isOpen, onClose, initialData, isEditing }) => {
             updateQuestion({
               questionId: initialData.id,
               data: {
-                ...formData,
+                ...cleanedFormData,
                 examples,
                 modules: selectedModules,
               },
@@ -192,7 +198,7 @@ const AddQuestions = ({ isOpen, onClose, initialData, isEditing }) => {
         } else {
           await dispatch(
             postQuestion({
-              ...formData,
+              ...cleanedFormData,
               user: {
                 id: user.id,
               },
@@ -202,6 +208,7 @@ const AddQuestions = ({ isOpen, onClose, initialData, isEditing }) => {
           ).unwrap();
         }
 
+        // Reset form after submission
         setFormData(initialFormData);
         setExamples([]);
         showToast(
@@ -212,7 +219,7 @@ const AddQuestions = ({ isOpen, onClose, initialData, isEditing }) => {
 
         if (onClose) {
           onClose();
-        } // Close the modal after submission
+        }
       } catch (err) {
         showToast(
           toast,
@@ -233,25 +240,10 @@ const AddQuestions = ({ isOpen, onClose, initialData, isEditing }) => {
       onClose,
     ]
   );
+
   const theme = useTheme();
   const { colorMode } = useColorMode();
   const isDarkMode = colorMode === "dark";
-
-  const primaryColor = isDarkMode
-    ? theme.colors.gray[700]
-    : theme.colors.gray[200];
-
-  const placeholderColor = isDarkMode
-    ? theme.colors.gray[400]
-    : theme.colors.gray[600];
-  const optionBgColor = isDarkMode
-    ? theme.colors.gray[700]
-    : theme.colors.gray[100];
-  const optionHoverBgColor = isDarkMode
-    ? theme.colors.gray[600]
-    : theme.colors.gray[200];
-
-  // Adjusted for better visibility
 
   const bgColor = isDarkMode ? theme.colors.gray[800] : theme.colors.gray[50];
   const textColor = isDarkMode
@@ -347,6 +339,42 @@ const AddQuestions = ({ isOpen, onClose, initialData, isEditing }) => {
           <Textarea
             name="input"
             value={formData.input}
+            onChange={handleChange} // Link updated handleChange
+            placeholder="Enter input data"
+            bg={bgColor}
+            color={textColor}
+            borderColor={borderColor}
+            _hover={{ borderColor: buttonColor }}
+            style={{
+              resize: "vertical",
+              whiteSpace: "pre-wrap", // Preserve line breaks and spaces visually
+            }}
+          />
+        </FormControl>
+
+        <FormControl mb={4} isInvalid={errors.expectedOutput}>
+          <FormLabel color={textColor}>Expected Output</FormLabel>
+          <Textarea
+            name="expectedOutput"
+            value={formData.expectedOutput}
+            onChange={handleChange} // Link updated handleChange
+            placeholder="Enter expected output"
+            style={{
+              minHeight: "100px",
+              resize: "none",
+              whiteSpace: "pre-wrap", // Preserve line breaks and spaces visually
+            }}
+            bg={useColorModeValue("gray.50", "gray.800")}
+            color={textColor}
+          />
+        </FormControl>
+
+        {/* Sample Input Field */}
+        <FormControl mb={4} isInvalid={errors.sampleInput}>
+          <FormLabel color={textColor}>Sample Input</FormLabel>
+          <Textarea
+            name="sampleInput"
+            value={formData.sampleInput}
             onChange={handleChange}
             bg={bgColor}
             color={textColor}
@@ -356,12 +384,12 @@ const AddQuestions = ({ isOpen, onClose, initialData, isEditing }) => {
           />
         </FormControl>
 
-        {/* Expected Output */}
-        <FormControl mb={4} isInvalid={errors.expectedOutput}>
-          <FormLabel color={textColor}>Expected Output</FormLabel>
+        {/* Sample Expected Output */}
+        <FormControl mb={4} isInvalid={errors.sampleExpectedOutput}>
+          <FormLabel color={textColor}>Sample Expected Output</FormLabel>
           <Textarea
-            name="expectedOutput"
-            value={formData.expectedOutput}
+            name="sampleExpectedOutput"
+            value={formData.sampleExpectedOutput}
             onChange={handleChange}
             bg={bgColor}
             color={textColor}

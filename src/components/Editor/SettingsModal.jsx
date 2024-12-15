@@ -16,7 +16,6 @@ import {
   useColorModeValue,
 } from "@chakra-ui/react";
 
-// Main SettingsModal Component
 const SettingsModal = ({
   isOpen,
   onClose,
@@ -26,30 +25,49 @@ const SettingsModal = ({
   setTheme,
   fontSize,
   setFontSize,
-  layout,
-  setLayout,
-  onLanguageChange, // Explicit language change handler
+  onLanguageChange,
 }) => {
+  // Define theme colors for light and dark modes
+  const bg = useColorModeValue("white", "gray.800");
+  const textColor = useColorModeValue("gray.800", "white");
+  const borderColor = useColorModeValue("gray.300", "gray.600");
+  const buttonBg = useColorModeValue("teal.400", "teal.500");
+  const buttonHoverBg = useColorModeValue("teal.500", "teal.600");
+  const cancelButtonBg = useColorModeValue("red.300", "red.400");
+  const cancelButtonHoverBg = useColorModeValue("red.400", "red.500");
+
   return (
-    <Modal isOpen={isOpen} onClose={onClose} isCentered size="lg">
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      isCentered
+      size={["sm", "md", "lg"]}
+    >
       <ModalOverlay />
       <ModalContent
-        bg={useColorModeValue("white", "gray.800")}
+        bg={bg}
         borderRadius="md"
+        border="1px solid"
+        borderColor={borderColor}
+        mx={[4, 8]} // Add responsive horizontal margin for smaller screens
       >
-        <ModalHeader textAlign="center" fontSize="2xl" fontWeight="bold">
+        <ModalHeader
+          textAlign="center"
+          fontSize={["lg", "xl", "2xl"]}
+          fontWeight="bold"
+          color={textColor}
+        >
           Editor Settings
         </ModalHeader>
-        <ModalCloseButton />
+        <ModalCloseButton color={textColor} />
         <ModalBody>
-          <VStack spacing={6}>
+          <VStack spacing={[4, 6]} align="stretch">
             <LanguageSelector
               language={preferences.language}
               setLanguage={onLanguageChange}
             />
             <ThemeSelector theme={theme} setTheme={setTheme} />
             <FontSizeSelector fontSize={fontSize} setFontSize={setFontSize} />
-            <LayoutSelector layout={layout} setLayout={setLayout} />
             <FeatureToggles
               showSnippets={preferences.showSnippets}
               showLineNumbers={preferences.showLineNumbers}
@@ -62,33 +80,33 @@ const SettingsModal = ({
             />
           </VStack>
         </ModalBody>
-        <ModalFooter>
-          <Button colorScheme="teal" size="lg" w="full" onClick={onClose}>
-            Save Settings
-          </Button>
-        </ModalFooter>
       </ModalContent>
     </Modal>
   );
 };
 
-// LanguageSelector Component
 const LanguageSelector = ({ language, setLanguage }) => {
+  const bg = useColorModeValue("gray.100", "gray.700");
+  const color = useColorModeValue("gray.800", "white");
+  const borderColor = useColorModeValue("gray.300", "gray.600");
+
   return (
     <Box>
-      <Text fontWeight="semibold" mb={2}>
+      <Text fontWeight="semibold" mb={2} color={color}>
         Programming Language
       </Text>
       <Select
         value={language}
         onChange={(e) => setLanguage(e.target.value)}
-        bg={useColorModeValue("gray.100", "gray.700")}
-        color={useColorModeValue("gray.800", "white")}
-        borderColor={useColorModeValue("gray.300", "gray.600")}
+        bg={bg}
+        color={color}
+        borderColor={borderColor}
         _hover={{ borderColor: "teal.500" }}
+        width="full"
       >
         <option value="java">Java</option>
         <option value="javascript">JavaScript</option>
+        <option value="typescript">TypeScript</option>
         <option value="python">Python</option>
         <option value="c">C</option>
         <option value="cpp">C++</option>
@@ -97,20 +115,24 @@ const LanguageSelector = ({ language, setLanguage }) => {
   );
 };
 
-// ThemeSelector Component
 const ThemeSelector = ({ theme, setTheme }) => {
+  const bg = useColorModeValue("gray.100", "gray.700");
+  const color = useColorModeValue("gray.800", "white");
+  const borderColor = useColorModeValue("gray.300", "gray.600");
+
   return (
     <Box>
-      <Text fontWeight="semibold" mb={2}>
+      <Text fontWeight="semibold" mb={2} color={color}>
         Editor Theme
       </Text>
       <Select
         value={theme}
         onChange={(e) => setTheme(e.target.value)}
-        bg={useColorModeValue("gray.100", "gray.700")}
-        color={useColorModeValue("gray.800", "white")}
-        borderColor={useColorModeValue("gray.300", "gray.600")}
+        bg={bg}
+        color={color}
+        borderColor={borderColor}
         _hover={{ borderColor: "teal.500" }}
+        width="full"
       >
         <option value="vs-dark">Dark Theme</option>
         <option value="vs-light">Light Theme</option>
@@ -121,20 +143,24 @@ const ThemeSelector = ({ theme, setTheme }) => {
   );
 };
 
-// FontSizeSelector Component
 const FontSizeSelector = ({ fontSize, setFontSize }) => {
+  const bg = useColorModeValue("gray.100", "gray.700");
+  const color = useColorModeValue("gray.800", "white");
+  const borderColor = useColorModeValue("gray.300", "gray.600");
+
   return (
     <Box>
-      <Text fontWeight="semibold" mb={2}>
+      <Text fontWeight="semibold" mb={2} color={color}>
         Font Size
       </Text>
       <Select
         value={fontSize}
         onChange={(e) => setFontSize(parseInt(e.target.value))}
-        bg={useColorModeValue("gray.100", "gray.700")}
-        color={useColorModeValue("gray.800", "white")}
-        borderColor={useColorModeValue("gray.300", "gray.600")}
+        bg={bg}
+        color={color}
+        borderColor={borderColor}
         _hover={{ borderColor: "teal.500" }}
+        width="full"
       >
         <option value={12}>12px</option>
         <option value={14}>14px</option>
@@ -146,36 +172,15 @@ const FontSizeSelector = ({ fontSize, setFontSize }) => {
   );
 };
 
-// LayoutSelector Component
-const LayoutSelector = ({ layout, setLayout }) => {
-  return (
-    <Box>
-      <Text fontWeight="semibold" mb={2}>
-        Editor Layout
-      </Text>
-      <Select
-        value={layout}
-        onChange={(e) => setLayout(e.target.value)}
-        bg={useColorModeValue("gray.100", "gray.700")}
-        color={useColorModeValue("gray.800", "white")}
-        borderColor={useColorModeValue("gray.300", "gray.600")}
-        _hover={{ borderColor: "teal.500" }}
-      >
-        <option value="single">Single View</option>
-        <option value="split">Split View</option>
-      </Select>
-    </Box>
-  );
-};
-
-// FeatureToggles Component
 const FeatureToggles = ({ showSnippets, showLineNumbers, toggleFeature }) => {
+  const textColor = useColorModeValue("gray.800", "white");
+
   return (
     <Box>
-      <Text fontWeight="semibold" mb={2}>
+      <Text fontWeight="semibold" mb={2} color={textColor}>
         Additional Features
       </Text>
-      <HStack spacing={4}>
+      <HStack spacing={4} flexWrap="wrap">
         <Button
           size="sm"
           colorScheme="teal"
@@ -183,6 +188,7 @@ const FeatureToggles = ({ showSnippets, showLineNumbers, toggleFeature }) => {
           onClick={() => toggleFeature("showSnippets")}
           _hover={{ shadow: "md" }}
           transition="all 0.3s"
+          w={["full", "auto"]}
         >
           {showSnippets ? "Disable Snippets" : "Enable Snippets"}
         </Button>
@@ -193,6 +199,7 @@ const FeatureToggles = ({ showSnippets, showLineNumbers, toggleFeature }) => {
           onClick={() => toggleFeature("showLineNumbers")}
           _hover={{ shadow: "md" }}
           transition="all 0.3s"
+          w={["full", "auto"]}
         >
           {showLineNumbers ? "Hide Line Numbers" : "Show Line Numbers"}
         </Button>

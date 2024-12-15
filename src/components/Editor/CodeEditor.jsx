@@ -2,7 +2,6 @@ import React, { useRef, useState, useEffect, useMemo } from "react";
 import { Box, useToast, useColorModeValue, Flex } from "@chakra-ui/react";
 import * as monaco from "monaco-editor";
 import { BsThreeDotsVertical } from "react-icons/bs";
-// Resize arrows icon
 
 import { useDispatch, useSelector } from "react-redux";
 import { CODE_SNIPPETS } from "./constants";
@@ -12,8 +11,6 @@ import { getQuestionById } from "../../redux/Question/questionApi";
 import { showToast } from "../../utils/toastUtils";
 import ProblemDetails from "./ProblemDetails";
 import CodeWorkspace from "./CodeWorkspace";
-import { AiOutlineColumnWidth } from "react-icons/ai"; // Resizable indicator
-// Drag handle
 
 const CodeEditor = ({ problemId }) => {
   const editorRef = useRef();
@@ -21,11 +18,9 @@ const CodeEditor = ({ problemId }) => {
   const [language, setLanguage] = useState("java");
   const [theme, setTheme] = useState("vs-dark");
   const [fontSize, setFontSize] = useState(14);
-
   const [dividerX, setDividerX] = useState(40); // Percentage for initial ProblemDetails width
 
   const { user } = useSelector((store) => store.user);
-
   const [testResults, setTestResults] = useState([]);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -53,16 +48,8 @@ const CodeEditor = ({ problemId }) => {
     editorRef.current = editor;
     editor.focus();
 
-    // Allow copy-paste for SUPERADMIN or ADMIN roles
-    if (
-      user.role === "SUPERADMIN" ||
-      user.role === "ADMIN" ||
-      user.email === "test@gmail.com"
-    ) {
-      return; // Exit early to allow default behavior
-    }
+    if (user.role === "SUPERADMIN" || user.role === "ADMIN") return;
 
-    // Disable copy-paste for other roles
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyC, () => {
       showToast(toast, "Copy Disabled", "warning");
     });
@@ -71,8 +58,6 @@ const CodeEditor = ({ problemId }) => {
     });
   };
 
-  const toggleDrawer = () => setIsDrawerOpen(!isDrawerOpen);
-
   const handleMouseDown = (e) => {
     const startX = e.clientX;
     const startDividerX = dividerX;
@@ -80,8 +65,8 @@ const CodeEditor = ({ problemId }) => {
     const handleMouseMove = (e) => {
       const deltaX = e.clientX - startX;
       const newDividerX = Math.max(
-        10, // Minimum limit
-        Math.min(90, startDividerX + (deltaX / window.innerWidth) * 100) // Maximum limit
+        10,
+        Math.min(90, startDividerX + (deltaX / window.innerWidth) * 100)
       );
       setDividerX(newDividerX);
     };
@@ -107,7 +92,6 @@ const CodeEditor = ({ problemId }) => {
       overflow="hidden"
       display="flex"
       flexDirection="column"
-      
     >
       <CameraDisplay />
 
@@ -116,15 +100,12 @@ const CodeEditor = ({ problemId }) => {
         overflow="hidden"
         direction={{ base: "column", md: "row" }}
         gap={{ base: 4, md: 0 }}
-        position="relative"
       >
         {/* Problem Details */}
         <Box
-          flex={`0 0 ${dividerX}%`}
-          height={{ base: "40vh", md: "100%" }}
+          flex={{ base: "1", md: `0 0 ${dividerX}%` }}
+          height={{ base: "auto", md: "100%" }}
           overflowY="auto"
-          minW="10%"
-          maxW="90%"
           borderRight={{ base: "none", md: `1px solid ${textColor}` }}
           shadow="md"
           borderRadius="lg"
@@ -139,13 +120,8 @@ const CodeEditor = ({ problemId }) => {
           width="10px"
           cursor="ew-resize"
           bg={useColorModeValue("gray.200", "gray.700")}
-          position="absolute"
-          top="0"
-          bottom="0"
-          left={`${dividerX}%`}
-          zIndex={2}
+          display={{ base: "none", md: "flex" }} // Hide on mobile
           onMouseDown={handleMouseDown}
-          display="flex"
           alignItems="center"
           justifyContent="center"
           _hover={{ bg: useColorModeValue("gray.300", "gray.600") }}
@@ -158,7 +134,8 @@ const CodeEditor = ({ problemId }) => {
 
         {/* Code Workspace */}
         <Box
-          flex={`0 0 ${100 - dividerX}%`}
+          flex={{ base: "1", md: `0 0 ${100 - dividerX}%` }}
+          height={{ base: "auto", md: "100%" }}
           overflowY="auto"
           borderRadius="lg"
           shadow="md"
@@ -177,7 +154,6 @@ const CodeEditor = ({ problemId }) => {
             testResults={testResults}
             isLoading={isLoading}
             isDrawerOpen={isDrawerOpen}
-            toggleDrawer={toggleDrawer}
             editorRef={editorRef}
             monaco={monaco}
             data={data}

@@ -135,7 +135,7 @@ const CodeWorkspace = ({
           <HStack spacing={4} align="center">
             <HStack spacing={2} align="center">
               <Icon as={FaClock} color="blue.500" w={4} h={4} />
-              <Text fontSize="sm">Inactive Time: {inactiveTime}s</Text>
+              <Text fontSize="sm">Inactive Time: {inactiveTime}</Text>
             </HStack>
             <HStack spacing={2} align="center">
               <Icon as={FaSync} color="green.500" w={4} h={4} />

@@ -5,6 +5,13 @@ const useTabActivityTracker = () => {
   const [tabChangeCount, setTabChangeCount] = useState(0);
   const startTimeRef = useRef(null); // Tracks when inactivity starts
 
+  // Format time as minutes and seconds
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
+  };
+
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.hidden) {
@@ -42,7 +49,7 @@ const useTabActivityTracker = () => {
     };
   }, []);
 
-  return { inactiveTime, tabChangeCount };
+  return { inactiveTime: formatTime(inactiveTime), tabChangeCount };
 };
 
 export default useTabActivityTracker;

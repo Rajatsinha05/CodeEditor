@@ -1,4 +1,3 @@
-// validators.js
 export const formDataValidator = (formData) => {
   const errors = {};
 
@@ -17,6 +16,14 @@ export const formDataValidator = (formData) => {
   }
   if (!formData.expectedOutput.trim()) {
     errors.expectedOutput = true;
+  }
+  if (!formData.sampleInput.trim()) {
+    // Added validation for sampleInput
+    errors.sampleInput = true;
+  }
+  if (!formData.sampleExpectedOutput.trim()) {
+    // Added validation for sampleExpectedOutput
+    errors.sampleExpectedOutput = true;
   }
   if (!formData.tag.trim()) {
     errors.tag = true;

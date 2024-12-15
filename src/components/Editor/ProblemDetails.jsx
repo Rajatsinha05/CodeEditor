@@ -106,7 +106,30 @@ const ProblemDetails = ({ question }) => {
           )}
         </Flex>
 
-      
+        {question?.difficultLevel && (
+          <Text
+            fontSize="sm"
+            fontWeight="bold"
+            textTransform="uppercase"
+            color={
+              question.difficultLevel.toLowerCase() === "easy"
+                ? "green.500"
+                : question.difficultLevel.toLowerCase() === "medium"
+                ? "orange.500"
+                : question.difficultLevel.toLowerCase() === "hard"
+                ? "red.500"
+                : "gray.500"
+            }
+            bg={useColorModeValue("gray.100", "gray.700")}
+            p={1}
+            borderRadius="md"
+            textAlign="center"
+            width="fit-content"
+          >
+            {question.difficultLevel}
+          </Text>
+        )}
+
         {/* Description Section */}
         <Box
           bg={sectionBg}
@@ -138,9 +161,11 @@ const ProblemDetails = ({ question }) => {
             flex="1"
           >
             <Text fontWeight="bold" mb={2} color={textColor}>
-              Input:
+              sample Input:
             </Text>
-            <Text>{question?.input || "Input format not provided."}</Text>
+            <Text as="pre" whiteSpace="pre-wrap">
+              {question?.sampleInput || "Input format not provided."}
+            </Text>
           </Box>
           <Box
             bg={sectionBg}
@@ -151,10 +176,10 @@ const ProblemDetails = ({ question }) => {
             flex="1"
           >
             <Text fontWeight="bold" mb={2} color={textColor}>
-              Expected Output:
+              sample ExpectedOutputt:
             </Text>
-            <Text>
-              {question?.expectedOutput || "Output format not provided."}
+            <Text as="pre" whiteSpace="pre-wrap">
+              {question?.sampleExpectedOutput || "Output format not provided."}
             </Text>
           </Box>
         </Stack>
@@ -176,15 +201,24 @@ const ProblemDetails = ({ question }) => {
                   border={`1px solid ${borderColor}`}
                 >
                   <Text>
-                    <strong>Input:</strong> {example.input || "N/A"}
+                    <strong>Input:</strong>
+                    <Box as="pre" whiteSpace="pre-wrap" fontSize="md" mt={1}>
+                      {example.input || "N/A"}
+                    </Box>
                   </Text>
                   <Divider my={2} />
                   <Text>
-                    <strong>Output:</strong> {example.output || "N/A"}
+                    <strong>Output:</strong>
+                    <Box as="pre" whiteSpace="pre-wrap" fontSize="md" mt={1}>
+                      {example.output || "N/A"}
+                    </Box>
                   </Text>
                   <Divider my={2} />
                   <Text>
-                    <strong>Explanation:</strong> {example.explanation || "N/A"}
+                    <strong>Explanation:</strong>
+                    <Box as="pre" whiteSpace="pre-wrap" fontSize="md" mt={1}>
+                      {example.explanation || "N/A"}
+                    </Box>
                   </Text>
                 </Box>
               ))}

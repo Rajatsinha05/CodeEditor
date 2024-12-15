@@ -44,6 +44,7 @@
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
+    "@types/node": "^22.10.2",
     "@types/react": "^18.2.43",
     "@vitejs/plugin-react": "^4.2.1",
     "eslint": "^8.55.0",
