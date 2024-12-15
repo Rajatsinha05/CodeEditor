@@ -1,4 +1,3 @@
-// Users.js
 import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -39,35 +38,40 @@ import {
 import { useNavigate } from "react-router-dom";
 import { getCourse } from "../data/course";
 import { getBranch } from "../data/branch";
-import { deleteUser, fetchUsers } from "../../redux/User/userApi";
+import {
+  deleteUser,
+  fetchUsers,
+  fetchUsersByBranchCode,
+} from "../../redux/User/userApi";
 import CreateUserModal from "./CreateUserModal";
+import Ability from "../../Permissions/Ability";
 
 const Users = React.memo(({ branchCode }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { users, user } = useSelector((store) => store.user); // Assuming `user` is the logged-in user
-  const userData = useSelector((store) => store.data.user);
+  const { users, user } = useSelector((store) => store.user);
 
+  // Modal Controls
   const {
     isOpen: isDeleteModalOpen,
     onOpen: onDeleteModalOpen,
     onClose: onDeleteModalClose,
   } = useDisclosure();
-
   const {
     isOpen: isUpdateModalOpen,
     onOpen: onUpdateModalOpen,
     onClose: onUpdateModalClose,
   } = useDisclosure();
 
+  // States for Filters, Sorting, and Modal Data
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
-
   const [search, setSearch] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState("");
   const [branchFilter, setBranchFilter] = useState("");
   const [sortOrder, setSortOrder] = useState({ key: "", order: "" });
 
+  // Theme and Styling
   const bgColor = useColorModeValue("gray.50", "gray.800");
   const textColor = useColorModeValue("gray.900", "gray.100");
   const hoverColor = useColorModeValue("red.100", "teal.600");
@@ -77,23 +81,24 @@ const Users = React.memo(({ branchCode }) => {
     "rgba(255, 0, 0, 0.05)",
     "rgba(20, 20, 20, 0.5)"
   );
-
   const isMobile = useBreakpointValue({ base: true, md: false });
 
+  // Fetch Users on Mount
   useEffect(() => {
-    dispatch(fetchUsers());
+    refreshUsers();
   }, [dispatch]);
 
   const refreshUsers = useCallback(() => {
-    dispatch(fetchUsers());
-  }, [dispatch]);
+    if (user?.role === "ADMIN") {
+      dispatch(fetchUsersByBranchCode(user?.branchCode));
+    } else {
+      dispatch(fetchUsers());
+    }
+  }, [dispatch, user?.role, user?.branchCode]);
 
+  // Filter and Sort Users Dynamically
   const filteredUsers = useMemo(() => {
     return (users || [])
-      .filter(
-        (userItem) =>
-          branchCode === "SUPERADMIN" || userItem.branchCode === branchCode
-      )
       .filter(
         (userItem) =>
           userItem?.name?.toLowerCase().includes(search.toLowerCase()) ||
@@ -103,7 +108,7 @@ const Users = React.memo(({ branchCode }) => {
         departmentFilter ? userItem.department === departmentFilter : true
       )
       .filter((userItem) =>
-        branchCode === "SUPERADMIN" && branchFilter
+        user?.role === "SUPERADMIN" && branchFilter
           ? userItem.branchCode === branchFilter
           : true
       )
@@ -117,15 +122,7 @@ const Users = React.memo(({ branchCode }) => {
           ? 1
           : -1;
       });
-  }, [
-    users,
-    branchCode,
-    search,
-    departmentFilter,
-    branchFilter,
-    sortOrder.key,
-    sortOrder.order,
-  ]);
+  }, [users, search, departmentFilter, branchFilter, sortOrder]);
 
   const handleSort = useCallback((key) => {
     setSortOrder((prev) => ({
@@ -134,6 +131,7 @@ const Users = React.memo(({ branchCode }) => {
     }));
   }, []);
 
+  // Modal and CRUD Handlers
   const handleDeleteConfirm = useCallback(() => {
     dispatch(deleteUser(selectedUserId)).then(() => {
       refreshUsers();
@@ -175,6 +173,7 @@ const Users = React.memo(({ branchCode }) => {
       boxShadow="lg"
       overflowX="auto"
     >
+      {/* Filters and Search */}
       <Flex
         mb={4}
         gap={4}
@@ -205,7 +204,7 @@ const Users = React.memo(({ branchCode }) => {
             </option>
           ))}
         </Select>
-        {branchCode === "SUPERADMIN" && (
+        {user?.role === "SUPERADMIN" && (
           <Select
             placeholder="Filter by branch"
             value={branchFilter}
@@ -224,6 +223,7 @@ const Users = React.memo(({ branchCode }) => {
         )}
       </Flex>
 
+      {/* Users Table */}
       <TableContainer>
         <Table variant="striped" colorScheme={tableColorScheme}>
           <Thead>
@@ -250,7 +250,9 @@ const Users = React.memo(({ branchCode }) => {
               <Th>Department</Th>
               <Th>Branch Code</Th>
               <Th>Role</Th>
-              {userData.role === "SUPERADMIN" && <Th>Actions</Th>}
+              <Ability roles={["SUPERADMIN"]}>
+                <Th>Actions</Th>
+              </Ability>
             </Tr>
           </Thead>
           <Tbody>
@@ -270,7 +272,7 @@ const Users = React.memo(({ branchCode }) => {
                 <Td>{userItem.department}</Td>
                 <Td>{userItem.branchCode}</Td>
                 <Td>{userItem.role}</Td>
-                {user.role === "SUPERADMIN" && (
+                <Ability roles={["SUPERADMIN"]}>
                   <Td>
                     <Menu>
                       <MenuButton
@@ -303,14 +305,14 @@ const Users = React.memo(({ branchCode }) => {
                       </MenuList>
                     </Menu>
                   </Td>
-                )}
+                </Ability>
               </Tr>
             ))}
           </Tbody>
         </Table>
       </TableContainer>
 
-      {/* Custom Confirm Delete Modal */}
+      {/* Confirm Delete Modal */}
       <Modal isOpen={isDeleteModalOpen} onClose={onDeleteModalClose} isCentered>
         <ModalOverlay />
         <ModalContent>

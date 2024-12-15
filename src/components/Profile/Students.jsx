@@ -32,20 +32,24 @@ import {
 } from "@chakra-ui/react";
 import { FaEllipsisV, FaTrash, FaEdit } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  getStudents,
-  updateStudent,
-  deleteStudent,
-} from "../../redux/apiSlice";
 import { getBranch } from "../data/branch";
 import { getCourse } from "../data/course";
 import { showToast } from "../../utils/toastUtils";
+import {
+  deleteStudent,
+  fetchStudents,
+  fetchStudentsByBranchCode,
+  updateStudent,
+} from "../../redux/Student/studentsSlice";
+import Ability from "../../Permissions/Ability";
 
-const Students = ({ branchCode }) => {
+const Students = () => {
   const dispatch = useDispatch();
   const toast = useToast();
-  const { students } = useSelector((store) => store.data);
+  const { students } = useSelector((store) => store.student); // Fetch students state
+  const { user } = useSelector((store) => store.user); // Fetch user state
 
+  // States for filters, search, and modal handling
   const [search, setSearch] = useState("");
   const [courseFilter, setCourseFilter] = useState("");
   const [branchFilter, setBranchFilter] = useState("");
@@ -54,6 +58,7 @@ const Students = ({ branchCode }) => {
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Theme colors for Chakra UI
   const bgColor = useColorModeValue("gray.50", "gray.800");
   const textColor = useColorModeValue("gray.900", "gray.100");
   const hoverColor = useColorModeValue("red.100", "teal.600");
@@ -64,17 +69,17 @@ const Students = ({ branchCode }) => {
     "rgba(20, 20, 20, 0.5)"
   );
 
+  // Fetch students based on user role
   useEffect(() => {
-    dispatch(getStudents());
-  }, [dispatch]);
+    if (user?.role === "ADMIN") {
+      dispatch(fetchStudentsByBranchCode(user?.branchCode));
+    } else {
+      dispatch(fetchStudents());
+    }
+  }, [dispatch, user?.role, user?.branchCode]);
 
+  // Filter and sort students
   const filteredStudents = students
-    .filter((student) => {
-      if (branchCode === "SUPERADMIN") {
-        return branchFilter ? student.branchCode === branchFilter : true;
-      }
-      return student.branchCode === branchCode;
-    })
     .filter(
       (student) =>
         student.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -83,31 +88,37 @@ const Students = ({ branchCode }) => {
     .filter((student) =>
       courseFilter ? student.course === courseFilter : true
     )
+    .filter((student) =>
+      branchFilter ? student.branchCode === branchFilter : true
+    )
     .sort((a, b) =>
       sortOrder === "asc"
         ? a.name.localeCompare(b.name)
         : b.name.localeCompare(a.name)
     );
 
+  // Toggle sort order for the Name column
   const toggleSortOrder = () => {
     setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
   };
 
+  // Handle update modal
   const handleUpdateStudent = (student) => {
     setSelectedStudent(student);
     setIsModalOpen(true);
   };
 
+  // Handle delete action
   const handleDeleteStudent = async (id) => {
     try {
       await dispatch(deleteStudent(id)).unwrap();
       showToast(toast, "Student deleted successfully.", "success");
-      dispatch(getStudents());
     } catch (error) {
       showToast(toast, "Error deleting student.", "error");
     }
   };
 
+  // Save updated student
   const handleSave = async () => {
     if (!selectedStudent) return;
 
@@ -118,7 +129,6 @@ const Students = ({ branchCode }) => {
       ).unwrap();
       showToast(toast, "Student updated successfully.", "success");
       setIsModalOpen(false);
-      dispatch(getStudents());
     } catch (error) {
       showToast(toast, "Error updating student.", "error");
     } finally {
@@ -126,6 +136,7 @@ const Students = ({ branchCode }) => {
     }
   };
 
+  // Close modal
   const handleModalClose = () => {
     setIsModalOpen(false);
     setSelectedStudent(null);
@@ -140,10 +151,7 @@ const Students = ({ branchCode }) => {
       color={textColor}
       boxShadow="lg"
     >
-      <Text fontSize="2xl" mb={4} fontWeight="bold">
-        Students Management
-      </Text>
-
+      {/* Filters and search */}
       <Flex mb={4} gap={4} alignItems="center">
         <Input
           placeholder="Search by name or email"
@@ -169,7 +177,8 @@ const Students = ({ branchCode }) => {
             </option>
           ))}
         </Select>
-        {branchCode === "SUPERADMIN" && (
+
+        <Ability roles={["SUPERADMIN"]}>
           <Select
             placeholder="Filter by branch"
             value={branchFilter}
@@ -185,9 +194,10 @@ const Students = ({ branchCode }) => {
               </option>
             ))}
           </Select>
-        )}
+        </Ability>
       </Flex>
 
+      {/* Table displaying students */}
       <TableContainer>
         <Table variant="striped" colorScheme={tableColorScheme}>
           <Thead>
@@ -236,6 +246,7 @@ const Students = ({ branchCode }) => {
         </Table>
       </TableContainer>
 
+      {/* Update Modal */}
       {isModalOpen && (
         <Modal isOpen={isModalOpen} onClose={handleModalClose}>
           <ModalOverlay />

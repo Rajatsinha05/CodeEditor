@@ -2,7 +2,13 @@
 import { createSlice } from "@reduxjs/toolkit";
 import Cookies from "js-cookie";
 
-import { createUser, deleteUser, fetchUsers, updateUser } from "./userApi";
+import {
+  createUser,
+  deleteUser,
+  fetchUsers,
+  fetchUsersByBranchCode,
+  updateUser,
+} from "./userApi";
 import { login } from "../apiSlice";
 
 import { jwtDecode } from "jwt-decode";
@@ -28,9 +34,7 @@ const userSlice = createSlice({
       try {
         Cookies.remove("token");
         Cookies.remove("userToken");
-      } catch (error) {
-        
-      }
+      } catch (error) {}
       state.user = null;
       state.isLogin = false;
       state.token = null;
@@ -56,6 +60,15 @@ const userSlice = createSlice({
         state.loading = false;
       })
       .addCase(fetchUsers.rejected, setErrorState)
+
+      // fetch by branch code
+
+      .addCase(fetchUsersByBranchCode.pending, setLoadingState)
+      .addCase(fetchUsersByBranchCode.fulfilled, (state, action) => {
+        state.users = action.payload;
+        state.loading = false;
+      })
+      .addCase(fetchUsersByBranchCode.rejected, setErrorState)
 
       // Create User
       .addCase(createUser.pending, setLoadingState)

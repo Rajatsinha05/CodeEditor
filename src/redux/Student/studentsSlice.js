@@ -9,7 +9,6 @@ export const fetchStudents = createAsyncThunk(
       const response = await axiosInstance.get("/students");
       return response.data;
     } catch (error) {
-      
       return rejectWithValue(
         error.response?.data || "Failed to fetch students."
       );
@@ -24,7 +23,6 @@ export const fetchStudentById = createAsyncThunk(
       const response = await axiosInstance.get(`/students/${id}`);
       return response.data;
     } catch (error) {
-      
       return rejectWithValue(
         error.response?.data || `Failed to fetch student with ID: ${id}.`
       );
@@ -40,7 +38,6 @@ export const createStudent = createAsyncThunk(
       const response = await axiosInstance.post("/students", studentWithId);
       return response.data;
     } catch (error) {
-      
       return rejectWithValue(
         error.response?.data || "Failed to create student."
       );
@@ -55,7 +52,6 @@ export const updateStudent = createAsyncThunk(
       const response = await axiosInstance.put(`/students/${id}`, updates);
       return response.data;
     } catch (error) {
-      
       return rejectWithValue(
         error.response?.data || `Failed to update student with ID: ${id}.`
       );
@@ -70,9 +66,25 @@ export const deleteStudent = createAsyncThunk(
       await axiosInstance.delete(`/students/${id}`);
       return id;
     } catch (error) {
-      
       return rejectWithValue(
         error.response?.data || `Failed to delete student with ID: ${id}.`
+      );
+    }
+  }
+);
+
+export const fetchStudentsByBranchCode = createAsyncThunk(
+  "students/fetchStudentsByBranchCode",
+  async (branchCode, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.get(
+        `/students/branch/${branchCode}`
+      );
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data ||
+          `Failed to fetch students for branchCode: ${branchCode}.`
       );
     }
   }
@@ -160,6 +172,18 @@ const studentsSlice = createSlice({
         state.loading = false;
       })
       .addCase(deleteStudent.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(fetchStudentsByBranchCode.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchStudentsByBranchCode.fulfilled, (state, action) => {
+        state.students = action.payload; // Replace students with branch-specific data
+        state.loading = false;
+      })
+      .addCase(fetchStudentsByBranchCode.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

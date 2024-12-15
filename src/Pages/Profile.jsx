@@ -1,45 +1,55 @@
 import React from "react";
-import { Box, Flex, useColorModeValue, useDisclosure } from "@chakra-ui/react";
-import { useSelector } from "react-redux";
-import ProfileTabs from "../components/Profile/ProfileTabs";
+import {
+  Box,
+  Flex,
+  Divider,
+  useColorModeValue,
+  useDisclosure,
+  useMediaQuery,
+} from "@chakra-ui/react";
 import Sidebar from "../components/Profile/Sidebar";
-import MobileDrawer from "../components/Profile/MobileDrawer";
-import Students from "../components/Profile/Students"; // Import Students component
+import { Outlet } from "react-router-dom";
 
 const Profile = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const { user } = useSelector((store) => store.data);
-  const isAdmin = user?.role === "ADMIN" || user?.role === "SUPERADMIN";
-  const isSuperAdmin = user?.role === "SUPERADMIN";
-  const isStudent = user?.role === "STUDENT";
+  
+  // Detect if screen size is mobile
+  const [isMobile] = useMediaQuery("(max-width: 768px)");
 
+  // Theme Colors
   const bgColor = useColorModeValue("gray.50", "gray.800");
   const textColor = useColorModeValue("gray.900", "gray.100");
 
+  // Sidebar width
+  const sidebarWidth = isMobile ? "100%" : "60";
+
   return (
-    <Flex minH="100vh" bg={bgColor}>
-      {/* Sidebar for Admin and Superadmin */}
-      {(isAdmin || isSuperAdmin) && (
-        <Sidebar isAdmin={isAdmin} isSuperAdmin={isSuperAdmin} onOpen={onOpen} />
-      )}
+    <Flex
+      minH="100vh"
+      bg={bgColor}
+      flexDirection={isMobile ? "column" : "row"}
+    >
+      {/* Sidebar */}
+      <Box
+        w={sidebarWidth} // Full width on mobile, fixed width on desktop
+        bg={bgColor}
+        display="block"
+        boxShadow="md"
+      >
+        <Sidebar onOpen={onOpen} />
+      </Box>
 
-      {/* Main Content Area */}
-      <Box flex="1" ml={{ base: 0, md: isAdmin || isSuperAdmin ? "60" : 0 }} p={5} bg={bgColor} color={textColor}>
-        {/* Drawer for Mobile Sidebar */}
-        {(isAdmin || isSuperAdmin) && (
-          <MobileDrawer
-            isOpen={isOpen}
-            onClose={onClose}
-            isAdmin={isAdmin}
-            isSuperAdmin={isSuperAdmin}
-          />
-        )}
-
-        {/* Tabs for Profile, Stats, and Rankings */}
-        <ProfileTabs user={user} isAdmin={isAdmin} isSuperAdmin={isSuperAdmin} />
-
-        {/* Display Students Table for Admin and Superadmin */}
-        
+      {/* Content Area */}
+      <Box
+        w="100%" // Ensure 100% width for mobile
+        flex="1"
+        p={4}
+        bg={bgColor}
+        color={textColor}
+      >
+        <Divider mb={4} />
+        {/* Nested Routes */}
+        <Outlet />
       </Box>
     </Flex>
   );

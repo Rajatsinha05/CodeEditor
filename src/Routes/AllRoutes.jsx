@@ -15,6 +15,13 @@ import PrivateRoute from "./PrivateRoute";
 import NotFoundPage from "../Pages/NotFoundPage";
 import CreateBatch from "../Pages/CreateBatch";
 import BatchListPage from "../Pages/Batch";
+import ProfileDetails from "../components/Profile/ProfileDetails";
+import Rankings from "../components/Profile/Rankings";
+import StudentStats from "../components/Profile/StudentStats";
+import CreateUserForm from "../components/Profile/CreateUserForm";
+import CreateStudentForm from "../components/Profile/CreateStudentForm";
+import Users from "../components/Profile/Users";
+import Students from "../components/Profile/Students";
 
 const AllRoutes = () => {
   let { user, isLogin } = useSelector((store) => store.data);
@@ -46,7 +53,16 @@ const AllRoutes = () => {
         path="/problem/:questionId"
         element={<SingleProblem type="question" />}
       />
-      <Route path="/profile" element={<Profile />} />
+      <Route path="/profile" element={<Profile />}>
+        <Route index element={<ProfileDetails />} />
+        <Route path="student-rankings" element={<Rankings />} />
+        <Route path="student-statistics" element={<StudentStats />} />
+        <Route path="create-user" element={<CreateUserForm />} />
+        <Route path="create-student" element={<CreateStudentForm />} />
+        <Route path="manage-users" element={<Users />} />
+        <Route path="manage-students" element={<Students />} />
+      </Route>
+
       <Route path="/contest/:id" element={<ContestDetails />} />
       <Route
         path="/admin/update-contest/:contestId"

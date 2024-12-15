@@ -14,8 +14,6 @@ const createApiThunk = (typePrefix, apiFunction) =>
       const response = await apiFunction(args);
       return response.data;
     } catch (error) {
-      
-
       // Enhanced error handling
       let errorMessage = `An error occurred in ${typePrefix}.`;
       if (error.response) {
@@ -49,8 +47,6 @@ export const createUser = createApiThunk("user/createUser", (user) => {
 export const updateUser = createApiThunk(
   "user/updateUser",
   ({ id, userData }) => {
-    
-
     return axiosInstance.put(`/users/${id}`, userData);
   }
 );
@@ -58,4 +54,9 @@ export const updateUser = createApiThunk(
 // Delete User
 export const deleteUser = createApiThunk("user/deleteUser", (userId) =>
   axiosInstance.delete(`/users/${userId}`)
+);
+
+export const fetchUsersByBranchCode = createApiThunk(
+  "user/fetchUsersByBranchCode",
+  (branchCode) => axiosInstance.get(`/users/branch/${branchCode}`)
 );

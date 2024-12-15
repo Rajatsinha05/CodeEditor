@@ -2,169 +2,207 @@ import React, { useState } from "react";
 import {
   Box,
   VStack,
-  Button,
   Text,
-  Icon,
   Heading,
   useColorModeValue,
   useDisclosure,
+  HStack,
+  IconButton,
+  Drawer,
+  DrawerOverlay,
+  DrawerContent,
+  DrawerCloseButton,
+  DrawerHeader,
+  DrawerBody,
+  useMediaQuery,
+  Flex,
 } from "@chakra-ui/react";
 import {
   FaUsers,
   FaUserGraduate,
-  FaCog,
   FaTrophy,
   FaUser,
   FaChartBar,
-  FaTools,
   FaClipboardList,
+  FaBars,
 } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 import CreateUserModal from "./CreateUserModal";
 import CreateStudentModal from "./CreateStudentModal";
+import Ability from "../../Permissions/Ability";
+import { GetRoles } from "../../Permissions/Roles";
+import SidebarButton from "./SidebarButton";
 
-const Sidebar = ({ isAdmin, isSuperAdmin }) => {
+const Sidebar = () => {
+  const navigate = useNavigate();
+
   // Theme colors
   const sidebarBgColor = useColorModeValue("gray.50", "gray.900");
   const textColor = useColorModeValue("gray.800", "white");
   const borderColor = useColorModeValue("gray.200", "gray.700");
   const hoverBg = useColorModeValue("red.50", "teal.700");
-  const iconColor = useColorModeValue("red.500", "teal.400"); // Red for light mode, teal for dark mode
+  const iconColor = useColorModeValue("red.500", "teal.400");
 
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [formType, setFormType] = useState(""); // 'user' or 'student'
+  const [formType, setFormType] = useState("");
+  const [isMobile] = useMediaQuery("(max-width: 768px)");
+  const [isDrawerOpen, setDrawerOpen] = useState(false);
 
   const handleOpenModal = (type) => {
     setFormType(type);
     onOpen();
   };
 
+  const toggleDrawer = () => setDrawerOpen(!isDrawerOpen);
+  const closeDrawer = () => setDrawerOpen(false);
+
+  const SidebarContent = () => (
+    <Flex
+      flexDirection="column"
+      justifyContent="space-between"
+      height="100%"
+      p={4}
+    >
+      <VStack align="stretch" spacing={4}>
+        <SidebarButton
+          icon={FaUser}
+          label="Profile"
+          onClick={() => {
+            navigate("/profile");
+            closeDrawer();
+          }}
+          hoverBg={hoverBg}
+          iconColor={iconColor}
+        />
+        <Ability roles={["SUPERADMIN"]}>
+          <SidebarButton
+            icon={FaUsers}
+            label="Create User"
+            onClick={() => {
+              handleOpenModal("user");
+              closeDrawer();
+            }}
+            hoverBg={hoverBg}
+            iconColor={iconColor}
+          />
+        </Ability>
+        <Ability roles={GetRoles()}>
+          <SidebarButton
+            icon={FaUserGraduate}
+            label="Create Student"
+            onClick={() => {
+              handleOpenModal("student");
+              closeDrawer();
+            }}
+            hoverBg={hoverBg}
+            iconColor={iconColor}
+          />
+          <SidebarButton
+            icon={FaClipboardList}
+            label="Manage Students"
+            onClick={() => {
+              navigate("/profile/manage-students");
+              closeDrawer();
+            }}
+            hoverBg={hoverBg}
+            iconColor={iconColor}
+          />
+          <SidebarButton
+            icon={FaUsers}
+            label="Manage Users"
+            onClick={() => {
+              navigate("/profile/manage-users");
+              closeDrawer();
+            }}
+            hoverBg={hoverBg}
+            iconColor={iconColor}
+          />
+        </Ability>
+        <SidebarButton
+          icon={FaTrophy}
+          label="Rankings"
+          onClick={() => {
+            navigate("/profile/student-rankings");
+            closeDrawer();
+          }}
+          hoverBg={hoverBg}
+          iconColor={iconColor}
+        />
+        <SidebarButton
+          icon={FaChartBar}
+          label="Statistics"
+          onClick={() => {
+            navigate("/profile/student-statistics");
+            closeDrawer();
+          }}
+          hoverBg={hoverBg}
+          iconColor={iconColor}
+        />
+      </VStack>
+      {/* Footer */}
+      <Text fontSize="xs" textAlign="center" color={textColor} mb={5}>
+        &copy; {new Date().getFullYear()} Dashboard
+      </Text>
+    </Flex>
+  );
+
   return (
     <>
-      {/* Sidebar */}
-      <Box
-        w={{ base: "full", md: "60" }}
-        pos="fixed"
-        top="0"
-        left="0"
-        h="full"
-        bg={sidebarBgColor}
-        p={6}
-        borderRight="1px solid"
-        borderColor={borderColor}
-        color={textColor}
-        display="flex"
-        flexDirection="column"
-        justifyContent="space-between"
-      >
-        {/* Dashboard Header */}
-        <Box>
-          <Heading mb={6} fontSize="xl" textAlign="center">
-            {isSuperAdmin
-              ? "Super Admin Dashboard"
-              : isAdmin
-              ? "Admin Dashboard"
-              : "User Dashboard"}
+      {/* Navbar for Mobile */}
+      {isMobile ? (
+        <HStack
+          w="full"
+          p={4}
+          bg={sidebarBgColor}
+          borderBottom="1px solid"
+          borderColor={borderColor}
+          justifyContent="space-between"
+        >
+          <Heading fontSize="lg" color={textColor}>
+            Dashboard
           </Heading>
-
-          {/* Role Display */}
-          {(isSuperAdmin || isAdmin) && (
-            <Text
-              mb={6}
-              textAlign="center"
-              fontSize="sm"
-              fontWeight="bold"
-              color={iconColor}
-            >
-              {isSuperAdmin ? "Super Admin Role" : "Admin Role"}
-            </Text>
-          )}
-
-          {/* Navigation */}
-          <VStack align="stretch" spacing={4}>
-            <SidebarButton
-              icon={FaUser}
-              label="Profile"
-              onClick={() => console.log("Profile clicked")}
-              hoverBg={hoverBg}
-              iconColor={iconColor}
-            />
-
-            {isSuperAdmin && (
-              <SidebarButton
-                icon={FaUsers}
-                label="Create User"
-                onClick={() => handleOpenModal("user")}
-                hoverBg={hoverBg}
-                iconColor={iconColor}
-              />
-            )}
-
-            {isAdmin && (
-              <SidebarButton
-                icon={FaUserGraduate}
-                label="Create Student"
-                onClick={() => handleOpenModal("student")}
-                hoverBg={hoverBg}
-                iconColor={iconColor}
-              />
-            )}
-
-            {(isSuperAdmin || isAdmin) && (
-              <>
-                <SidebarButton
-                  icon={FaClipboardList}
-                  label="Manage Students"
-                  onClick={() => console.log("Manage Students clicked")}
-                  hoverBg={hoverBg}
-                  iconColor={iconColor}
-                />
-                <SidebarButton
-                  icon={FaUsers}
-                  label="Manage Users"
-                  onClick={() => console.log("Manage Users clicked")}
-                  hoverBg={hoverBg}
-                  iconColor={iconColor}
-                />
-              </>
-            )}
-
-            <SidebarButton
-              icon={FaTrophy}
-              label="Rankings"
-              onClick={() => console.log("Rankings clicked")}
-              hoverBg={hoverBg}
-              iconColor={iconColor}
-            />
-
-            <SidebarButton
-              icon={FaChartBar}
-              label="Statistics"
-              onClick={() => console.log("Statistics clicked")}
-              hoverBg={hoverBg}
-              iconColor={iconColor}
-            />
-
-            {(isSuperAdmin || isAdmin) && (
-              <SidebarButton
-                icon={FaCog}
-                label="Settings"
-                onClick={() => console.log("Settings clicked")}
-                hoverBg={hoverBg}
-                iconColor={iconColor}
-              />
-            )}
-          </VStack>
+          <IconButton
+            icon={<FaBars />}
+            onClick={toggleDrawer}
+            aria-label="Open Menu"
+            bg={hoverBg}
+            _hover={{ bg: useColorModeValue("red.100", "teal.600") }}
+          />
+        </HStack>
+      ) : (
+        // Sidebar for Desktop
+        <Box
+          w="60"
+          pos="fixed"
+          top="0"
+          left="0"
+          h="full"
+          bg={sidebarBgColor}
+          borderRight="1px solid"
+          borderColor={borderColor}
+          p={6}
+          color={textColor}
+        >
+          <Heading mb={6} fontSize="xl" textAlign="center">
+            Dashboard
+          </Heading>
+          {SidebarContent()}
         </Box>
+      )}
 
-        {/* Footer */}
-        <Box>
-          <Text fontSize="xs" textAlign="center" color={textColor}>
-            &copy; {new Date().getFullYear()} Dashboard
-          </Text>
-        </Box>
-      </Box>
+      {/* Drawer for Mobile */}
+      <Drawer isOpen={isDrawerOpen} placement="left" onClose={closeDrawer}>
+        <DrawerOverlay />
+        <DrawerContent bg={sidebarBgColor}>
+          <DrawerCloseButton />
+          <DrawerHeader fontSize="lg" textAlign="center" color={textColor}>
+            Dashboard
+          </DrawerHeader>
+          <DrawerBody>{SidebarContent()}</DrawerBody>
+        </DrawerContent>
+      </Drawer>
 
-      {/* Modals for Creating User or Student */}
+      {/* Modals */}
       {formType === "user" && (
         <CreateUserModal isOpen={isOpen} onClose={onClose} />
       )}
@@ -172,25 +210,6 @@ const Sidebar = ({ isAdmin, isSuperAdmin }) => {
         <CreateStudentModal isOpen={isOpen} onClose={onClose} />
       )}
     </>
-  );
-};
-
-// Sidebar Button Component
-const SidebarButton = ({ icon, label, onClick, hoverBg, iconColor }) => {
-  const textColor = useColorModeValue("gray.800", "white");
-
-  return (
-    <Button
-      variant="ghost"
-      w="full"
-      justifyContent="flex-start"
-      leftIcon={<Icon as={icon} boxSize={5} color={iconColor} />}
-      color={textColor}
-      _hover={{ bg: hoverBg }}
-      onClick={onClick}
-    >
-      {label}
-    </Button>
   );
 };
 
