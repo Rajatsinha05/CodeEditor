@@ -37,9 +37,11 @@ const Problems = () => {
 
   const data = useSelector((store) => store.data);
   const question = useSelector((store) => store.question);
+  console.log("question: ", question);
   const currentUserId = data?.user?.id;
   const currentUserRole = data?.user?.role;
-
+  const canEditOrDelete =
+    currentUserId === question.userId || currentUserRole === "SUPERADMIN";
   useEffect(() => {
     if (question.questions.length === 0) {
       dispatch(fetchQuestions());

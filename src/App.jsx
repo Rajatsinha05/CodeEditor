@@ -10,7 +10,7 @@ import AllRoutes from "./Routes/AllRoutes";
 import { useSelector } from "react-redux";
 import { NavLink } from "react-router-dom";
 import { useState } from "react";
-
+import "react-quill/dist/quill.snow.css";
 function App() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const { isLogin } = useSelector((store) => store.data);

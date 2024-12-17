@@ -107,7 +107,7 @@ const Navbar = () => {
           </Flex>
         </NavLink>
         <NavLink
-          to="/problems"
+          to={`/problems`}
           className={({ isActive }) =>
             isActive ? "nav-link active" : "nav-link"
           }
@@ -251,7 +251,9 @@ const Navbar = () => {
                   variant="ghost"
                   colorScheme="teal"
                 >
-                  <Text fontWeight="bold">Hello, {user.name.split(" ")[0]}</Text>
+                  <Text fontWeight="bold">
+                    Hello, {user?.name?.split(" ")[0]}
+                  </Text>
                 </MenuButton>
                 <MenuList>
                   <MenuItem onClick={handleLogOut}>
@@ -260,7 +262,7 @@ const Navbar = () => {
                 </MenuList>
               </Menu>
               <NavLink
-                to="/profile"
+                to={`/profile`}
                 className={({ isActive }) =>
                   isActive ? "nav-link active" : "nav-link"
                 }
@@ -323,7 +325,7 @@ const Navbar = () => {
               {isLogin && (
                 <>
                   <NavLink
-                    to="/profile"
+                    to={`/profile}`}
                     className={({ isActive }) =>
                       isActive ? "nav-link active" : "nav-link"
                     }

@@ -14,13 +14,9 @@ import {
   Modal,
   ModalOverlay,
   ModalContent,
-  ModalHeader,
-  ModalCloseButton,
   ModalBody,
-  Button,
+  useToast,
   useColorModeValue,
-  Divider,
-  VStack,
 } from "@chakra-ui/react";
 import { MdMoreVert, MdDelete, MdEdit, MdBookmark } from "react-icons/md";
 import { useDispatch } from "react-redux";
@@ -30,26 +26,65 @@ import AddQuestions from "../../Pages/AddQuestions"; // Adjust the path as neede
 const ProblemItem = ({ question, currentUserId, currentUserRole }) => {
   const dispatch = useDispatch();
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const toast = useToast();
 
+  // Check if the user is allowed to edit or delete
   const canModify =
-    currentUserRole === "SUPERADMIN" || currentUserRole === "ADMIN";
+    currentUserId === question.userId || currentUserRole === "SUPERADMIN";
 
   const handleDelete = (e) => {
     e.preventDefault();
-    dispatch(deleteQuestion(question.id));
+    if (!canModify) {
+      toast({
+        title: "Action not allowed.",
+        description: "You do not have permission to delete this question.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    if (window.confirm("Are you sure you want to delete this question?")) {
+      dispatch(deleteQuestion(question.id));
+      toast({
+        title: "Question deleted.",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+    }
   };
 
   const handleEdit = (e) => {
     e.preventDefault();
+    if (!canModify) {
+      toast({
+        title: "Action not allowed.",
+        description: "You do not have permission to edit this question.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
     onOpen(); // Open the modal
   };
 
   const handleBookmark = (e) => {
     e.preventDefault();
-    // Logic for bookmarking the question
+    toast({
+      title: "Bookmarked.",
+      description: "This question has been added to your bookmarks.",
+      status: "success",
+      duration: 3000,
+      isClosable: true,
+    });
   };
+
   const headerBgColor = useColorModeValue("gray.100", "gray.700");
   const bodyBgColor = useColorModeValue("white", "gray.800");
+
   return (
     <>
       <ListItem borderRadius="md" backgroundColor="rgba(0, 0, 0, 0.03)">

@@ -26,7 +26,7 @@ import {
   FaClipboardList,
   FaBars,
 } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import CreateUserModal from "./CreateUserModal";
 import CreateStudentModal from "./CreateStudentModal";
 import Ability from "../../Permissions/Ability";
@@ -55,7 +55,7 @@ const Sidebar = () => {
 
   const toggleDrawer = () => setDrawerOpen(!isDrawerOpen);
   const closeDrawer = () => setDrawerOpen(false);
-
+  const { studentId } = useParams();
   const SidebarContent = () => (
     <Flex
       flexDirection="column"
@@ -68,7 +68,7 @@ const Sidebar = () => {
           icon={FaUser}
           label="Profile"
           onClick={() => {
-            navigate("/profile");
+            navigate(`/profile/${studentId}`);
             closeDrawer();
           }}
           hoverBg={hoverBg}

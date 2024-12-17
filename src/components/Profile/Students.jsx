@@ -42,6 +42,7 @@ import {
   updateStudent,
 } from "../../redux/Student/studentsSlice";
 import Ability from "../../Permissions/Ability";
+import { Link, useNavigate } from "react-router-dom";
 
 const Students = () => {
   const dispatch = useDispatch();
@@ -141,7 +142,10 @@ const Students = () => {
     setIsModalOpen(false);
     setSelectedStudent(null);
   };
-
+  const nav = useNavigate();
+  const handleNavigate = (id) => {
+    nav(`/profile/${id}`);
+  };
   return (
     <Box
       p={5}
@@ -218,7 +222,9 @@ const Students = () => {
                 _hover={{ bg: hoverColor }}
                 bg={index % 2 === 1 ? alternateRowBg : "transparent"}
               >
-                <Td>{student.name}</Td>
+                <Td onClick={() => handleNavigate(student.id)}>
+                  {student.name}
+                </Td>
                 <Td>{student.email}</Td>
                 <Td>{student.course}</Td>
                 <Td>{student.branchCode}</Td>

@@ -1,5 +1,5 @@
 import React from "react";
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import Problems from "../Pages/Problems";
 import Signup from "../Pages/Signup";
 import Login from "../Pages/Login";
@@ -22,6 +22,8 @@ import CreateUserForm from "../components/Profile/CreateUserForm";
 import CreateStudentForm from "../components/Profile/CreateStudentForm";
 import Users from "../components/Profile/Users";
 import Students from "../components/Profile/Students";
+import AdminProfile from "../Pages/AdminProfile";
+import StudentDetailsPage from "../components/Profile/Student/StudentDetailsPage";
 
 const AllRoutes = () => {
   let { user, isLogin } = useSelector((store) => store.data);
@@ -54,14 +56,26 @@ const AllRoutes = () => {
         element={<SingleProblem type="question" />}
       />
       <Route path="/profile" element={<Profile />}>
-        <Route index element={<ProfileDetails />} />
+        {user?.role === "ADMIN" || user?.role === "SUPERADMIN" ? (
+          <Route index element={<AdminProfile />} />
+        ) : (
+          <Route index element={<ProfileDetails />} />
+        )}
+
+        {/* Nested Routes */}
         <Route path="student-rankings" element={<Rankings />} />
         <Route path="student-statistics" element={<StudentStats />} />
         <Route path="create-user" element={<CreateUserForm />} />
         <Route path="create-student" element={<CreateStudentForm />} />
         <Route path="manage-users" element={<Users />} />
         <Route path="manage-students" element={<Students />} />
+
+        {/* Dynamic Student Profile Route */}
+        <Route path=":studentId" element={<StudentDetailsPage />} />
       </Route>
+
+      {/* Redirect to Profile as Default */}
+      <Route path="*" element={<Navigate to="/profile" />} />
 
       <Route path="/contest/:id" element={<ContestDetails />} />
       <Route
