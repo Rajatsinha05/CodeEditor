@@ -17,7 +17,7 @@ import { useDispatch } from "react-redux";
 import {
   createCertificate,
   updateCertificate,
-} from "../../../redux/Student/certificateApi";
+} from "../../../redux/Student/CertificateApi";
 import { showToast } from "../../../utils/toastUtils";
 
 const CertificatesModal = ({

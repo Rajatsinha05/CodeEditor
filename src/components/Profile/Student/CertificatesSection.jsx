@@ -30,8 +30,10 @@ import {
   FaCertificate,
 } from "react-icons/fa";
 import CertificatesModal from "./CertificatesModal"; // Modal Component
-import { deleteCertificate } from "../../../redux/Student/certificateApi"; // API Calls
+
 import { useDispatch } from "react-redux";
+import { deleteCertificate } from "../../../redux/Student/CertificateApi";
+import { showToast } from "../../../utils/toastUtils";
 
 const CertificatesSection = ({ student, onSave }) => {
   const bgColor = useColorModeValue("white", "gray.900");
@@ -61,22 +63,11 @@ const CertificatesSection = ({ student, onSave }) => {
   const handleDelete = async (id) => {
     try {
       await dispatch(deleteCertificate(id));
-      toast({
-        title: "Certificate Deleted",
-        description: "The certificate was successfully deleted.",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
+      showToast(toast, "Certificate Deleted", "success");
+
       onSave(); // Update the parent component's state
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to delete the certificate.",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
+      showToast(toast, error, "error");
     }
   };
 
