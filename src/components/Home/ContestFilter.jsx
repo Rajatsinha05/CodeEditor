@@ -47,17 +47,6 @@ const ContestFilter = ({ filter, setFilter, onCreateContest }) => {
           </Button>
         </Tooltip>
       </HStack>
-
-      <Ability roles={["ADMIN", "SUPERADMIN"]}>
-        <Tooltip label="Create Contest" aria-label="Create Contest">
-          <IconButton
-            icon={<MdAddCircle />}
-            colorScheme="teal"
-            onClick={onCreateContest}
-            aria-label="Create Contest"
-          />
-        </Tooltip>
-      </Ability>
     </HStack>
   );
 };

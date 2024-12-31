@@ -7,10 +7,9 @@ An in-browser code editor that allows you to write and execute your code in the 
 ```bash
 # install dependencies
 
-npm install
+npm install 
 
 # start the dev server
 
 npm run dev
 ```
- <Login isOpen={!isLogin} />

@@ -24,6 +24,11 @@ import Users from "../components/Profile/Users";
 import Students from "../components/Profile/Students";
 import AdminProfile from "../Pages/AdminProfile";
 import StudentDetailsPage from "../components/Profile/Student/StudentDetailsPage";
+import Portfolio from "../Pages/Portfolio";
+import ResumeSection from "../components/Profile/resume/ResumeSection";
+import AddProject from "../Pages/AddProject";
+import AssignStudents from "../Pages/AssignStudents";
+import AssignProject from "../Pages/AssignProject";
 
 const AllRoutes = () => {
   let { user, isLogin } = useSelector((store) => store.data);
@@ -51,6 +56,8 @@ const AllRoutes = () => {
       <Route path="/problems" element={<Problems />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
+      <Route path="/portfolio/:studentId" element={<Portfolio />} />
+      <Route path="/resume/:studentId" element={<ResumeSection />} />
       <Route
         path="/problem/:questionId"
         element={<SingleProblem type="question" />}
@@ -71,11 +78,8 @@ const AllRoutes = () => {
         <Route path="manage-students" element={<Students />} />
 
         {/* Dynamic Student Profile Route */}
-        <Route path=":studentId" element={<StudentDetailsPage />} />
+        {/* <Route path=":studentId" element={<StudentDetailsPage />} /> */}
       </Route>
-
-      {/* Redirect to Profile as Default */}
-      <Route path="*" element={<Navigate to="/profile" />} />
 
       <Route path="/contest/:id" element={<ContestDetails />} />
       <Route
@@ -106,6 +110,22 @@ const AllRoutes = () => {
             }
           />
           <Route
+            path="/admin/batch/:batchId/assign-project"
+            element={
+              <PrivateRouteAdmin>
+                <AssignProject />
+              </PrivateRouteAdmin>
+            }
+          />
+          <Route
+            path="/admin/batch/assign-students/:batchId"
+            element={
+              <PrivateRouteAdmin>
+                <AssignStudents />
+              </PrivateRouteAdmin>
+            }
+          />
+          <Route
             path="admin/add-question"
             element={
               <PrivateRouteAdmin>
@@ -113,6 +133,7 @@ const AllRoutes = () => {
               </PrivateRouteAdmin>
             }
           />
+          <Route path="/admin/add-project" element={<AddProject />} />
         </>
       )}
 

@@ -20,9 +20,11 @@ import {
   Heading,
   Divider,
   Center,
+  Skeleton,
+  SkeletonText,
   Spinner,
 } from "@chakra-ui/react";
-import { FaFilter, FaSyncAlt, FaMoon, FaSun } from "react-icons/fa";
+import { FaFilter, FaSyncAlt } from "react-icons/fa";
 import ProblemItem from "../components/Problems/ProblemItem";
 import { fetchQuestions } from "../redux/Question/questionApi";
 import { Topics } from "../components/data/Dsa";
@@ -37,16 +39,14 @@ const Problems = () => {
 
   const data = useSelector((store) => store.data);
   const question = useSelector((store) => store.question);
-  console.log("question: ", question);
   const currentUserId = data?.user?.id;
   const currentUserRole = data?.user?.role;
-  const canEditOrDelete =
-    currentUserId === question.userId || currentUserRole === "SUPERADMIN";
+
   useEffect(() => {
     if (question.questions.length === 0) {
       dispatch(fetchQuestions());
     }
-    const timer = setTimeout(() => setLoading(false), 500);
+    const timer = setTimeout(() => setLoading(false), 1000);
     return () => clearTimeout(timer);
   }, [dispatch]);
 
@@ -67,10 +67,40 @@ const Problems = () => {
   });
 
   if (loading || data.loading || question.loading) {
+    // Skeleton Loader
     return (
-      <Center height="100vh">
-        <Spinner size="xl" color="teal.400" />
-      </Center>
+      <Box
+        p={6}
+        bg={useColorModeValue("gray.50", "gray.900")}
+        minH="100vh"
+        color={useColorModeValue("gray.800", "gray.200")}
+      >
+        <VStack spacing={6} align="stretch">
+          {/* Header Section */}
+          <HStack justifyContent="space-between">
+            <Skeleton height="20px" width="30%" />
+            <Skeleton height="20px" width="10%" />
+          </HStack>
+
+          {/* Filters */}
+          <Skeleton height="40px" width="100%" borderRadius="md" />
+
+          <Divider />
+
+          {/* List Items */}
+          {[...Array(5)].map((_, index) => (
+            <Box
+              key={index}
+              p={4}
+              borderRadius="lg"
+              bg={useColorModeValue("white", "gray.700")}
+              shadow="md"
+            >
+              <SkeletonText mt="4" noOfLines={3} spacing="4" />
+            </Box>
+          ))}
+        </VStack>
+      </Box>
     );
   }
 

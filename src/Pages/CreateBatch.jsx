@@ -8,75 +8,64 @@ import {
   Text,
   VStack,
   useColorMode,
-  useTheme,
   useToast,
   useColorModeValue,
 } from "@chakra-ui/react";
 import ReactSelect from "react-select";
 import { useDispatch, useSelector } from "react-redux";
 import { saveBatch, updateBatch } from "../redux/Batch/batchSlice";
-import { getStudents } from "../redux/apiSlice";
-import { showToast } from "../utils/toastUtils";
+import { Languages, modules } from "../components/data/Modules";
 
 const CreateBatchForm = ({ batch = null, onClose }) => {
+  console.log("batch: ", batch);
   const dispatch = useDispatch();
   const toast = useToast();
   const { colorMode } = useColorMode();
-  const theme = useTheme();
   const user = useSelector((store) => store.data.user);
-  const { students } = useSelector((store) => store.data);
 
   const isEditing = !!batch;
   const initialFormData = batch
     ? {
-        batchNameInput: batch.name.split("-")[1] || "",
+        batchNameInput: batch.name.split("-")[0] || "",
         time: batch.name.split("-")[2] || "",
+        module: batch.module || "",
         branchCode: batch.branchCode,
         status: batch.status,
-        studentIds: batch.studentIds || [],
       }
     : {
         batchNameInput: "",
         time: "",
+        module: "",
         branchCode: user?.branchCode || "All branches",
         status: "ACTIVE",
-        studentIds: [],
       };
 
   const [formData, setFormData] = useState(initialFormData);
-  const [filteredStudents, setFilteredStudents] = useState([]);
-  const [finalBatchName, setFinalBatchName] = useState("");
+  const [finalTitle, setFinalTitle] = useState("");
 
-  // Colors
-  const isDarkMode = colorMode === "dark";
-  const bgColor = isDarkMode ? theme.colors.gray[800] : theme.colors.gray[100];
-  const textColor = isDarkMode
-    ? theme.colors.whiteAlpha[900]
-    : theme.colors.blackAlpha[900];
-  const borderColor = isDarkMode
-    ? theme.colors.whiteAlpha[300]
-    : theme.colors.blackAlpha[300];
-  const primaryColor = useColorModeValue("red.400", "teal.400");
-  const hoverBgColor = useColorModeValue("gray.200", "gray.600");
+  const bgColor = useColorModeValue("gray.50", "gray.900");
+  const formBgColor = useColorModeValue("white", "gray.800");
+  const textColor = useColorModeValue("gray.800", "gray.200");
+  const borderColor = useColorModeValue("gray.300", "gray.600");
+  const buttonColor = useColorModeValue("red.400", "teal.400");
+  const hoverButtonColor = useColorModeValue("red.500", "teal.500");
 
   const customSelectStyles = {
     control: (provided) => ({
       ...provided,
-      backgroundColor: bgColor,
+      backgroundColor: formBgColor,
       color: textColor,
       borderColor: borderColor,
-      padding: "6px",
+      "&:hover": { borderColor: hoverButtonColor },
     }),
     option: (provided, state) => ({
       ...provided,
       backgroundColor: state.isSelected
-        ? primaryColor
+        ? buttonColor
         : state.isFocused
-        ? hoverBgColor
-        : bgColor,
-      color: state.isSelected || state.isFocused ? "white" : textColor,
-      cursor: "pointer",
-      transition: "background-color 0.2s ease",
+        ? hoverButtonColor
+        : formBgColor,
+      color: textColor,
     }),
     singleValue: (provided) => ({
       ...provided,
@@ -84,46 +73,20 @@ const CreateBatchForm = ({ batch = null, onClose }) => {
     }),
     menu: (provided) => ({
       ...provided,
-      backgroundColor: bgColor,
-      zIndex: 9999,
+      backgroundColor: formBgColor,
     }),
   };
 
   useEffect(() => {
-    if (students.length === 0) {
-      dispatch(getStudents());
-    }
-  }, [dispatch]);
-
-  useEffect(() => {
-    if (students) {
-      setFilteredStudents(
-        students.map((student) => ({
-          value: student.id,
-          label: `${student.name} - ${student.grid} - ${student.course} - ${student.branchCode}`,
-        }))
-      );
-    }
-  }, [students]);
-
-  useEffect(() => {
-    const userName = user?.name?.split(" ")[0] || "User";
+    const module = formData.module || "";
     const batchName = formData.batchNameInput.trim();
     const time = formData.time.trim();
-    const formattedBatchName = `${userName}-${batchName}-${time}`;
-    setFinalBatchName(formattedBatchName);
-  }, [formData.batchNameInput, formData.time, user]);
-
-  const generateTimeOptions = () => {
-    const options = [];
-    for (let hour = 8; hour <= 20; hour++) {
-      const time12Hour = `${hour > 12 ? hour - 12 : hour}:00 ${
-        hour >= 12 ? "PM" : "AM"
-      }`;
-      options.push({ value: time12Hour, label: time12Hour });
-    }
-    return options;
-  };
+    const title =
+      batchName && module && time
+        ? `${batchName}-${module}-${time}`.toUpperCase()
+        : "";
+    setFinalTitle(title);
+  }, [formData.module, formData.batchNameInput, formData.time]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -140,139 +103,145 @@ const CreateBatchForm = ({ batch = null, onClose }) => {
     }));
   };
 
-  const handleStudentSelect = (selectedOptions) => {
+  const handleModuleSelect = (selectedOption) => {
     setFormData((prev) => ({
       ...prev,
-      studentIds: selectedOptions.map((option) => option.value),
+      module: selectedOption.value,
     }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (
-      !formData.batchNameInput ||
-      !formData.time ||
-      formData.studentIds.length === 0
-    ) {
-      showToast(toast, "Missing Information", "warning");
+    if (!formData.batchNameInput || !formData.time || !formData.module) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill out all required fields.",
+        status: "warning",
+        duration: 3000,
+        isClosable: true,
+      });
       return;
     }
 
     const payload = {
       id: batch?.id || undefined,
-      name: finalBatchName,
+      name: finalTitle,
+      module: formData.module,
       branchCode: formData.branchCode,
       status: formData.status,
-      studentIds: formData.studentIds,
       createdById: user.id,
-      contestIds: batch?.contestIds || [],
-      createdAt: batch?.createdAt,
+      studentIds: [],
     };
 
-    if (onClose) {
-      try {
-        dispatch(updateBatch(payload)).unwrap();
-        showToast(toast, "Batch updated Successfully", "success");
-      } catch (error) {
-        showToast(toast, "Error updating batch", "error");
-      }
-      onClose();
-    } else {
-      try {
-        const response = await dispatch(saveBatch(payload)).unwrap();
-        showToast(toast, "Batch Created Successfully", "success");
+    try {
+      if (isEditing) {
+        await dispatch(updateBatch(payload)).unwrap();
+        toast({
+          title: "Success",
+          description: "Batch updated successfully!",
+          status: "success",
+        });
+        onClose();
+      } else {
+        await dispatch(saveBatch(payload)).unwrap();
+        toast({
+          title: "Success",
+          description: "Batch created successfully!",
+          status: "success",
+        });
         setFormData(initialFormData);
-        setFinalBatchName("");
-      } catch (error) {
-        showToast(toast, "Error creating batch", "error");
+        setFinalTitle("");
       }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error || "Failed to save batch",
+        status: "error",
+      });
     }
   };
+
+  const allModules = [...Languages(), ...modules()];
+
+  const timeOptions = Array.from({ length: 13 }, (_, i) => {
+    const hour = 8 + i;
+    const isPM = hour >= 12;
+    const adjustedHour = hour > 12 ? hour - 12 : hour;
+    return {
+      value: `${adjustedHour}:00 ${isPM ? "PM" : "AM"}`,
+      label: `${adjustedHour}:00 ${isPM ? "PM" : "AM"}`,
+    };
+  });
 
   return (
     <Box
       bg={bgColor}
-      p={[6, 8]}
+      p={6}
       rounded="lg"
       shadow="lg"
-      maxW={["90%", "600px"]}
+      maxW="lg"
       mx="auto"
-      mt={10} // Added margin from the top
-      color={textColor}
+      mt={10}
     >
       <form onSubmit={handleSubmit}>
-        <VStack spacing={[4, 6]} align="stretch">
-          <FormControl id="batchNameInput" isRequired>
-            <FormLabel fontWeight="bold">Enter Batch Name</FormLabel>
+        <VStack spacing={6} align="stretch">
+          <FormControl isRequired>
+            <FormLabel fontWeight="bold">Batch Name</FormLabel>
             <Input
-              type="text"
               name="batchNameInput"
+              placeholder="Enter batch name"
               value={formData.batchNameInput}
               onChange={handleInputChange}
-              placeholder="Enter batch name"
-              bg={bgColor}
+              bg={formBgColor}
               color={textColor}
               border={`1px solid ${borderColor}`}
-              p={4} // Added padding
-              rounded="md"
+              _hover={{ borderColor: hoverButtonColor }}
             />
           </FormControl>
 
-          <FormControl id="time" isRequired>
-            <FormLabel fontWeight="bold">Select Batch Time</FormLabel>
+          <FormControl isRequired>
+            <FormLabel fontWeight="bold">Module</FormLabel>
             <ReactSelect
-              options={generateTimeOptions()}
+              options={allModules}
+              styles={customSelectStyles}
+              onChange={handleModuleSelect}
+              value={allModules.find((mod) => mod.value === formData.module)}
+              placeholder="Select module"
+            />
+          </FormControl>
+
+          <FormControl isRequired>
+            <FormLabel fontWeight="bold">Batch Time</FormLabel>
+            <ReactSelect
+              options={timeOptions}
               styles={customSelectStyles}
               onChange={handleTimeSelect}
-              value={generateTimeOptions().find(
-                (option) => option.value === formData.time
-              )}
-              placeholder="Select batch time"
+              value={timeOptions.find((time) => time.value === formData.time)}
+              placeholder="Select time"
             />
           </FormControl>
 
-          <FormControl id="students" isRequired>
-            <FormLabel fontWeight="bold">Select Students</FormLabel>
-            <ReactSelect
-              options={filteredStudents}
-              isMulti
-              closeMenuOnSelect={false}
-              styles={customSelectStyles}
-              onChange={handleStudentSelect}
-              value={filteredStudents.filter((student) =>
-                formData.studentIds.includes(student.value)
-              )}
-              placeholder="Search and select students"
-            />
-          </FormControl>
-
-          {formData.batchNameInput.length > 0 ? (
+          {finalTitle && (
             <Box
-              bg={isDarkMode ? "gray.700" : "gray.50"}
-              p={[3, 4]}
+              bg={formBgColor}
+              p={4}
               rounded="md"
-              shadow="inner"
+              shadow="md"
+              visibility={finalTitle ? "visible" : "hidden"}
             >
-              <Text fontWeight="bold" fontSize={["md", "lg"]}>
-                Batch Name:
-              </Text>
-              <Text fontSize={["sm", "md"]}>
-                {formData.batchNameInput.length > 0
-                  ? finalBatchName
-                  : "Your batch name will appear here."}
+              <Text fontWeight="bold" textAlign="center" color={textColor}>
+                {finalTitle}
               </Text>
             </Box>
-          ) : null}
+          )}
 
           <Button
             type="submit"
             colorScheme="teal"
-            bg={primaryColor}
-            _hover={{ bg: useColorModeValue("red.500", "teal.500") }}
+            bg={buttonColor}
             color="white"
-            width="full"
-            py={6} // Added vertical padding for larger button
+            _hover={{ bg: hoverButtonColor }}
           >
             {isEditing ? "Update Batch" : "Create Batch"}
           </Button>

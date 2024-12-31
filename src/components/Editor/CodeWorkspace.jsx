@@ -279,4 +279,4 @@ const CodeWorkspace = ({
   );
 };
 
-export default React.memo(CodeWorkspace);
+export default CodeWorkspace;

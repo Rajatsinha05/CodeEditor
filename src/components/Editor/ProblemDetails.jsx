@@ -1,8 +1,10 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   VStack,
   Text,
   Box,
+  Skeleton,
+  SkeletonText,
   Tag,
   useColorModeValue,
   Divider,
@@ -17,6 +19,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchContests } from "../../redux/contestSlice";
 
 const ProblemDetails = ({ question }) => {
+  const [loading, setLoading] = useState(true);
+
   const boxBg = useColorModeValue("gray.50", "gray.800");
   const sectionBg = useColorModeValue("white", "gray.900");
   const borderColor = useColorModeValue("gray.300", "gray.600");
@@ -31,6 +35,9 @@ const ProblemDetails = ({ question }) => {
     if (contestId && contests.length === 0) {
       dispatch(fetchContests());
     }
+
+    const timer = setTimeout(() => setLoading(false), 1000); // Simulate loading
+    return () => clearTimeout(timer);
   }, [dispatch, contestId, contests.length]);
 
   const contest = contestId
@@ -61,6 +68,36 @@ const ProblemDetails = ({ question }) => {
     }
   };
 
+  if (loading) {
+    return (
+      <Box
+        p={{ base: 4, md: 6 }}
+        borderRadius="lg"
+        shadow="md"
+        bg={boxBg}
+        transition="all 0.3s ease"
+      >
+        <VStack align="stretch" spacing={6}>
+          <Skeleton height="30px" width="60%" />
+          <Skeleton height="20px" width="80%" />
+          <Skeleton height="15px" width="50%" />
+
+          {/* Description Section */}
+          <Skeleton height="100px" borderRadius="md" />
+
+          {/* Input/Output Boxes */}
+          <Stack spacing={4}>
+            <Skeleton height="70px" borderRadius="md" />
+            <Skeleton height="70px" borderRadius="md" />
+          </Stack>
+
+          {/* Examples Section */}
+          <Skeleton height="150px" borderRadius="md" />
+        </VStack>
+      </Box>
+    );
+  }
+
   return (
     <Box
       p={{ base: 4, md: 6 }}
@@ -89,7 +126,7 @@ const ProblemDetails = ({ question }) => {
             fontWeight="bold"
             color={textColor}
             flex="1"
-            mx={6} // Adjust spacing around the text for balance
+            mx={6}
           >
             {question?.title || "Problem Title"}
           </Text>
@@ -161,7 +198,7 @@ const ProblemDetails = ({ question }) => {
             flex="1"
           >
             <Text fontWeight="bold" mb={2} color={textColor}>
-              sample Input:
+              Sample Input:
             </Text>
             <Text as="pre" whiteSpace="pre-wrap">
               {question?.sampleInput || "Input format not provided."}
@@ -176,7 +213,7 @@ const ProblemDetails = ({ question }) => {
             flex="1"
           >
             <Text fontWeight="bold" mb={2} color={textColor}>
-              sample ExpectedOutputt:
+              Sample Expected Output:
             </Text>
             <Text as="pre" whiteSpace="pre-wrap">
               {question?.sampleExpectedOutput || "Output format not provided."}

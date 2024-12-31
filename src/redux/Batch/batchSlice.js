@@ -51,7 +51,7 @@ export const saveBatch = createAsyncThunk(
 export const updateBatch = createAsyncThunk(
   "batch/update",
   async (payload, { rejectWithValue }) => {
-    
+    console.log("payload: ", payload);
 
     try {
       const response = await axiosInstance.put(

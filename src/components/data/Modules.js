@@ -8,3 +8,9 @@ export const Languages = () => [
   { label: "Python", value: "Python" },
   { label: "Java", value: "Java" },
 ];
+
+export const modules = () => [
+  { label: "REACT", value: "REACT" },
+  { label: "NODE", value: "NODE" },
+  { label: "JAVASCRIPT", value: "JAVASCRIPT" },
+];

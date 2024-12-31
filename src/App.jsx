@@ -1,3 +1,4 @@
+import React, { useState } from "react";
 import {
   Box,
   Button,
@@ -5,33 +6,40 @@ import {
   useColorMode,
   useColorModeValue,
 } from "@chakra-ui/react";
+import { useSelector } from "react-redux";
+import { useLocation } from "react-router-dom"; // Import useLocation
 import Navbar from "./components/Navbar";
 import AllRoutes from "./Routes/AllRoutes";
-import { useSelector } from "react-redux";
-import { NavLink } from "react-router-dom";
-import { useState } from "react";
 import "react-quill/dist/quill.snow.css";
+
 function App() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const { isLogin } = useSelector((store) => store.data);
   const { colorMode } = useColorMode();
-  const handleDrawerClose = () => setIsDrawerOpen(false);
-  const hoverBg = useColorModeValue("red.400", "teal.400"); // Dynamic hover color
+  const location = useLocation(); // Get the current route
 
-  // Define background and text colors
+  const handleDrawerClose = () => setIsDrawerOpen(false);
+
+  // Define dynamic styles based on color mode
+  const hoverBg = useColorModeValue("red.400", "teal.400");
   const bgColor = useColorModeValue("gray.50", "gray.900");
   const textColor = useColorModeValue("gray.800", "white");
   const cardBgColor = useColorModeValue("white", "gray.800");
-  // Define hover styles based on color mode
-
   const hoverColor = useColorModeValue("white", "white");
+
   const { user } = useSelector((store) => store.data);
+
+  // Hide Navbar on /portfolio/* routes
+  const hideNavbar = location.pathname.startsWith("/portfolio/");
 
   return (
     <>
-      <Navbar />
+      {/* Conditionally render Navbar */}
+      {!hideNavbar && <Navbar />}
+
       <AllRoutes />
 
+      {/* Conditional Login Modal */}
       {!isLogin && (
         <Box
           position="fixed"
@@ -43,15 +51,15 @@ function App() {
           display="flex"
           justifyContent="center"
           alignItems="center"
-          backdropFilter="blur(8px)" // Add backdrop blur effect
-          bg="rgba(0, 0, 0, 0.5)" // Semi-transparent background
+          backdropFilter="blur(8px)"
+          bg="rgba(0, 0, 0, 0.5)"
         >
           <Box
             p={8}
             borderRadius="md"
             boxShadow="lg"
             textAlign="center"
-            bg={colorMode === "light" ? "white" : "gray.800"} // Light or dark background based on color mode
+            bg={colorMode === "light" ? "white" : "gray.800"}
           >
             <Text
               fontSize="xl"
@@ -68,7 +76,7 @@ function App() {
               You are not logged in. Please log in to access the content.
             </Text>
             <Button
-              bg={useColorModeValue("red.400", "teal.400")} // Base button color
+              bg={hoverBg}
               color="white"
               size="lg"
               onClick={() => window.location.reload()}

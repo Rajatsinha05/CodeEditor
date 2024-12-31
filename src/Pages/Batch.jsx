@@ -1,5 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { Box, VStack, useColorModeValue, useToast } from "@chakra-ui/react";
+import {
+  Box,
+  VStack,
+  useColorModeValue,
+  useToast,
+  Flex,
+  Divider,
+  Text,
+  Skeleton,
+  SkeletonText,
+} from "@chakra-ui/react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   fetchAllActiveBatches,
@@ -17,10 +27,11 @@ const BatchListPage = () => {
   const dispatch = useDispatch();
   const toast = useToast();
 
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setisLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const batches = useSelector((store) => store.batch.allActiveBatches);
+  const { loading } = useSelector((store) => store.batch);
   const user = useSelector((store) => store.data.user);
 
   const [filters, setFilters] = useState({
@@ -46,7 +57,7 @@ const BatchListPage = () => {
   useEffect(() => {
     const loadBatches = async () => {
       try {
-        setLoading(true);
+        setisLoading(true);
         setError(null);
 
         if (user?.role === "SUPERADMIN") {
@@ -60,7 +71,7 @@ const BatchListPage = () => {
         setError(err.message || "Failed to fetch batches");
         showToast(toast, err.message || "Failed to fetch batches", "error");
       } finally {
-        setLoading(false);
+        setisLoading(false);
       }
     };
 
@@ -69,7 +80,35 @@ const BatchListPage = () => {
 
   const bgColor = useColorModeValue("white", "gray.800");
 
-  if (loading) return <Loader />;
+  if (isLoading) {
+    return (
+      <Box
+        maxW="1200px"
+        mx="auto"
+        px={6}
+        py={6}
+        mt={5}
+        bg={bgColor}
+        rounded="lg"
+        shadow="lg"
+      >
+        <VStack spacing={6} align="stretch">
+          <Flex justify="space-between" align="center">
+            <Skeleton height="24px" width="200px" />
+            <Skeleton height="24px" width="300px" />
+          </Flex>
+          <Divider />
+          {[...Array(5)].map((_, index) => (
+            <Box key={index} p={4} borderWidth="1px" rounded="lg">
+              <Skeleton height="20px" mb={2} />
+              <SkeletonText noOfLines={3} spacing="4" />
+            </Box>
+          ))}
+        </VStack>
+      </Box>
+    );
+  }
+
   if (error) return <ErrorDisplay error={error} />;
 
   return (
@@ -77,21 +116,31 @@ const BatchListPage = () => {
       maxW="1200px"
       mx="auto"
       px={6}
-      py={10}
-      mt={2} // Added margin from the top
+      py={6}
+      mt={5}
       bg={bgColor}
       rounded="lg"
       shadow="lg"
     >
       <VStack spacing={6} align="stretch">
-        {/* Filter Section */}
-        <FilterSection filters={filters} setFilters={setFilters} />
-
+        <Flex justify="space-between" align="center">
+          <Text fontSize="xl" fontWeight="bold" ml={4}>
+            Batches
+          </Text>
+          <FilterSection filters={filters} setFilters={setFilters} />
+        </Flex>
+        <Divider />
         {/* Batch List */}
-        <BatchList batches={filteredBatches} />
+        {filteredBatches.length > 0 ? (
+          <BatchList batches={filteredBatches} isLoading={loading} />
+        ) : (
+          <Text textAlign="center" color="gray.500">
+            No batches found matching the current filters.
+          </Text>
+        )}
       </VStack>
     </Box>
   );
 };
 
-export default BatchListPage;
+export default React.memo(BatchListPage);

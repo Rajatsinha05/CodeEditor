@@ -6,6 +6,9 @@ import {
   useDisclosure,
   useColorModeValue,
   VStack,
+  Skeleton,
+  SkeletonText,
+  SkeletonCircle,
 } from "@chakra-ui/react";
 import { useNavigate, useParams } from "react-router-dom";
 import dayjs from "dayjs";
@@ -13,7 +16,6 @@ import duration from "dayjs/plugin/duration";
 import ContestFilter from "../components/Home/ContestFilter";
 import ContestList from "../components/Home/ContestList";
 import StartContestModal from "../components/Home/StartContestModal";
-import MotivationalLoadingSpinner from "../components/Spinner/MotivationalLoadingSpinner";
 import {
   fetchAllActiveBatches,
   fetchBatchById,
@@ -89,7 +91,38 @@ const Home = () => {
   }, [contests, filter]);
 
   if (loading) {
-    return <MotivationalLoadingSpinner />;
+    // Skeleton loader for loading state
+    return (
+      <Box
+        py={8}
+        px={6}
+        maxW="1000px"
+        mx="auto"
+        bg={useColorModeValue("gray.50", "gray.800")}
+        borderRadius="lg"
+        shadow="md"
+        mt="3"
+      >
+        <VStack spacing={6} align="stretch">
+          {/* Skeleton for Contest Filter */}
+          <Skeleton height="40px" width="100%" />
+
+          {/* Skeleton for Contest List */}
+          {[...Array(3)].map((_, idx) => (
+            <Box
+              key={idx}
+              p={6}
+              borderRadius="md"
+              border="1px solid"
+              borderColor={useColorModeValue("gray.200", "gray.600")}
+            >
+              <SkeletonText mt="4" noOfLines={3} spacing="4" />
+              <SkeletonCircle size="10" mt="4" />
+            </Box>
+          ))}
+        </VStack>
+      </Box>
+    );
   }
 
   return (
@@ -105,13 +138,7 @@ const Home = () => {
     >
       <VStack spacing={8} align="stretch">
         {/* Contest Filter Section */}
-        <ContestFilter
-          filter={filter}
-          setFilter={setFilter}
-          onCreateContest={() =>
-            navigate(`/admin/batch/${batchId}/create-contest`)
-          }
-        />
+        <ContestFilter filter={filter} setFilter={setFilter} />
 
         {/* Contest List Section */}
         <ContestList

@@ -25,6 +25,8 @@ import {
   FaChartBar,
   FaClipboardList,
   FaBars,
+  FaBriefcase, // Added for Portfolio
+  FaFileAlt, // Added for Resume
 } from "react-icons/fa";
 import { useNavigate, useParams } from "react-router-dom";
 import CreateUserModal from "./CreateUserModal";
@@ -32,6 +34,7 @@ import CreateStudentModal from "./CreateStudentModal";
 import Ability from "../../Permissions/Ability";
 import { GetRoles } from "../../Permissions/Roles";
 import SidebarButton from "./SidebarButton";
+import { useSelector } from "react-redux";
 
 const Sidebar = () => {
   const navigate = useNavigate();
@@ -56,6 +59,7 @@ const Sidebar = () => {
   const toggleDrawer = () => setDrawerOpen(!isDrawerOpen);
   const closeDrawer = () => setDrawerOpen(false);
   const { studentId } = useParams();
+  const { user } = useSelector((store) => store.user);
   const SidebarContent = () => (
     <Flex
       flexDirection="column"
@@ -133,6 +137,28 @@ const Sidebar = () => {
           label="Statistics"
           onClick={() => {
             navigate("/profile/student-statistics");
+            closeDrawer();
+          }}
+          hoverBg={hoverBg}
+          iconColor={iconColor}
+        />
+        {/* New Portfolio Button */}
+        <SidebarButton
+          icon={FaBriefcase}
+          label="Portfolio"
+          onClick={() => {
+            navigate(`/portfolio/${user?.id}`);
+            closeDrawer();
+          }}
+          hoverBg={hoverBg}
+          iconColor={iconColor}
+        />
+        {/* New Resume Button */}
+        <SidebarButton
+          icon={FaFileAlt}
+          label="Resume"
+          onClick={() => {
+            navigate(`/resume/${user?.id}`);
             closeDrawer();
           }}
           hoverBg={hoverBg}
