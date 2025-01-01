@@ -16,7 +16,7 @@ import {
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import { useDispatch } from "react-redux";
-import { createTestDetail } from "../redux/project/slice";
+import { createTestDetail, updateTestDetail } from "../redux/project/slice";
 import { modules } from "../components/data/Modules";
 
 const AddProject = ({ project = null }) => {
@@ -49,9 +49,18 @@ const AddProject = ({ project = null }) => {
 
   // Theme-based colors
   const bgColor = useColorModeValue("white", theme.colors.gray[800]);
-  const formBgColor = useColorModeValue(theme.colors.gray[50], theme.colors.gray[700]);
-  const textColor = useColorModeValue(theme.colors.gray[800], theme.colors.whiteAlpha[900]);
-  const borderColor = useColorModeValue(theme.colors.gray[300], theme.colors.gray[600]);
+  const formBgColor = useColorModeValue(
+    theme.colors.gray[50],
+    theme.colors.gray[700]
+  );
+  const textColor = useColorModeValue(
+    theme.colors.gray[800],
+    theme.colors.whiteAlpha[900]
+  );
+  const borderColor = useColorModeValue(
+    theme.colors.gray[300],
+    theme.colors.gray[600]
+  );
   const primaryColor = useColorModeValue("red.400", "teal.400");
   const hoverColor = useColorModeValue("red.500", "teal.500");
 
@@ -73,6 +82,7 @@ const AddProject = ({ project = null }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Validation to ensure all required fields are filled
     if (
       !formData.title ||
       !formData.fileName ||
@@ -92,19 +102,34 @@ const AddProject = ({ project = null }) => {
     }
 
     try {
-      await dispatch(createTestDetail(formData)).unwrap();
-      toast({
-        title: "Success",
-        description: "Project added successfully!",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
+      if (project) {
+        // Update project logic
+        await dispatch(
+          updateTestDetail({ id: project.id, testDetail: { ...formData } })
+        ).unwrap();
+        toast({
+          title: "Success",
+          description: "Project updated successfully!",
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+        });
+      } else {
+        // Add project logic
+        await dispatch(createTestDetail(formData)).unwrap();
+        toast({
+          title: "Success",
+          description: "Project added successfully!",
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+        });
+      }
       setFormData(initialFormData);
     } catch (error) {
       toast({
         title: "Error",
-        description: error || "Failed to add project",
+        description: error.message || "Failed to save project",
         status: "error",
         duration: 3000,
         isClosable: true,
@@ -127,7 +152,14 @@ const AddProject = ({ project = null }) => {
         {project ? "Update Project" : "Add New Project"}
       </Text>
       <form onSubmit={handleSubmit}>
-        <VStack spacing={6} align="stretch" bg={formBgColor} p={6} rounded="lg" shadow="md">
+        <VStack
+          spacing={6}
+          align="stretch"
+          bg={formBgColor}
+          p={6}
+          rounded="lg"
+          shadow="md"
+        >
           <FormControl id="title" isRequired>
             <FormLabel fontWeight="semibold">Project Title</FormLabel>
             <Input
@@ -232,8 +264,6 @@ const AddProject = ({ project = null }) => {
               rounded="md"
             />
           </FormControl>
-
-          
 
           <Button
             type="submit"

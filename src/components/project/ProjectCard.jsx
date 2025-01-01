@@ -7,7 +7,6 @@ import {
   MenuList,
   MenuItem,
   Divider,
-  Badge,
   IconButton,
   Text,
   useColorModeValue,
@@ -26,17 +25,19 @@ import {
   FiEye,
   FiEdit,
   FiTrash2,
-  FiCalendar,
+  FiClock,
 } from "react-icons/fi";
 import { MdAssignment } from "react-icons/md";
+import { FaReact, FaNodeJs, FaJs } from "react-icons/fa";
 import dayjs from "dayjs";
-import AddProject from "../../Pages/AddProject";
 import Ability from "../../Permissions/Ability";
+import { GetRoles } from "../../Permissions/Roles";
+import { useNavigate, useParams } from "react-router-dom";
 
-const AssignProjectCard = ({
+const ProjectCard = ({
   test,
   onAssignClick,
-  moduleIcons,
+  onDeleteClick,
   borderColor,
   hoverBorderColor,
   textColor,
@@ -44,7 +45,12 @@ const AssignProjectCard = ({
 }) => {
   const [isViewModalOpen, setViewModalOpen] = useState(false);
   const [isEditModalOpen, setEditModalOpen] = useState(false);
-  const [selectedProject, setSelectedProject] = useState(null);
+
+  const moduleIcons = {
+    REACT: <FaReact color="#61DBFB" />,
+    NODE: <FaNodeJs color="#3C873A" />,
+    JAVASCRIPT: <FaJs color="#F7DF1E" />,
+  };
 
   if (isLoading) {
     return (
@@ -65,11 +71,8 @@ const AssignProjectCard = ({
     );
   }
 
-  const handleEditClick = (project) => {
-    setSelectedProject(project);
-    setEditModalOpen(true);
-  };
-
+  const { batchId } = useParams();
+  const navigate = useNavigate();
   return (
     <>
       <Flex
@@ -90,7 +93,7 @@ const AssignProjectCard = ({
       >
         <Flex justify="space-between" align="center" mb={4}>
           <Flex align="center">
-            {moduleIcons[test.module] || <FiCalendar />}
+            {moduleIcons[test.module] || <FiClock />}
             <Heading size="md" color={textColor} ml={2} isTruncated>
               {test.title}
             </Heading>
@@ -102,49 +105,46 @@ const AssignProjectCard = ({
               variant="ghost"
             />
             <MenuList>
-              <MenuItem icon={<FiEye />} onClick={() => setViewModalOpen(true)}>
+              <MenuItem
+                icon={<FiEye />}
+                onClick={() => navigate(`/batch/${batchId}/project/${test.id}`)}
+              >
                 View Details
               </MenuItem>
-              <MenuItem
-                icon={<MdAssignment />}
-                onClick={() => onAssignClick(test.id)}
-              >
-                Assign Project
-              </MenuItem>
-              <Ability roles={["SUPERADMIN"]}>
+              <Ability roles={GetRoles()}>
                 <MenuItem
                   icon={<FiEdit />}
-                  onClick={() => handleEditClick(test)}
+                  onClick={() => setEditModalOpen(true)}
                 >
-                  Edit Project
+                  Edit Test
                 </MenuItem>
-                <MenuItem icon={<FiTrash2 />} color="red.500">
-                  Delete Project
+                <MenuItem
+                  icon={<FiTrash2 />}
+                  color="red.500"
+                  onClick={() => onDeleteClick(test.id)}
+                >
+                  Delete Test
                 </MenuItem>
               </Ability>
             </MenuList>
           </Menu>
         </Flex>
         <Divider mb={4} />
-        <Flex justify="space-between" align="center">
+
+        {/* Start and End Dates */}
+        <Flex justify="space-between" align="center" mb={4}>
           <Flex align="center">
-            <FiCalendar size="16px" style={{ marginRight: "4px" }} />
+            <FiClock size="16px" style={{ marginRight: "4px" }} />
             <Text fontSize="sm" color={textColor}>
-              Created On: {dayjs(test.createdAt).format("MMMM D, YYYY")}
+              Start: {dayjs(test.startTime).format("MMMM D, YYYY h:mm A")}
             </Text>
           </Flex>
-          <Badge
-            px={3}
-            py={1}
-            fontSize="sm"
-            rounded="full"
-            colorScheme="teal"
-            display="flex"
-            alignItems="center"
-            gap={2}
-          >
-            Difficulty: {test.difficultyLevel}
-          </Badge>
+          <Flex align="center">
+            <FiClock size="16px" style={{ marginRight: "4px" }} />
+            <Text fontSize="sm" color={textColor}>
+              End: {dayjs(test.endTime).format("MMMM D, YYYY h:mm A")}
+            </Text>
+          </Flex>
         </Flex>
       </Flex>
 
@@ -154,10 +154,11 @@ const AssignProjectCard = ({
         <ModalContent>
           <ModalHeader fontWeight="bold">{test.title}</ModalHeader>
           <ModalBody>
-            <div
-              dangerouslySetInnerHTML={{ __html: test.description }}
-              style={{ color: textColor }}
-            />
+            <Text fontWeight="bold" mb={2}>
+              Marks: {test.marks}
+            </Text>
+            <Text>Module: {test.module}</Text>
+            <Text>Status: {test.status}</Text>
           </ModalBody>
           <ModalFooter>
             <Button onClick={() => setViewModalOpen(false)} colorScheme="teal">
@@ -167,13 +168,13 @@ const AssignProjectCard = ({
         </ModalContent>
       </Modal>
 
-      {/* Edit Project Modal */}
+      {/* Edit Test Modal */}
       <Modal isOpen={isEditModalOpen} onClose={() => setEditModalOpen(false)}>
         <ModalOverlay />
-        <ModalContent maxWidth="800px">
-          <ModalHeader fontWeight="bold">Edit Project</ModalHeader>
+        <ModalContent>
+          <ModalHeader fontWeight="bold">Edit Test</ModalHeader>
           <ModalBody>
-            <AddProject project={selectedProject} />
+            <Text>Edit functionality coming soon!</Text>
           </ModalBody>
           <ModalFooter>
             <Button
@@ -190,4 +191,4 @@ const AssignProjectCard = ({
   );
 };
 
-export default AssignProjectCard;
+export default ProjectCard;

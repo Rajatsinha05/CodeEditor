@@ -29,6 +29,7 @@ import ResumeSection from "../components/Profile/resume/ResumeSection";
 import AddProject from "../Pages/AddProject";
 import AssignStudents from "../Pages/AssignStudents";
 import AssignProject from "../Pages/AssignProject";
+import ProjectDetails from "../Pages/ProjectDetails";
 
 const AllRoutes = () => {
   let { user, isLogin } = useSelector((store) => store.data);
@@ -50,6 +51,14 @@ const AllRoutes = () => {
         element={
           <PrivateRoute>
             <Home />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/batch/:batchId/project/:projectId"
+        element={
+          <PrivateRoute>
+            <ProjectDetails />
           </PrivateRoute>
         }
       />
@@ -137,7 +146,7 @@ const AllRoutes = () => {
         </>
       )}
 
-      <Route path="*" element={<NotFoundPage />} />
+      {/* <Route path="*" element={<NotFoundPage />} /> */}
     </Routes>
   );
 };

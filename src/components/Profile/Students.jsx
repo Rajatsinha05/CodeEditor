@@ -11,8 +11,8 @@ import {
   TableContainer,
   Select,
   Flex,
-  Text,
-  useColorModeValue,
+  Skeleton,
+  SkeletonText,
   IconButton,
   Menu,
   MenuButton,
@@ -29,6 +29,7 @@ import {
   FormControl,
   FormLabel,
   useToast,
+  useColorModeValue,
 } from "@chakra-ui/react";
 import { FaEllipsisV, FaTrash, FaEdit } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
@@ -42,15 +43,14 @@ import {
   updateStudent,
 } from "../../redux/Student/studentsSlice";
 import Ability from "../../Permissions/Ability";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const Students = () => {
   const dispatch = useDispatch();
   const toast = useToast();
-  const { students } = useSelector((store) => store.student); // Fetch students state
-  const { user } = useSelector((store) => store.user); // Fetch user state
+  const { students, loading } = useSelector((store) => store.student); // Include loading state
+  const { user } = useSelector((store) => store.user);
 
-  // States for filters, search, and modal handling
   const [search, setSearch] = useState("");
   const [courseFilter, setCourseFilter] = useState("");
   const [branchFilter, setBranchFilter] = useState("");
@@ -59,7 +59,6 @@ const Students = () => {
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Theme colors for Chakra UI
   const bgColor = useColorModeValue("gray.50", "gray.800");
   const textColor = useColorModeValue("gray.900", "gray.100");
   const hoverColor = useColorModeValue("red.100", "teal.600");
@@ -70,7 +69,6 @@ const Students = () => {
     "rgba(20, 20, 20, 0.5)"
   );
 
-  // Fetch students based on user role
   useEffect(() => {
     if (user?.role === "ADMIN") {
       dispatch(fetchStudentsByBranchCode(user?.branchCode));
@@ -79,7 +77,6 @@ const Students = () => {
     }
   }, [dispatch, user?.role, user?.branchCode]);
 
-  // Filter and sort students
   const filteredStudents = students
     .filter(
       (student) =>
@@ -98,18 +95,15 @@ const Students = () => {
         : b.name.localeCompare(a.name)
     );
 
-  // Toggle sort order for the Name column
   const toggleSortOrder = () => {
     setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
   };
 
-  // Handle update modal
   const handleUpdateStudent = (student) => {
     setSelectedStudent(student);
     setIsModalOpen(true);
   };
 
-  // Handle delete action
   const handleDeleteStudent = async (id) => {
     try {
       await dispatch(deleteStudent(id)).unwrap();
@@ -119,7 +113,6 @@ const Students = () => {
     }
   };
 
-  // Save updated student
   const handleSave = async () => {
     if (!selectedStudent) return;
 
@@ -137,15 +130,26 @@ const Students = () => {
     }
   };
 
-  // Close modal
   const handleModalClose = () => {
     setIsModalOpen(false);
     setSelectedStudent(null);
   };
-  const nav = useNavigate();
+
+  const navigate = useNavigate();
   const handleNavigate = (id) => {
-    nav(`/profile/${id}`);
+    navigate(`/profile/${id}`);
   };
+
+  if (loading) {
+    return (
+      <Box p={5} borderWidth="1px" borderRadius="lg" bg={bgColor}>
+        <SkeletonText mt={4} noOfLines={4} spacing="4" />
+        <Skeleton height="40px" my={4} />
+        <Skeleton height="20px" />
+      </Box>
+    );
+  }
+
   return (
     <Box
       p={5}

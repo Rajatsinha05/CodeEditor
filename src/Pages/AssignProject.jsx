@@ -31,6 +31,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import AssignProjectCard from "../components/project/AssignProjectCard";
 import { FaJs, FaNodeJs, FaReact } from "react-icons/fa";
 import { showToast } from "../utils/toastUtils";
+import { useParams } from "react-router-dom";
 
 const AssignProject = () => {
   const dispatch = useDispatch();
@@ -50,7 +51,8 @@ const AssignProject = () => {
   const hoverBorderColor = useColorModeValue("red.300", "teal.200");
   const textColor = useColorModeValue("gray.800", "whiteAlpha.900");
   const toast = useToast();
-
+  const { batchId } = useParams();
+  console.log("batchId: ", batchId);
   useEffect(() => {
     const query = new URLSearchParams(window.location.search);
     const moduleName = query.get("module");
@@ -72,6 +74,7 @@ const AssignProject = () => {
         endTime: endDateTime,
         status: "ACTIVE",
         testDetailId: currentTestId,
+        batchId: batchId,
       };
 
       await dispatch(createCyProject(payload)).unwrap();

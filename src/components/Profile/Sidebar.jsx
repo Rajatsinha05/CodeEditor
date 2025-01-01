@@ -122,7 +122,7 @@ const Sidebar = () => {
             iconColor={iconColor}
           />
         </Ability>
-        <SidebarButton
+        {/* <SidebarButton
           icon={FaTrophy}
           label="Rankings"
           onClick={() => {
@@ -131,7 +131,7 @@ const Sidebar = () => {
           }}
           hoverBg={hoverBg}
           iconColor={iconColor}
-        />
+        /> */}
         <SidebarButton
           icon={FaChartBar}
           label="Statistics"
