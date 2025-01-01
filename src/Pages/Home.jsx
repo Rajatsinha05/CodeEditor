@@ -45,7 +45,6 @@ const Home = () => {
     shallowEqual
   );
   const { testDetails } = useSelector((store) => store.testDetails);
-  
 
   // Check if the batch has a valid module
   const isValidModule = useMemo(
@@ -199,4 +198,4 @@ const Home = () => {
   );
 };
 
-export default React.memo(Home);
+export default Home;

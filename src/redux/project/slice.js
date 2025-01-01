@@ -2,27 +2,25 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axiosInstance from "../../config/axiosConfig";
 
 // Helper to create async thunks
-const createAsyncThunkHelper = (name, apiCall, transformResponse) =>
+const createAsyncThunkHelper = (name, apiCall) =>
   createAsyncThunk(name, async (arg, { rejectWithValue }) => {
     try {
       const response = await apiCall(arg);
-      return transformResponse
-        ? transformResponse(response.data)
-        : response.data;
+      return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || "An error occurred.");
     }
   });
 
-// Thunks for TestDetail
+// TestDetail Thunks
 export const fetchAllTestDetails = createAsyncThunkHelper(
   "testDetail/fetchAll",
-  () => axiosInstance.get("/api/cy-projects")
+  () => axiosInstance.get("/api/test-details")
 );
 
 export const fetchAllTestDetailsByBatchId = createAsyncThunkHelper(
   "testDetail/fetchByBatchId",
-  (id) => axiosInstance.get(`/api/cy-projects/batch/${id}`)
+  (batchId) => axiosInstance.get(`/api/cy-projects/batch/${batchId}`)
 );
 
 export const fetchTestDetailById = createAsyncThunkHelper(
@@ -32,58 +30,28 @@ export const fetchTestDetailById = createAsyncThunkHelper(
 
 export const createTestDetail = createAsyncThunkHelper(
   "testDetail/create",
-  (testDetail) => axiosInstance.post("/api/cy-projects", testDetail)
+  (testDetail) => axiosInstance.post("/api/test-details", testDetail)
 );
 
 export const updateTestDetail = createAsyncThunkHelper(
   "testDetail/update",
   ({ id, testDetail }) =>
-    axiosInstance.put(`/api/cy-projects/${id}`, testDetail)
+    axiosInstance.put(`/api/test-details/${id}`, testDetail)
 );
 
 export const deleteTestDetail = createAsyncThunkHelper(
   "testDetail/delete",
-  (id) => axiosInstance.delete(`/api/cy-projects/${id}`)
+  (id) => axiosInstance.delete(`/api/test-details/${id}`)
 );
-
 export const fetchTestDetailsByModule = createAsyncThunkHelper(
   "testDetail/fetchByModule",
-  (module) => axiosInstance.get(`/api/cy-projects/filter?module=${module}`)
+  (module) => axiosInstance.get(`/api/test-details/filter?module=${module}`)
 );
 
-export const fetchResultsByFilters = createAsyncThunkHelper(
-  "testDetail/fetchResultsByFilters",
-  ({ studentId, cyProjectId }) => {
-    const params = new URLSearchParams();
-    if (studentId) params.append("studentId", studentId);
-    if (cyProjectId) params.append("cyProjectId", cyProjectId);
-
-    return axiosInstance.get(
-      `/api/sandbox/results/filter?${params.toString()}`
-    );
-  }
-);
-
-export const fetchAllResults = createAsyncThunk(
-  "results/fetchAll",
-  async (_, { rejectWithValue }) => {
-    try {
-      const response = await axiosInstance.get("/api/sandbox/results");
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data || "An error occurred.");
-    }
-  }
-);
-// Thunks for CyProject
+// CyProject Thunks
 export const fetchAllCyProjects = createAsyncThunkHelper(
   "cyProject/fetchAll",
   () => axiosInstance.get("/api/cy-projects")
-);
-
-export const fetchCyProjectById = createAsyncThunkHelper(
-  "cyProject/fetchById",
-  (id) => axiosInstance.get(`/api/cy-projects/${id}`)
 );
 
 export const createCyProject = createAsyncThunkHelper(
@@ -101,20 +69,57 @@ export const deleteCyProject = createAsyncThunkHelper(
   (id) => axiosInstance.delete(`/api/cy-projects/${id}`)
 );
 
-// Initial state
+// Results Thunks
+export const fetchAllResults = createAsyncThunkHelper("results/fetchAll", () =>
+  axiosInstance.get("/api/sandbox/results")
+);
+
+export const fetchResultsByFilters = createAsyncThunkHelper(
+  "results/fetchByFilters",
+  ({ studentId, cyProjectId }) => {
+    const params = new URLSearchParams();
+    if (studentId) params.append("studentId", studentId);
+    if (cyProjectId) params.append("cyProjectId", cyProjectId);
+
+    return axiosInstance.get(
+      `/api/sandbox/results/filter?${params.toString()}`
+    );
+  }
+);
+
+export const fetchResultById = createAsyncThunkHelper(
+  "results/fetchById",
+  (id) => axiosInstance.get(`/api/sandbox/results/${id}`)
+);
+
+export const createResult = createAsyncThunkHelper("results/create", (result) =>
+  axiosInstance.post("/api/sandbox/results", result)
+);
+
+export const updateResult = createAsyncThunkHelper(
+  "results/update",
+  ({ id, result }) => axiosInstance.put(`/api/sandbox/results/${id}`, result)
+);
+
+export const deleteResult = createAsyncThunkHelper("results/delete", (id) =>
+  axiosInstance.delete(`/api/sandbox/results/${id}`)
+);
+
+// Initial State
 const initialState = {
   loading: false,
-  cyProjects: [],
-  cyProject: null,
   testDetails: [],
   testDetail: null,
+  cyProjects: [],
+  cyProject: null,
   results: [],
+  result: null,
   error: null,
 };
 
-// Slice for TestDetail and CyProject
+// Slice
 const testDetailSlice = createSlice({
-  name: "project",
+  name: "testDetail",
   initialState,
   reducers: {
     resetError: (state) => {
@@ -138,89 +143,91 @@ const testDetailSlice = createSlice({
     };
 
     builder
-      // TestDetail Thunks
+      // TestDetails
       .addCase(fetchAllTestDetails.pending, setLoadingState)
-      .addCase(fetchAllTestDetails.fulfilled, (state, action) =>
-        setSuccessState(state, action, "testDetails")
-      )
+      .addCase(fetchAllTestDetails.fulfilled, (state, action) => {
+        state.testDetails = action.payload;
+        state.loading = false;
+      })
       .addCase(fetchAllTestDetails.rejected, setErrorState)
       .addCase(fetchAllTestDetailsByBatchId.pending, setLoadingState)
-      .addCase(fetchAllTestDetailsByBatchId.fulfilled, (state, action) =>
-        setSuccessState(state, action, "testDetails")
-      )
+      .addCase(fetchAllTestDetailsByBatchId.fulfilled, (state, action) => {
+        state.testDetails = action.payload;
+        state.loading = false;
+      })
       .addCase(fetchAllTestDetailsByBatchId.rejected, setErrorState)
-      .addCase(fetchTestDetailById.pending, setLoadingState)
-      .addCase(fetchTestDetailById.fulfilled, (state, action) =>
-        setSuccessState(state, action, "testDetail")
-      )
-      .addCase(fetchTestDetailById.rejected, setErrorState)
-      .addCase(createTestDetail.pending, setLoadingState)
+      .addCase(fetchTestDetailById.fulfilled, (state, action) => {
+        state.testDetail = action.payload;
+        state.loading = false;
+      })
       .addCase(createTestDetail.fulfilled, (state, action) => {
         state.testDetails.push(action.payload);
         state.loading = false;
       })
-      .addCase(createTestDetail.rejected, setErrorState)
-      .addCase(updateTestDetail.pending, setLoadingState)
       .addCase(updateTestDetail.fulfilled, (state, action) => {
-        const updatedDetail = action.payload;
         const index = state.testDetails.findIndex(
-          (detail) => detail.id === updatedDetail.id
+          (detail) => detail.id === action.payload.id
         );
-        if (index !== -1) state.testDetails[index] = updatedDetail;
+        if (index !== -1) state.testDetails[index] = action.payload;
         state.loading = false;
       })
-      .addCase(updateTestDetail.rejected, setErrorState)
-      .addCase(deleteTestDetail.pending, setLoadingState)
       .addCase(deleteTestDetail.fulfilled, (state, action) => {
         state.testDetails = state.testDetails.filter(
-          (detail) => detail.id !== action.meta.arg
+          (detail) => detail.id !== action.payload.id
         );
         state.loading = false;
       })
-      .addCase(deleteTestDetail.rejected, setErrorState)
-      // CyProject Thunks
+      .addCase(fetchTestDetailsByModule.pending, setLoadingState)
+      .addCase(fetchTestDetailsByModule.fulfilled, (state, action) => {
+        state.testDetails = action.payload;
+        state.loading = false;
+      })
+      .addCase(fetchTestDetailsByModule.rejected, setErrorState)
+
+      // CyProjects
       .addCase(fetchAllCyProjects.pending, setLoadingState)
-      .addCase(fetchAllCyProjects.fulfilled, (state, action) =>
-        setSuccessState(state, action, "cyProjects")
-      )
-      .addCase(fetchAllCyProjects.rejected, setErrorState)
-      .addCase(fetchCyProjectById.pending, setLoadingState)
-      .addCase(fetchCyProjectById.fulfilled, (state, action) =>
-        setSuccessState(state, action, "cyProject")
-      )
-      .addCase(fetchCyProjectById.rejected, setErrorState)
-      .addCase(createCyProject.pending, setLoadingState)
+      .addCase(fetchAllCyProjects.fulfilled, (state, action) => {
+        state.cyProjects = action.payload;
+        state.loading = false;
+      })
       .addCase(createCyProject.fulfilled, (state, action) => {
         state.cyProjects.push(action.payload);
         state.loading = false;
       })
-      .addCase(createCyProject.rejected, setErrorState)
-      .addCase(updateCyProject.pending, setLoadingState)
-      .addCase(updateCyProject.fulfilled, (state, action) => {
-        const updatedProject = action.payload;
-        const index = state.cyProjects.findIndex(
-          (project) => project.id === updatedProject.id
-        );
-        if (index !== -1) state.cyProjects[index] = updatedProject;
-        state.loading = false;
-      })
-      .addCase(updateCyProject.rejected, setErrorState)
-      .addCase(deleteCyProject.pending, setLoadingState)
       .addCase(deleteCyProject.fulfilled, (state, action) => {
         state.cyProjects = state.cyProjects.filter(
-          (project) => project.id !== action.meta.arg
+          (project) => project.id !== action.payload.id
         );
         state.loading = false;
       })
-      .addCase(fetchResultsByFilters.fulfilled, (state, action) =>
-        setSuccessState(state, action, "results")
-      )
-      .addCase(fetchResultsByFilters.rejected, setErrorState)
+
+      // Results
       .addCase(fetchAllResults.pending, setLoadingState)
-      .addCase(fetchAllResults.fulfilled, (state, action) =>
-        setSuccessState(state, action, "results")
-      )
-      .addCase(fetchAllResults.rejected, setErrorState);
+      .addCase(fetchAllResults.fulfilled, (state, action) => {
+        state.results = action.payload;
+        state.loading = false;
+      })
+      .addCase(fetchResultById.fulfilled, (state, action) => {
+        state.result = action.payload;
+        state.loading = false;
+      })
+      .addCase(createResult.fulfilled, (state, action) => {
+        state.results.push(action.payload);
+        state.loading = false;
+      })
+      .addCase(updateResult.fulfilled, (state, action) => {
+        const index = state.results.findIndex(
+          (result) => result.id === action.payload.id
+        );
+        if (index !== -1) state.results[index] = action.payload;
+        state.loading = false;
+      })
+      .addCase(deleteResult.fulfilled, (state, action) => {
+        state.results = state.results.filter(
+          (result) => result.id !== action.payload.id
+        );
+        state.loading = false;
+      });
   },
 });
 

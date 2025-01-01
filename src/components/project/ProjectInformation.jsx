@@ -55,17 +55,7 @@ const ProjectInformation = ({ testDetail, isLoading }) => {
             icon: FiFileText,
           },
           { label: "Module", value: testDetail.module || "N/A", icon: FiCode },
-          {
-            label: "Status",
-            value: (
-              <Badge
-                colorScheme={testDetail.status === "ACTIVE" ? "green" : "red"}
-              >
-                {testDetail.status || "Unknown"}
-              </Badge>
-            ),
-            icon: FiShield,
-          },
+
           { label: "Marks", value: testDetail.marks || "N/A", icon: FiAward },
           {
             label: "Start Time",
