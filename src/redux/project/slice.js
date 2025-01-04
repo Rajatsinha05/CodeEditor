@@ -89,7 +89,7 @@ export const fetchResultsByFilters = createAsyncThunkHelper(
 
 export const fetchResultById = createAsyncThunkHelper(
   "results/fetchById",
-  (id) => axiosInstance.get(`/api/sandbox/results/${id}`)
+  (id) => axiosInstance.get(`/api/sandbox/result/${id}`)
 );
 
 export const createResult = createAsyncThunkHelper("results/create", (result) =>

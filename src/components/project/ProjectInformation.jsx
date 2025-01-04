@@ -82,7 +82,7 @@ const ProjectInformation = ({ testDetail, isLoading }) => {
         ))}
       </VStack>
 
-      <ModifyAndDownloadZip fileName={testDetail.fileName} />
+      <ModifyAndDownloadZip fileName={testDetail.fileName} testDetail={testDetail}/>
       {testDetail.description && (
         <>
           <Divider my={4} />

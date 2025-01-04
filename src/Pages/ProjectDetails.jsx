@@ -15,6 +15,11 @@ import {
   Text,
   Alert,
   AlertIcon,
+  Tabs,
+  TabList,
+  TabPanels,
+  Tab,
+  TabPanel,
 } from "@chakra-ui/react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
@@ -84,17 +89,33 @@ const ProjectDetails = () => {
         Project Details
       </Heading>
 
-      <Box mb={8} w="100%">
-        <ProjectInformation testDetail={testDetail} />
-      </Box>
+      <Tabs variant="enclosed" colorScheme="teal" isFitted>
+        <TabList>
+          <Tab>Instruction</Tab>
+          <Tab>Result</Tab>
+        </TabList>
 
-      <Box w="100%">
-        <ProjectResult
-          results={results}
-          onFailedTestClick={setSelectedFailedTest}
-        />
-      </Box>
+        <TabPanels>
+          {/* Instruction Tab */}
+          <TabPanel>
+            <Box w="100%" mb={8}>
+              <ProjectInformation testDetail={testDetail} />
+            </Box>
+          </TabPanel>
 
+          {/* Result Tab */}
+          <TabPanel>
+            <Box w="100%">
+              <ProjectResult
+                results={results}
+                onFailedTestClick={setSelectedFailedTest}
+              />
+            </Box>
+          </TabPanel>
+        </TabPanels>
+      </Tabs>
+
+      {/* Modal for failed test details */}
       {selectedFailedTest && (
         <Modal isOpen onClose={handleCloseModal} isCentered>
           <ModalOverlay />

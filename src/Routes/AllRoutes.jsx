@@ -30,6 +30,7 @@ import AddProject from "../Pages/AddProject";
 import AssignStudents from "../Pages/AssignStudents";
 import AssignProject from "../Pages/AssignProject";
 import ProjectDetails from "../Pages/ProjectDetails";
+import SubmissionDetails from "../Pages/SubmissionDetails";
 
 const AllRoutes = () => {
   let { user, isLogin } = useSelector((store) => store.data);
@@ -145,8 +146,16 @@ const AllRoutes = () => {
           <Route path="/admin/add-project" element={<AddProject />} />
         </>
       )}
+      <Route
+        path="/submissions/:id"
+        element={
+          <PrivateRoute>
+            <SubmissionDetails />
+          </PrivateRoute>
+        }
+      />
 
-      {/* <Route path="*" element={<NotFoundPage />} /> */}
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
 };

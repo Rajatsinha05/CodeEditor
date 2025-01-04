@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from "react";
+import { AiOutlineProject, AiOutlinePlusCircle } from "react-icons/ai";
+import { RiFolderAddLine } from "react-icons/ri";
+
 import { NavLink, useLocation } from "react-router-dom";
 import {
   Flex,
@@ -40,6 +43,8 @@ import Login from "../Pages/Login";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../redux/apiSlice";
 import { FiFolderPlus } from "react-icons/fi";
+import { MdOutlineCreateNewFolder } from "react-icons/md";
+import Ability from "../Permissions/Ability";
 const Navbar = () => {
   const { colorMode, toggleColorMode } = useColorMode();
   const iconSize = "1.5rem";
@@ -192,6 +197,36 @@ const Navbar = () => {
                 </Text>
               </Flex>
             </NavLink>
+            <Ability roles={["SUPERADMIN"]}>
+              <NavLink
+                to="/admin/add-project"
+                className={({ isActive }) =>
+                  isActive ? "nav-link active" : "nav-link"
+                }
+              >
+                <Flex
+                  direction="column"
+                  align="center"
+                  justify="center"
+                  mx={3}
+                  px={2}
+                  py={1}
+                  borderRadius="md"
+                  transition="all 0.3s"
+                >
+                  <IconButton
+                    icon={<AiOutlineProject size={iconSize} />}
+                    aria-label="Create Project"
+                    variant="ghost"
+                    _hover={{ color: hoverColor }}
+                    mb={1}
+                  />
+                  <Text fontSize="xs" fontWeight="medium">
+                    Create Project
+                  </Text>
+                </Flex>
+              </NavLink>
+            </Ability>
           </>
         )}
       </Flex>

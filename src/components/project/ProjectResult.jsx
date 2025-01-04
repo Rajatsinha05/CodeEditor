@@ -1,109 +1,143 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Box,
-  Heading,
-  Divider,
-  VStack,
   Flex,
-  List,
-  ListItem,
-  Badge,
-  Icon,
-  Text,
+  Button,
+  Heading,
+  IconButton,
+  Skeleton,
+  SkeletonText,
   useColorModeValue,
 } from "@chakra-ui/react";
-import { FiCheckCircle, FiXCircle } from "react-icons/fi";
+import { FiFilter } from "react-icons/fi";
+import FilterModal from "./FilterModal";
+import StudentList from "./StudentList";
+import SubmissionDetails from "./SubmissionDetails";
 
-const ProjectResult = ({ results, onFailedTestClick }) => {
-  const bgColor = useColorModeValue("gray.50", "gray.800");
-  const textColor = useColorModeValue("gray.700", "white");
-  const subTextColor = useColorModeValue("gray.600", "gray.400");
+const ProjectResult = ({ results, isLoading }) => {
+  const [selectedStudentId, setSelectedStudentId] = useState(null);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [statusFilter, setStatusFilter] = useState("");
+  const [marksRange, setMarksRange] = useState([0, 100]);
+  const [courseFilter, setCourseFilter] = useState("");
+  const [sortKey, setSortKey] = useState("");
+
+  // Group results by studentId
+  const groupedResults = results.reduce((acc, result) => {
+    acc[result.studentId] = acc[result.studentId] || [];
+    acc[result.studentId].push(result);
+    return acc;
+  }, {});
+
+  // Filter and sort results
+  const filteredResults = Object.keys(groupedResults).filter((studentId) => {
+    const bestResult = groupedResults[studentId][0];
+    return (
+      (!statusFilter || bestResult.status === statusFilter) &&
+      bestResult.marks >= marksRange[0] &&
+      bestResult.marks <= marksRange[1] &&
+      (!courseFilter || bestResult.course === courseFilter)
+    );
+  });
+
+  const sortedResults = filteredResults.sort((a, b) => {
+    const studentA = groupedResults[a][0];
+    const studentB = groupedResults[b][0];
+    if (sortKey === "name") return studentA.name.localeCompare(studentB.name);
+    if (sortKey === "marks") return studentB.marks - studentA.marks;
+    if (sortKey === "status")
+      return studentA.status.localeCompare(studentB.status);
+    return 0;
+  });
+
+  // Styling variables
+  const bgColor = useColorModeValue("white", "gray.800");
+  const cardBg = useColorModeValue("gray.100", "gray.700");
+  const textColor = useColorModeValue("gray.700", "teal.200");
+  const sidebarBg = useColorModeValue("gray.50", "gray.900");
+
+  if (isLoading) {
+    return (
+      <Flex direction={{ base: "column", md: "row" }} h="100vh" bg={bgColor}>
+        {/* Sidebar Skeleton */}
+        <Box
+          w={{ base: "full", md: "350px" }}
+          p={4}
+          bg={sidebarBg}
+          shadow="lg"
+          borderRight="1px solid"
+          borderColor={useColorModeValue("gray.200", "gray.700")}
+        >
+          <Skeleton height="30px" width="70%" mb={4} />
+          <SkeletonText noOfLines={8} spacing={4} />
+        </Box>
+
+        {/* Main Content Skeleton */}
+        <Box flex="1" p={6} overflowY="auto">
+          <Skeleton height="40px" width="50%" mb={6} />
+          <SkeletonText noOfLines={12} spacing={4} />
+        </Box>
+      </Flex>
+    );
+  }
 
   return (
-    <Box>
-      <Heading size="md" mb={6} color={textColor}>
-        Results Overview
-      </Heading>
-      <Divider mb={4} />
-      <VStack spacing={6} align="stretch">
-        {results.map((result) => (
-          <Box
-            key={result.id}
-            p={6}
-            bg={bgColor}
-            rounded="lg"
-            shadow="md"
-            w="full"
-            border="1px solid"
-            borderColor={useColorModeValue("gray.200", "gray.600")}
-          >
-            <Flex justify="space-between" align="center" mb={4}>
-              <Text fontWeight="bold" fontSize="lg" color={textColor}>
-                {result.name} ({result.email})
-              </Text>
-              <Badge
-                colorScheme={result.status === "PASSED" ? "green" : "red"}
-                fontSize="lg"
-                px={3}
-                py={1}
-              >
-                {result.status}
-              </Badge>
-            </Flex>
-            <Divider mb={4} />
-            <Flex justify="space-between" gap={4} flexWrap="wrap">
-              {/* Passed Tests */}
-              <Box flex="1" minW="200px">
-                <Heading size="sm" mb={2} color="green.500">
-                  <Icon as={FiCheckCircle} mr={2} />
-                  Passed Tests
-                </Heading>
-                <List spacing={2}>
-                  {result.passedTests?.length ? (
-                    result.passedTests.map((test, idx) => (
-                      <ListItem key={idx} fontSize="sm" color="green.700">
-                        {test}
-                      </ListItem>
-                    ))
-                  ) : (
-                    <Text fontSize="sm" color={subTextColor}>
-                      No passed tests.
-                    </Text>
-                  )}
-                </List>
-              </Box>
-              {/* Failed Tests */}
-              <Box flex="1" minW="200px">
-                <Heading size="sm" mb={2} color="red.500">
-                  <Icon as={FiXCircle} mr={2} />
-                  Failed Tests
-                </Heading>
-                <List spacing={2}>
-                  {result.failedTestsWithReasons?.length ? (
-                    result.failedTestsWithReasons.map((test, idx) => (
-                      <ListItem
-                        key={idx}
-                        fontSize="sm"
-                        color="red.700"
-                        cursor="pointer"
-                        _hover={{ textDecoration: "underline" }}
-                        onClick={() => onFailedTestClick(test)}
-                      >
-                        {test.testName}
-                      </ListItem>
-                    ))
-                  ) : (
-                    <Text fontSize="sm" color={subTextColor}>
-                      No failed tests.
-                    </Text>
-                  )}
-                </List>
-              </Box>
-            </Flex>
-          </Box>
-        ))}
-      </VStack>
-    </Box>
+    <Flex direction={{ base: "column", md: "row" }} h="100vh" bg={bgColor}>
+      {/* Sidebar: Student List */}
+      <Box
+        w={{ base: "full", md: "350px" }}
+        p={4}
+        bg={sidebarBg}
+        shadow="lg"
+        borderRight="1px solid"
+        borderColor={useColorModeValue("gray.200", "gray.700")}
+      >
+        <Flex align="center" justify="space-between" mb={4}>
+          <Heading size="md" color={textColor}>
+            Students
+          </Heading>
+          <IconButton
+            icon={<FiFilter />}
+            aria-label="Open Filters"
+            onClick={() => setIsFilterOpen(true)}
+            colorScheme="teal"
+            variant="ghost"
+            _hover={{ bg: useColorModeValue("teal.100", "teal.700") }}
+          />
+        </Flex>
+        <StudentList
+          sortedResults={sortedResults}
+          groupedResults={groupedResults}
+          selectedStudentId={selectedStudentId}
+          setSelectedStudentId={setSelectedStudentId}
+          setSortKey={setSortKey}
+          isLoading={isLoading}
+        />
+      </Box>
+
+      {/* Main Content: Submission Details */}
+      <Box flex="1" p={6} overflowY="auto">
+        <SubmissionDetails
+          selectedStudentId={selectedStudentId}
+          groupedResults={groupedResults}
+          textColor={textColor}
+          cardBg={cardBg}
+        />
+      </Box>
+
+      {/* Filter Modal */}
+      <FilterModal
+        isOpen={isFilterOpen}
+        onClose={() => setIsFilterOpen(false)}
+        statusFilter={statusFilter}
+        setStatusFilter={setStatusFilter}
+        marksRange={marksRange}
+        setMarksRange={setMarksRange}
+        courseFilter={courseFilter}
+        setCourseFilter={setCourseFilter}
+        courses={[...new Set(results.map((result) => result.course))]}
+      />
+    </Flex>
   );
 };
 
