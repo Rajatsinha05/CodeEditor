@@ -19,6 +19,7 @@ import StartContestModal from "../components/Home/StartContestModal";
 import { fetchBatchById } from "../redux/Batch/batchSlice";
 import { modules } from "../components/data/Modules";
 import { fetchAllTestDetailsByBatchId } from "../redux/project/slice";
+// Import your AssignProjectCard component
 import ProjectCard from "../components/project/ProjectCard";
 
 dayjs.extend(duration);
@@ -45,30 +46,41 @@ const Home = () => {
   );
   const { testDetails } = useSelector((store) => store.testDetails);
 
+  // Check if the batch has a valid module
   const isValidModule = useMemo(
     () =>
-      selectedBatch &&
-      modules().some((module) => module.value === selectedBatch.module),
+      selectedBatch
+        ? modules().some((module) => module.value === selectedBatch.module)
+        : false,
     [selectedBatch]
   );
 
+  // Fetch batch details
   useEffect(() => {
     dispatch(fetchBatchById(batchId));
   }, [batchId, dispatch]);
 
+  // Fetch contests based on batch ID
   useEffect(() => {
-    if (!isFetched) dispatch(fetchContestsByBatchId(batchId));
+    if (!isFetched) {
+      dispatch(fetchContestsByBatchId(batchId));
+    }
   }, [dispatch, batchId, isFetched]);
 
+  // Handle loading state timeout
   useEffect(() => {
     const timer = setTimeout(() => setLoading(false), 1000);
     return () => clearTimeout(timer);
   }, []);
 
+  // Fetch all test details if the module is valid
   useEffect(() => {
-    if (isValidModule) dispatch(fetchAllTestDetailsByBatchId(batchId));
+    if (isValidModule) {
+      dispatch(fetchAllTestDetailsByBatchId(batchId));
+    }
   }, [dispatch, batchId, isValidModule]);
 
+  // Handle contest start click
   const handleStartContestClick = useCallback(
     (contest) => {
       setSelectedContest(contest);
@@ -77,48 +89,32 @@ const Home = () => {
     [onOpen]
   );
 
+  // Filter contests based on the selected filter
   const filteredContests = useMemo(() => {
+    if (!contests || contests.length === 0) return [];
     const currentTime = dayjs();
-    return (
-      contests?.filter((contest) => {
-        switch (filter) {
-          case "active":
-            return currentTime.isBetween(
-              dayjs(contest.startTime),
-              dayjs(contest.endTime)
-            );
-          case "upcoming":
-            return currentTime.isBefore(dayjs(contest.startTime));
-          case "past":
-            return currentTime.isAfter(dayjs(contest.endTime));
-          case "all":
-            return true;
-          default:
-            return false;
-        }
-      }) || []
-    );
+
+    return contests.filter((contest) => {
+      switch (filter) {
+        case "active":
+          return (
+            currentTime.isAfter(dayjs(contest.startTime)) &&
+            currentTime.isBefore(dayjs(contest.endTime))
+          );
+        case "upcoming":
+          return currentTime.isBefore(dayjs(contest.startTime));
+        case "past":
+          return currentTime.isAfter(dayjs(contest.endTime));
+        case "all":
+          return true;
+        default:
+          return false;
+      }
+    });
   }, [contests, filter]);
 
-  const renderSkeleton = () => (
-    <VStack spacing={6} align="stretch">
-      <Skeleton height="40px" width="100%" />
-      {Array.from({ length: 3 }).map((_, idx) => (
-        <Box
-          key={idx}
-          p={6}
-          borderRadius="md"
-          border="1px solid"
-          borderColor={useColorModeValue("gray.200", "gray.600")}
-        >
-          <SkeletonText mt="4" noOfLines={3} spacing="4" />
-          <SkeletonCircle size="10" mt="4" />
-        </Box>
-      ))}
-    </VStack>
-  );
-
   if (loading) {
+    // Skeleton loader for loading state
     return (
       <Box
         py={8}
@@ -130,7 +126,23 @@ const Home = () => {
         shadow="md"
         mt="3"
       >
-        {renderSkeleton()}
+        <VStack spacing={6} align="stretch">
+          <Skeleton height="40px" width="100%" />
+          {Array(3)
+            .fill(null)
+            .map((_, idx) => (
+              <Box
+                key={idx}
+                p={6}
+                borderRadius="md"
+                border="1px solid"
+                borderColor={useColorModeValue("gray.200", "gray.600")}
+              >
+                <SkeletonText mt="4" noOfLines={3} spacing="4" />
+                <SkeletonCircle size="10" mt="4" />
+              </Box>
+            ))}
+        </VStack>
       </Box>
     );
   }
@@ -148,16 +160,18 @@ const Home = () => {
     >
       <VStack spacing={8} align="stretch">
         {isValidModule ? (
-          testDetails?.map((test) => (
-            <ProjectCard
-              key={test.id}
-              test={test}
-              moduleIcons={modules()}
-              borderColor={useColorModeValue("gray.200", "gray.600")}
-              hoverBorderColor={useColorModeValue("teal.300", "teal.500")}
-              textColor={useColorModeValue("gray.800", "whiteAlpha.900")}
-            />
-          ))
+          testDetails && testDetails.length > 0 ? (
+            testDetails.map((test) => (
+              <ProjectCard
+                key={test.id}
+                test={test}
+                moduleIcons={modules()}
+                borderColor={useColorModeValue("gray.200", "gray.600")}
+                hoverBorderColor={useColorModeValue("teal.300", "teal.500")}
+                textColor={useColorModeValue("gray.800", "whiteAlpha.900")}
+              />
+            ))
+          ) : null
         ) : (
           <>
             <ContestFilter filter={filter} setFilter={setFilter} />
@@ -169,6 +183,8 @@ const Home = () => {
           </>
         )}
       </VStack>
+
+      {/* Modal for Starting a Contest */}
       {selectedContest && (
         <StartContestModal
           isOpen={isOpen}
@@ -182,4 +198,4 @@ const Home = () => {
   );
 };
 
-export default Home;
+export default React.memo(Home);
