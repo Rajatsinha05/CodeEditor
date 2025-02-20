@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Download } from "lucide-react";
-import html2pdf from "html2pdf.js";
+
 import TemplateSelector from "./TemplateSelector";
 import ModernTemplate from "./templates/ModernTemplate";
 import MinimalTemplate from "./templates/MinimalTemplate";
@@ -20,30 +20,24 @@ const ResumeUi = ({ student }) => {
   const downloadPDF = () => {
     // const originalElement = resumeRef.current;
     // if (!originalElement) return;
-
     // // Clone the element to avoid affecting live DOM
     // const element = originalElement.cloneNode(true);
     // document.body.appendChild(element);
-
     // // Force override all colors and remove problematic elements
     // const forcePDFStyles = (el) => {
     //   el.style.color = "#000000 !important";
     //   el.style.backgroundColor = "#ffffff !important";
     //   el.style.borderColor = "#cccccc !important";
-
     //   // Remove elements marked for PDF ignore
     //   if (el.dataset.pdfIgnore === "true") {
     //     el.parentNode?.removeChild(el);
     //   }
     // };
-
     // // Apply to all elements including nested components
     // element.querySelectorAll("*").forEach(forcePDFStyles);
-
     // // Additional safety for root element
     // element.style.backgroundColor = "#ffffff";
     // element.style.color = "#000000";
-
     // const opt = {
     //   margin: 0,
     //   filename: `${student.name.toLowerCase().replace(/\s+/g, "-")}-resume.pdf`,
@@ -62,7 +56,6 @@ const ResumeUi = ({ student }) => {
     //     compress: true,
     //   },
     // };
-
     // html2pdf()
     //   .set(opt)
     //   .from(element)
