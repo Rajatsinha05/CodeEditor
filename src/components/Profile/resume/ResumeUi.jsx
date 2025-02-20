@@ -18,58 +18,58 @@ const ResumeUi = ({ student }) => {
   }, [activeTemplate]);
 
   const downloadPDF = () => {
-    const originalElement = resumeRef.current;
-    if (!originalElement) return;
+    // const originalElement = resumeRef.current;
+    // if (!originalElement) return;
 
-    // Clone the element to avoid affecting live DOM
-    const element = originalElement.cloneNode(true);
-    document.body.appendChild(element);
+    // // Clone the element to avoid affecting live DOM
+    // const element = originalElement.cloneNode(true);
+    // document.body.appendChild(element);
 
-    // Force override all colors and remove problematic elements
-    const forcePDFStyles = (el) => {
-      el.style.color = "#000000 !important";
-      el.style.backgroundColor = "#ffffff !important";
-      el.style.borderColor = "#cccccc !important";
+    // // Force override all colors and remove problematic elements
+    // const forcePDFStyles = (el) => {
+    //   el.style.color = "#000000 !important";
+    //   el.style.backgroundColor = "#ffffff !important";
+    //   el.style.borderColor = "#cccccc !important";
 
-      // Remove elements marked for PDF ignore
-      if (el.dataset.pdfIgnore === "true") {
-        el.parentNode?.removeChild(el);
-      }
-    };
+    //   // Remove elements marked for PDF ignore
+    //   if (el.dataset.pdfIgnore === "true") {
+    //     el.parentNode?.removeChild(el);
+    //   }
+    // };
 
-    // Apply to all elements including nested components
-    element.querySelectorAll("*").forEach(forcePDFStyles);
+    // // Apply to all elements including nested components
+    // element.querySelectorAll("*").forEach(forcePDFStyles);
 
-    // Additional safety for root element
-    element.style.backgroundColor = "#ffffff";
-    element.style.color = "#000000";
+    // // Additional safety for root element
+    // element.style.backgroundColor = "#ffffff";
+    // element.style.color = "#000000";
 
-    const opt = {
-      margin: 0,
-      filename: `${student.name.toLowerCase().replace(/\s+/g, "-")}-resume.pdf`,
-      image: { type: "jpeg", quality: 0.98 },
-      html2canvas: {
-        scale: 3,
-        useCORS: true,
-        backgroundColor: "#ffffff",
-        logging: false,
-        ignoreElements: (el) => el.dataset.pdfIgnore === "true",
-      },
-      jsPDF: {
-        unit: "mm",
-        format: "a4",
-        orientation: "portrait",
-        compress: true,
-      },
-    };
+    // const opt = {
+    //   margin: 0,
+    //   filename: `${student.name.toLowerCase().replace(/\s+/g, "-")}-resume.pdf`,
+    //   image: { type: "jpeg", quality: 0.98 },
+    //   html2canvas: {
+    //     scale: 3,
+    //     useCORS: true,
+    //     backgroundColor: "#ffffff",
+    //     logging: false,
+    //     ignoreElements: (el) => el.dataset.pdfIgnore === "true",
+    //   },
+    //   jsPDF: {
+    //     unit: "mm",
+    //     format: "a4",
+    //     orientation: "portrait",
+    //     compress: true,
+    //   },
+    // };
 
-    html2pdf()
-      .set(opt)
-      .from(element)
-      .save()
-      .finally(() => {
-        document.body.removeChild(element); // Clean up cloned element
-      });
+    // html2pdf()
+    //   .set(opt)
+    //   .from(element)
+    //   .save()
+    //   .finally(() => {
+    //     document.body.removeChild(element); // Clean up cloned element
+    //   });
   };
 
   const templates = {
