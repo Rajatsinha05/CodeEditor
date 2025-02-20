@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@import "tailwindcss";
+
+/* Replace all oklch() with HEX equivalents */
+.modern-template {
+    --primary-color: #6a9eff;
+    --secondary-color: #4a5568;
+    --accent-color: #48bb78;
+  }
+  
+  .pdf-root * {
+    color-adjust: exact !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  
+  /* Hide elements marked for PDF ignore */
+  [data-pdf-ignore="true"] {
+    display: none !important;
+  }
+  
+  @media print {
+    .pdf-root {
+      width: 210mm !important;
+      min-height: 297mm !important;
+      transform: none !important;
+    }
+  }

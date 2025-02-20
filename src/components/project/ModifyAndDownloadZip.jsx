@@ -18,7 +18,10 @@ import { useSelector } from "react-redux";
 import axiosInstance from "../../config/axiosConfig";
 
 const ModifyAndDownloadZip = ({ fileName, testDetail }) => {
-  const { user } = useSelector((store) => store.user);
+  console.log("testDetail: ", testDetail);
+  console.log(testDetail?.endTime);
+
+  const { user } = useSelector((store) => store.data);
   const [isLoading, setIsLoading] = useState(false);
   const toast = useToast();
   const token = Cookies.get("token");
@@ -75,7 +78,17 @@ const ModifyAndDownloadZip = ({ fileName, testDetail }) => {
       await getTestFiles(fileName, token, loadedZip, testFilePath);
 
       const modifiedZipBlob = await loadedZip.generateAsync({ type: "blob" });
-      saveAs(modifiedZipBlob, "PR_Template.zip");
+      const title = testDetail?.title || "";
+      const prefix = "PR";
+
+      // Check if title already contains "PR_" (case-insensitive)
+      const formattedTitle = title
+        .toLowerCase()
+        .startsWith(prefix.toLowerCase())
+        ? title
+        : `${prefix}_${title}`;
+
+      saveAs(modifiedZipBlob, `${formattedTitle}.zip`);
 
       toast({
         title: "Download Complete",

@@ -5,16 +5,19 @@ import { fetchByStudentId } from "../../redux/Question/questionSolvedSlice";
 import SolvedQuestionsList from "./SolvedQuestionsList";
 import ActivityGraph from "./ActivityGraph";
 
-const StudentStats = ({ student }) => {
+const StudentStats = () => {
+  const { user } = useSelector((store) => store.data);
+  console.log("user: ", user);
   const dispatch = useDispatch();
 
   useEffect(() => {
-    if (student && student.id) {
-      dispatch(fetchByStudentId(student.id));
+    if (user && user.id) {
+      dispatch(fetchByStudentId(user.id));
     }
-  }, [dispatch, student?.id]);
+  }, [dispatch, user?.id]);
 
   const { studentRecords } = useSelector((store) => store.questionSolved);
+  console.log("studentRecords: ", studentRecords);
 
   const groupedRecords = useMemo(() => {
     if (!studentRecords || studentRecords.length === 0) return [];

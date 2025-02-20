@@ -25,12 +25,13 @@ import Students from "../components/Profile/Students";
 import AdminProfile from "../Pages/AdminProfile";
 import StudentDetailsPage from "../components/Profile/Student/StudentDetailsPage";
 import Portfolio from "../Pages/Portfolio";
-import ResumeSection from "../components/Profile/resume/ResumeSection";
+// import ResumeSection from "../components/Profile/resume/ResumeSection";
 import AddProject from "../Pages/AddProject";
 import AssignStudents from "../Pages/AssignStudents";
 import AssignProject from "../Pages/AssignProject";
 import ProjectDetails from "../Pages/ProjectDetails";
 import SubmissionDetails from "../Pages/SubmissionDetails";
+import Resume from "../Pages/Resume";
 
 const AllRoutes = () => {
   let { user, isLogin } = useSelector((store) => store.data);
@@ -67,7 +68,7 @@ const AllRoutes = () => {
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
       <Route path="/portfolio/:studentId" element={<Portfolio />} />
-      <Route path="/resume/:studentId" element={<ResumeSection />} />
+      <Route path="/resume/:studentId" element={<Resume />} />
       <Route
         path="/problem/:questionId"
         element={<SingleProblem type="question" />}
