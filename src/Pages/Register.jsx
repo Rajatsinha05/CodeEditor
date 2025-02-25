@@ -145,7 +145,7 @@ function Register() {
     console.log("formData: ", formData);
 
     try {
-      let res = await axiosInstance.post("/users/signup", formData);
+      let res = await axiosInstance.post("/students", formData);
       console.log("res: ", res);
 
       // Toast.success("Account created successfully!");
