@@ -70,10 +70,12 @@ const Students = () => {
   );
 
   useEffect(() => {
-    if (user?.role === "ADMIN") {
+    if (user?.role == "ADMIN") {
       dispatch(fetchStudentsByBranchCode(user?.branchCode));
     } else {
-      dispatch(fetchStudents());
+      if (user?.role == "SUPERADMIN") {
+        dispatch(fetchStudents());
+      }
     }
   }, [dispatch, user?.role, user?.branchCode]);
 

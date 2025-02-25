@@ -7,30 +7,34 @@ import {
   useColorModeValue,
 } from "@chakra-ui/react";
 import { useSelector } from "react-redux";
-import { useLocation } from "react-router-dom"; // Import useLocation
+import { useLocation } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import AllRoutes from "./Routes/AllRoutes";
 import "react-quill/dist/quill.snow.css";
 
 function App() {
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const { isLogin } = useSelector((store) => store.data);
+  const { isLogin, user } = useSelector((store) => store.data);
   const { colorMode } = useColorMode();
-  const location = useLocation(); // Get the current route
+  const location = useLocation();
+
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const handleDrawerClose = () => setIsDrawerOpen(false);
 
-  // Define dynamic styles based on color mode
-  const hoverBg = useColorModeValue("red.400", "teal.400");
-  const bgColor = useColorModeValue("gray.50", "gray.900");
-  const textColor = useColorModeValue("gray.800", "white");
-  const cardBgColor = useColorModeValue("white", "gray.800");
-  const hoverColor = useColorModeValue("white", "white");
+  // Dynamic styles based on color mode
+  const styles = {
+    hoverBg: useColorModeValue("red.400", "teal.400"),
+    bgColor: useColorModeValue("gray.50", "gray.900"),
+    textColor: useColorModeValue("gray.800", "white"),
+    cardBgColor: useColorModeValue("white", "gray.800"),
+    hoverColor: useColorModeValue("white", "white"),
+  };
 
-  const { user } = useSelector((store) => store.data);
-
-  // Hide Navbar on /portfolio/* routes
-  const hideNavbar = location.pathname.startsWith("/portfolio/");
+  // Hide Navbar on specific routes
+  const hideNavbar =
+    location.pathname.startsWith("/portfolio/") ||
+    location.pathname.startsWith("/register");
+  const isRegisterRoute = location.pathname.startsWith("/register");
 
   return (
     <>
@@ -40,7 +44,7 @@ function App() {
       <AllRoutes />
 
       {/* Conditional Login Modal */}
-      {!isLogin && (
+      {!isLogin && !isRegisterRoute && (
         <Box
           position="fixed"
           top="0"
@@ -59,13 +63,13 @@ function App() {
             borderRadius="md"
             boxShadow="lg"
             textAlign="center"
-            bg={colorMode === "light" ? "white" : "gray.800"}
+            bg={styles.bgColor}
           >
             <Text
               fontSize="xl"
               fontWeight="bold"
               mb={4}
-              color={colorMode === "light" ? "gray.800" : "white"}
+              color={styles.textColor}
             >
               Welcome to our platform!
             </Text>
@@ -76,13 +80,13 @@ function App() {
               You are not logged in. Please log in to access the content.
             </Text>
             <Button
-              bg={hoverBg}
+              bg={styles.hoverBg}
               color="white"
               size="lg"
               onClick={() => window.location.reload()}
               _hover={{
-                bg: hoverBg,
-                color: hoverColor,
+                bg: styles.hoverBg,
+                color: styles.hoverColor,
                 transform: "scale(1.05)",
                 transition: "all 0.3s",
               }}

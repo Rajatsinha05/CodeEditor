@@ -4,7 +4,6 @@ import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchStudentDetailsById } from "../redux/Student/studentsSlice";
 
-
 import React from "react";
 import { useEffect, useState } from "react";
 import {
@@ -31,7 +30,7 @@ function Portfolio() {
   const [githubStats, setGithubStats] = useState({ stars: 0, forks: 0 });
   const [githuabData, setGithuabData] = useState({});
   const { studentId } = useParams();
-
+  const SolvedQuestions = 200;
   const dispatch = useDispatch();
   const { student } = useSelector((store) => store.student);
   // Fetch student details
@@ -683,24 +682,23 @@ function Portfolio() {
                   </motion.div>
                 </div>
                 <div className="flex flex-col md:flex-row gap-8 items-center">
-  {/* GitHub Calendar */}
-  <div className="w-full overflow-x-auto">
-    <GitHubCalendar
-      username={student?.githubURL}
-      colorScheme={isDarkMode ? "dark" : "light"}
-    />
-  </div>
+                  {/* GitHub Calendar */}
+                  <div className="w-full overflow-x-auto">
+                    <GitHubCalendar
+                      username={student?.githubURL}
+                      colorScheme={isDarkMode ? "dark" : "light"}
+                    />
+                  </div>
 
-  {/* GitHub Streak Stats */}
-  <div>
-    <img
-      className="max-w-full h-auto object-cover"
-      src={`https://github-readme-streak-stats.herokuapp.com/?user=${githuabData?.[0]?.owner?.login}&theme=radical&hide_border=false`}
-      alt="GitHub Streak Stats"
-    />
-  </div>
-</div>
-
+                  {/* GitHub Streak Stats */}
+                  <div>
+                    <img
+                      className="max-w-full h-auto object-cover"
+                      src={`https://github-readme-streak-stats.herokuapp.com/?user=${githuabData?.[0]?.owner?.login}&theme=radical&hide_border=false`}
+                      alt="GitHub Streak Stats"
+                    />
+                  </div>
+                </div>
               </div>
             </motion.section>
           </main>

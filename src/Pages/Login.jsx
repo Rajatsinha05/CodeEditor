@@ -76,7 +76,7 @@ const Login = ({ isOpen, onClose }) => {
     if (!formData.password) {
       validationErrors.password = "Password is required";
       isValid = false;
-    } else if (formData.password.length < 7) {
+    } else if (formData.password.length < 8) {
       validationErrors.password = "Password must be at least 8 characters long";
       isValid = false;
     }
@@ -171,6 +171,19 @@ const Login = ({ isOpen, onClose }) => {
                 Login
               </Button>
             </form>
+            <Text fontSize="sm" textAlign="center">
+              Don't have an account?{" "}
+              <Button
+                variant="link"
+                color="teal.500"
+                onClick={() => {
+                  onClose(); // Close the login modal
+                  navigate("/register"); // Navigate to register page
+                }}
+              >
+                Register
+              </Button>
+            </Text>
           </VStack>
         </ModalBody>
         <ModalFooter justifyContent="center">

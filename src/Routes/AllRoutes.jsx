@@ -32,6 +32,7 @@ import AssignProject from "../Pages/AssignProject";
 import ProjectDetails from "../Pages/ProjectDetails";
 import SubmissionDetails from "../Pages/SubmissionDetails";
 import Resume from "../Pages/Resume";
+import Register from "../Pages/Register";
 
 const AllRoutes = () => {
   let { user, isLogin } = useSelector((store) => store.data);
@@ -67,6 +68,7 @@ const AllRoutes = () => {
       <Route path="/problems" element={<Problems />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
+      <Route path="/register" element={<Register />} />
       <Route path="/portfolio/:studentId" element={<Portfolio />} />
       <Route path="/resume/:studentId" element={<Resume />} />
       <Route

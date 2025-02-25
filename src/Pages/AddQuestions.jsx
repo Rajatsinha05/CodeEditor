@@ -336,6 +336,7 @@ const AddQuestions = ({ isOpen, onClose, initialData, isEditing }) => {
         {/* Input Field */}
         <FormControl mb={4} isInvalid={errors.input}>
           <FormLabel color={textColor}>Input</FormLabel>
+          {/* first input will be count number of test case */}
           <Textarea
             name="input"
             value={formData.input}
