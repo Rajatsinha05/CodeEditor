@@ -1,9 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import {
   Box,
   Heading,
   Text,
-  Button,
   VStack,
   HStack,
   Icon,
@@ -12,12 +11,17 @@ import {
   useColorModeValue,
   useToast,
   Skeleton,
-  SkeletonCircle,
-  SkeletonText,
 } from "@chakra-ui/react";
 import { FaUserShield, FaUsers, FaTasks, FaTrophy } from "react-icons/fa";
 import { Bar } from "react-chartjs-2";
-import "chart.js/auto";
+import {
+  Chart as ChartJS,
+  BarElement,
+  CategoryScale,
+  LinearScale,
+  Tooltip,
+  Legend,
+} from "chart.js";
 import { useDispatch, useSelector } from "react-redux";
 import {
   fetchStudents,
@@ -29,6 +33,8 @@ import {
   fetchBatchesByUserId,
 } from "../redux/Batch/batchSlice";
 import { showToast } from "../utils/toastUtils";
+
+ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
 const AdminProfile = () => {
   const bgColor = useColorModeValue("gray.50", "gray.900");
@@ -49,51 +55,54 @@ const AdminProfile = () => {
   const dispatch = useDispatch();
   const toast = useToast();
 
-  const [contestCount, setContestCount] = useState(0);
-
   useEffect(() => {
     if (user?.role === "ADMIN") {
       dispatch(fetchStudentsByBranchCode(user.branchCode));
-    } else {
+    } else if (user?.role === "SUPERADMIN") {
       dispatch(fetchStudents());
     }
+  }, [dispatch, user?.role, user?.branchCode]);
 
+  useEffect(() => {
     const fetchBatches = async () => {
       try {
         if (user?.role === "SUPERADMIN")
           await dispatch(fetchAllActiveBatches());
-        if (user?.role === "ADMIN")
+        else if (user?.role === "ADMIN")
           await dispatch(fetchBatchesByUserId(user.id));
-        if (user?.role === "STUDENT")
+        else if (user?.role === "STUDENT")
           await dispatch(fetchBatchesByStudentId(user.id));
       } catch (err) {
         showToast(toast, err.message || "Failed to fetch batches", "error");
       }
     };
     fetchBatches();
-  }, [dispatch, user, toast]);
+  }, [dispatch, user?.role, user?.id, toast]);
 
-  useEffect(() => {
-    setContestCount(
+  const contestCount = useMemo(
+    () =>
       batches?.reduce(
         (total, batch) => total + (batch.contestIds?.length || 0),
         0
-      )
-    );
-  }, [batches]);
+      ),
+    [batches]
+  );
 
-  const chartData = {
-    labels: ["Students", "Contests", "Batches"],
-    datasets: [
-      {
-        label: "Overview",
-        data: [students.length, contestCount, batches.length],
-        backgroundColor: ["#FEB2B2", "#FC8181", "#F56565"],
-        borderColor: ["#FC8181", "#E53E3E", "#C53030"],
-        borderWidth: 1,
-      },
-    ],
-  };
+  const chartData = useMemo(
+    () => ({
+      labels: ["Students", "Contests", "Batches"],
+      datasets: [
+        {
+          label: "Overview",
+          data: [students.length, contestCount, batches.length],
+          backgroundColor: ["#FEB2B2", "#FC8181", "#F56565"],
+          borderColor: ["#FC8181", "#E53E3E", "#C53030"],
+          borderWidth: 1,
+        },
+      ],
+    }),
+    [students.length, contestCount, batches.length]
+  );
 
   if (studentsLoading || batchesLoading) {
     return (
@@ -108,7 +117,7 @@ const AdminProfile = () => {
         <VStack spacing={8}>
           <Skeleton height="80px" width="100%" />
           <Grid templateColumns={{ base: "1fr", md: "repeat(3, 1fr)" }} gap={6}>
-            {[...Array(3)].map((_, idx) => (
+            {new Array(3).fill(null).map((_, idx) => (
               <Skeleton height="150px" borderRadius="lg" key={idx} />
             ))}
           </Grid>
@@ -128,39 +137,9 @@ const AdminProfile = () => {
               <Heading size="lg" color={headingColor}>
                 Welcome, {user?.name}!
               </Heading>
-              <Text fontSize="md" color={textColor}>
-                Manage your dashboard effortlessly and stay organized.
-              </Text>
             </VStack>
           </HStack>
         </Box>
-        <Grid templateColumns={{ base: "1fr", md: "repeat(3, 1fr)" }} gap={6}>
-          {[
-            { label: "Total Students", value: students.length, icon: FaUsers },
-            { label: "Active Contests", value: contestCount, icon: FaTasks },
-            { label: "Batches", value: batches.length, icon: FaTrophy },
-          ].map((stat, idx) => (
-            <GridItem
-              key={idx}
-              p={6}
-              bg={cardBgColor}
-              borderRadius="lg"
-              boxShadow="md"
-              _hover={{ bg: hoverBgColor, transform: "scale(1.02)" }}
-              transition="0.3s ease"
-            >
-              <HStack spacing={4}>
-                <Icon as={stat.icon} color={iconColor} boxSize={8} />
-                <VStack align="start">
-                  <Heading size="md" color={textColor}>
-                    {stat.value}
-                  </Heading>
-                  <Text color={textColor}>{stat.label}</Text>
-                </VStack>
-              </HStack>
-            </GridItem>
-          ))}
-        </Grid>
         <Box p={6} bg={cardBgColor} borderRadius="lg" boxShadow="xl">
           <Heading size="md" color={headingColor} mb={4}>
             Data Overview

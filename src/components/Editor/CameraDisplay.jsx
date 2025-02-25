@@ -2,7 +2,8 @@ import React, { useEffect, useRef, useState } from "react";
 import { Box, Text, useToast, HStack, Icon } from "@chakra-ui/react";
 import { ViewOffIcon } from "@chakra-ui/icons";
 import Draggable from "react-draggable";
-import * as faceapi from "face-api.js";
+// import * as faceapi from "face-api.js";
+
 
 import { showToast } from "../../utils/toastUtils";
 
@@ -13,7 +14,7 @@ const CameraDisplay = ({ videoBoxSize }) => {
   const toastRef = useRef(false); // Track toast visibility to prevent duplicates
 
   const initializeFaceApi = async () => {
-    await faceapi.nets.ssdMobilenetv1.loadFromUri("/models");
+    // await faceapi.nets.ssdMobilenetv1.loadFromUri("/models");
   };
 
   useEffect(() => {

@@ -1,6 +1,5 @@
-import React, { useRef, useState, useEffect, useMemo } from "react";
+import React, { useRef, useState, useEffect, useMemo, lazy, Suspense } from "react";
 import { Box, useToast, useColorModeValue, Flex } from "@chakra-ui/react";
-import * as monaco from "monaco-editor";
 import { BsThreeDotsVertical } from "react-icons/bs";
 
 import { useDispatch, useSelector } from "react-redux";
@@ -10,7 +9,8 @@ import CameraDisplay from "./CameraDisplay";
 import { getQuestionById } from "../../redux/Question/questionApi";
 import { showToast } from "../../utils/toastUtils";
 import ProblemDetails from "./ProblemDetails";
-import CodeWorkspace from "./CodeWorkspace";
+
+const CodeWorkspace = lazy(() => import("./CodeWorkspace"));
 
 const CodeEditor = ({ problemId }) => {
   const editorRef = useRef();
@@ -18,19 +18,21 @@ const CodeEditor = ({ problemId }) => {
   const [language, setLanguage] = useState("java");
   const [theme, setTheme] = useState("vs-dark");
   const [fontSize, setFontSize] = useState(14);
-  const [dividerX, setDividerX] = useState(40); // Percentage for initial ProblemDetails width
+  const [dividerX, setDividerX] = useState(40);
 
-  const { user } = useSelector((store) => store.user);
+  const [monacoInstance, setMonacoInstance] = useState(null);
   const [testResults, setTestResults] = useState([]);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const toast = useToast();
   const dispatch = useDispatch();
-  const { data } = useSelector((store) => store.test) || {};
-  const { question } = useSelector((store) => store.question);
+  const { user, question, data } = useSelector((store) => ({
+    user: store.user.user,
+    question: store.question.question,
+    data: store.test?.data,
+  }));
 
-  const bgColor = useColorModeValue("gray.100", "gray.800");
   const textColor = useColorModeValue("blackAlpha.800", "whiteAlpha.900");
 
   const shouldFetchQuestion = useMemo(
@@ -44,23 +46,26 @@ const CodeEditor = ({ problemId }) => {
     }
   }, [dispatch, problemId, shouldFetchQuestion]);
 
-  const onMount = (editor, monaco) => {
+  // Lazy load monaco-editor
+  useEffect(() => {
+    import("monaco-editor").then((monaco) => {
+      setMonacoInstance(monaco);
+    });
+  }, []);
+
+  const onMount = (editor) => {
+    if (!monacoInstance) return;
     editorRef.current = editor;
     editor.focus();
 
-    if (
-      user.role === "SUPERADMIN" ||
-      user.role === "ADMIN" ||
-      user.email == "test@gmail.com"
-    )
-      return;
-
-    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyC, () => {
-      showToast(toast, "Copy Disabled", "warning");
-    });
-    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyV, () => {
-      showToast(toast, "Paste Disabled", "warning");
-    });
+    if (user.role !== "SUPERADMIN" && user.role !== "ADMIN" && user.email !== "test@gmail.com") {
+      editor.addCommand(monacoInstance.KeyMod.CtrlCmd | monacoInstance.KeyCode.KeyC, () => {
+        showToast(toast, "Copy Disabled", "warning");
+      });
+      editor.addCommand(monacoInstance.KeyMod.CtrlCmd | monacoInstance.KeyCode.KeyV, () => {
+        showToast(toast, "Paste Disabled", "warning");
+      });
+    }
   };
 
   const handleMouseDown = (e) => {
@@ -125,7 +130,7 @@ const CodeEditor = ({ problemId }) => {
           width="10px"
           cursor="ew-resize"
           bg={useColorModeValue("gray.200", "gray.700")}
-          display={{ base: "none", md: "flex" }} // Hide on mobile
+          display={{ base: "none", md: "flex" }}
           onMouseDown={handleMouseDown}
           alignItems="center"
           justifyContent="center"
@@ -146,24 +151,26 @@ const CodeEditor = ({ problemId }) => {
           shadow="md"
           bg={useColorModeValue("white", "gray.900")}
         >
-          <CodeWorkspace
-            language={language}
-            theme={theme}
-            fontSize={fontSize}
-            value={value}
-            setLanguage={setLanguage}
-            setTheme={setTheme}
-            setFontSize={setFontSize}
-            setValue={setValue}
-            onMount={onMount}
-            testResults={testResults}
-            isLoading={isLoading}
-            isDrawerOpen={isDrawerOpen}
-            editorRef={editorRef}
-            monaco={monaco}
-            data={data}
-            question={question}
-          />
+          <Suspense fallback={<div>Loading Editor...</div>}>
+            <CodeWorkspace
+              language={language}
+              theme={theme}
+              fontSize={fontSize}
+              value={value}
+              setLanguage={setLanguage}
+              setTheme={setTheme}
+              setFontSize={setFontSize}
+              setValue={setValue}
+              onMount={onMount}
+              testResults={testResults}
+              isLoading={isLoading}
+              isDrawerOpen={isDrawerOpen}
+              editorRef={editorRef}
+              monaco={monacoInstance}
+              data={data}
+              question={question}
+            />
+          </Suspense>
         </Box>
       </Flex>
     </Box>
