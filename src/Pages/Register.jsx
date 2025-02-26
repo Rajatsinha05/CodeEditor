@@ -1,10 +1,12 @@
 import React, { useState } from "react";
-import { Mail, Lock, User, Code, BookOpen, CheckCircle } from "lucide-react";
+import { Mail, Lock, User, Code, BookOpen, CheckCircle, Hash } from "lucide-react";
 import { getBranch } from "../components/data/branch";
 import { getCourse } from "../components/data/course";
 import axiosInstance from "../config/axiosConfig";
 import { Toast, useToast } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
+import { createStudent } from "../redux/Student/studentsSlice";
+import { useDispatch } from "react-redux";
 
 function Register() {
   const [formData, setFormData] = useState({
@@ -12,17 +14,20 @@ function Register() {
     email: "",
     password: "",
     branchCode: "",
-    course: "fullstack",
+    course: "",
+    grid: "",
     role: "STUDENT",
   });
+
   const toast = useToast();
   const [errors, setErrors] = useState({
     name: "",
     email: "",
     password: "",
     branchCode: "",
+    grid: "",
   });
-
+  const dispatch = useDispatch();
   const [step, setStep] = useState(1); // 1: Registration, 2: OTP Verification
   const [otp, setOtp] = useState("");
   const [generatedOtp, setGeneratedOtp] = useState("");
@@ -39,52 +44,47 @@ function Register() {
     switch (name) {
       case "name":
         if (!value.trim()) {
-          vibrate();
           return "Name is required";
         }
         if (value.length < 2) {
-          vibrate();
           return "Name must be at least 2 characters";
         }
         break;
       case "email":
         if (!value) {
-          vibrate();
           return "Email is required";
         }
         if (!/\S+@\S+\.\S+/.test(value)) {
-          vibrate();
           return "Please enter a valid email";
         }
         break;
       case "password":
         if (!value) {
-          vibrate();
           return "Password is required";
         }
-        if (value.length < 6) {
-          vibrate();
-          return "Password must be at least 6 characters";
+        if (value.length < 8) {
+          return "Password must be at least 8 characters";
         }
         if (!/(?=.*[a-z])/.test(value)) {
-          vibrate();
           return "Password must contain at least one lowercase letter";
         }
         if (!/(?=.*[A-Z])/.test(value)) {
-          vibrate();
           return "Password must contain at least one uppercase letter";
         }
         if (!/(?=.*\d)/.test(value)) {
-          vibrate();
           return "Password must contain at least one number";
         }
         break;
       case "branchCode":
         if (!value) {
-          vibrate();
           return "Branch code is required";
         }
         break;
+      case "grid":
+        if (!value) return "Grid number is required";
+        if (!/^\d{4}$/.test(value)) return "Must be a 4-digit number";
+        break;
+
       default:
         return "";
     }
@@ -145,8 +145,15 @@ function Register() {
     console.log("formData: ", formData);
 
     try {
-      let res = await axiosInstance.post("/students", formData);
-      console.log("res: ", res);
+      await dispatch(createStudent(formData)).unwrap();
+      toast({
+        title: "Student created successfully.",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+      // let res = await axiosInstance.post("/students", formData);
+      // console.log("res: ", res);
 
       // Toast.success("Account created successfully!");
 
@@ -292,6 +299,29 @@ function Register() {
                 </div>
 
                 <div className="relative">
+                  <Hash
+                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-red-300"
+                    size={20}
+                  />
+                  <input
+                    type="number"
+                    name="grid"
+                    value={formData.grid}
+                    onChange={handleInputChange}
+                    placeholder="Grid Number"
+                    className={`w-full pl-10 pr-4 py-2 border ${
+                      errors.grid ? "border-red-500" : "border-gray-200"
+                    } rounded-lg focus:ring-2 focus:ring-red-100 focus:border-red-300 outline-none placeholder:text-black text-black`}
+                    inputMode="numeric"
+                    pattern="\d{4}"
+                    required
+                  />
+                  {errors.grid && (
+                    <p className="text-red-500 text-sm mt-1">{errors.grid}</p>
+                  )}
+                </div>
+
+                <div className="relative">
                   <Code
                     className="absolute left-3 top-1/2 transform -translate-y-1/2 text-red-300"
                     size={20}
@@ -331,6 +361,7 @@ function Register() {
                     className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-red-100 focus:border-red-300 outline-none appearance-none bg-white placeholder:text-black text-black"
                     required
                   >
+                    <option value="">Select Course</option>
                     {courses.map((course) => (
                       <option key={course} value={course}>
                         {course}
