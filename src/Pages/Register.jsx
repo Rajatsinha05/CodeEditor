@@ -147,17 +147,6 @@ function Register() {
     try {
       await dispatch(createStudent(formData)).unwrap();
       toast({
-        title: "Student created successfully.",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
-      // let res = await axiosInstance.post("/students", formData);
-      // console.log("res: ", res);
-
-      // Toast.success("Account created successfully!");
-
-      toast({
         title: "Account created successfully!",
 
         status: "success",
