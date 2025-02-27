@@ -20,6 +20,7 @@ import {
   MenuItem,
   Button,
 } from "@chakra-ui/react";
+// import { getCodeRecord, saveCodeRecord, deleteCodeRecord } from "../../db.";
 import { FiSettings } from "react-icons/fi";
 import { FaClock, FaSync, FaHistory } from "react-icons/fa";
 const MonacoEditor = React.lazy(() => import("@monaco-editor/react"));
@@ -36,6 +37,7 @@ import {
   fetchSolvedQuestionsByStudentIdAndContestId,
 } from "../../redux/ContestQuestionSolvedSplice";
 import useTabActivityTracker from "./useTabActivityTracker";
+import { getCodeRecord, saveCodeRecord } from "../../db";
 
 const CodeWorkspace = ({
   theme,
@@ -98,60 +100,139 @@ const CodeWorkspace = ({
     contestIdRef.current = contestId;
   }, [questionId, contestId]);
 
-  // Load saved code and preferences on component mount
   useEffect(() => {
-    const key = `code-${questionId}-${contestId || ""}`;
-    const savedData = localStorage.getItem(key);
-    
-    if (savedData) {
+    const loadSavedCode = async () => {
       try {
-        const { code, language } = JSON.parse(savedData);
-        console.log('code: ', code);
-        setPreferences((prev) => ({ ...prev, language }));
-        setValue(code);
-        localStorage.setItem("defaultLanguage", language);
+        const record = await getCodeRecord(questionId, contestId);
+
+        if (record) {
+          setPreferences((prev) => ({
+            ...prev,
+            language: record.language || "java",
+          }));
+          setValue(record.code || CODE_SNIPPETS.java);
+        } else {
+          const defaultLanguage =
+            localStorage.getItem("defaultLanguage") || "java";
+          setValue(CODE_SNIPPETS[defaultLanguage] || "");
+        }
       } catch (error) {
-        console.error("Error parsing saved code:", error);
+        console.error("Error loading from IndexedDB:", error);
+        // Fallback to localStorage
         const defaultLanguage =
           localStorage.getItem("defaultLanguage") || "java";
-        setPreferences((prev) => ({ ...prev, language: defaultLanguage }));
         setValue(CODE_SNIPPETS[defaultLanguage] || "");
       }
-    } else {
-      const defaultLanguage = localStorage.getItem("defaultLanguage") || "java";
-      setPreferences((prev) => ({ ...prev, language: defaultLanguage }));
-      setValue(CODE_SNIPPETS[defaultLanguage] || "");
-    }
-  }, [setValue, questionId, contestId]);
+    };
 
-  // Debounce save to localStorage on code or language change
+    loadSavedCode();
+  }, [questionId, contestId, setValue]);
+
+  // Save to IndexedDB with debouncing
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      const key = `code-${questionId}-${contestId || ""}`;
-      const dataToSave = {
-        code: value,
-        language: preferences.language,
-      };
-      localStorage.setItem(key, JSON.stringify(dataToSave));
+    const timeoutId = setTimeout(async () => {
+      try {
+        await saveCodeRecord({
+          questionId,
+          contestId,
+          code: value,
+          language: preferences.language,
+          lastSaved: new Date().toISOString(),
+        });
+      } catch (error) {
+        console.error("Error saving to IndexedDB:", error);
+        // Fallback to localStorage
+        localStorage.setItem(
+          `code-${questionId}-${contestId || ""}`,
+          JSON.stringify({ code: value, language: preferences.language })
+        );
+      }
     }, 1000);
 
     return () => clearTimeout(timeoutId);
   }, [value, preferences.language, questionId, contestId]);
 
-  // Save code before page unload
+  // Save before unload
   useEffect(() => {
-    const handleBeforeUnload = (e) => {
-      const key = `code-${questionIdRef.current}-${contestIdRef.current || ""}`;
-      const dataToSave = {
-        code: valueRef.current,
-        language: preferencesRef.current.language,
-      };
-      localStorage.setItem(key, JSON.stringify(dataToSave));
+    const handleBeforeUnload = async (e) => {
+      try {
+        await saveCodeRecord({
+          questionId: questionIdRef.current,
+          contestId: contestIdRef.current,
+          code: valueRef.current,
+          language: preferencesRef.current.language,
+          lastSaved: new Date().toISOString(),
+        });
+      } catch (error) {
+        console.error("Final save failed:", error);
+        // Emergency localStorage fallback
+        localStorage.setItem(
+          `code-${questionIdRef.current}-${contestIdRef.current || ""}`,
+          JSON.stringify({
+            code: valueRef.current,
+            language: preferencesRef.current.language,
+          })
+        );
+      }
     };
 
     window.addEventListener("beforeunload", handleBeforeUnload);
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, []);
+  // Load saved code and preferences on component mount
+  // useEffect(() => {
+  //   const key = `code-${questionId}-${contestId || ""}`;
+  //   const savedData = localStorage.getItem(key);
+
+  //   if (savedData) {
+  //     try {
+  //       const { code, language } = JSON.parse(savedData);
+  //       console.log('code: ', code);
+  //       setPreferences((prev) => ({ ...prev, language }));
+  //       setValue(code);
+  //       localStorage.setItem("defaultLanguage", language);
+  //     } catch (error) {
+  //       console.error("Error parsing saved code:", error);
+  //       const defaultLanguage =
+  //         localStorage.getItem("defaultLanguage") || "java";
+  //       setPreferences((prev) => ({ ...prev, language: defaultLanguage }));
+  //       setValue(CODE_SNIPPETS[defaultLanguage] || "");
+  //     }
+  //   } else {
+  //     const defaultLanguage = localStorage.getItem("defaultLanguage") || "java";
+  //     setPreferences((prev) => ({ ...prev, language: defaultLanguage }));
+  //     setValue(CODE_SNIPPETS[defaultLanguage] || "");
+  //   }
+  // }, [setValue, questionId, contestId]);
+
+  // // Debounce save to localStorage on code or language change
+  // useEffect(() => {
+  //   const timeoutId = setTimeout(() => {
+  //     const key = `code-${questionId}-${contestId || ""}`;
+  //     const dataToSave = {
+  //       code: value,
+  //       language: preferences.language,
+  //     };
+  //     localStorage.setItem(key, JSON.stringify(dataToSave));
+  //   }, 1000);
+
+  //   return () => clearTimeout(timeoutId);
+  // }, [value, preferences.language, questionId, contestId]);
+
+  // // Save code before page unload
+  // useEffect(() => {
+  //   const handleBeforeUnload = (e) => {
+  //     const key = `code-${questionIdRef.current}-${contestIdRef.current || ""}`;
+  //     const dataToSave = {
+  //       code: valueRef.current,
+  //       language: preferencesRef.current.language,
+  //     };
+  //     localStorage.setItem(key, JSON.stringify(dataToSave));
+  //   };
+
+  //   window.addEventListener("beforeunload", handleBeforeUnload);
+  //   return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  // }, []);
   // Fetch question-solved data
   useEffect(() => {
     if (studentId && questionId) {
@@ -170,7 +251,6 @@ const CodeWorkspace = ({
   }, [dispatch, studentId, questionId, contestId]);
 
   // Initialize language preferences
-
 
   // solved in contest
 
@@ -290,7 +370,7 @@ const CodeWorkspace = ({
         >
           <MonacoEditor
             options={{
-              // minimap: { enabled: preferences.showSnippets },
+              minimap: { enabled: preferences.showSnippets },
               fontSize: fontSize,
               wordWrap: "on",
               lineNumbers: preferences.showLineNumbers ? "on" : "off",

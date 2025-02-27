@@ -11,11 +11,17 @@ import { useLocation } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import AllRoutes from "./Routes/AllRoutes";
 import "react-quill/dist/quill.snow.css";
+import { trackPageView } from "../analytics";
 
 function App() {
+  const location = useLocation();
+
+  useEffect(() => {
+    trackPageView(location.pathname); // Track each page visit
+  }, [location]);
+
   const { isLogin, user } = useSelector((store) => store.data);
   const { colorMode } = useColorMode();
-  const location = useLocation();
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
