@@ -18,7 +18,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchContests } from "../../redux/contestSlice";
 
-const ProblemDetails = ({ question }) => {
+const ProblemDetails = ({ question, reload }) => {
   const [loading, setLoading] = useState(true);
 
   const boxBg = useColorModeValue("gray.50", "gray.800");
@@ -55,6 +55,7 @@ const ProblemDetails = ({ question }) => {
       navigate(
         `/contests/${contestId}/questions/${prevQuestionId}/attempts/${attemptId}`
       );
+      reload();
     }
   };
 
@@ -65,6 +66,7 @@ const ProblemDetails = ({ question }) => {
       navigate(
         `/contests/${contestId}/questions/${nextQuestionId}/attempts/${attemptId}`
       );
+      reload();
     }
   };
 

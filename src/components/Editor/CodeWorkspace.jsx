@@ -75,7 +75,83 @@ const CodeWorkspace = ({
   const { user } = useSelector((store) => store.user);
 
   const studentId = useMemo(() => user?.id, [user]);
+  const valueRef = useRef(value);
+  const preferencesRef = useRef(preferences);
+  const questionIdRef = useRef(questionId);
+  const contestIdRef = useRef(contestId);
+  useEffect(() => {
+    const storedLanguage = localStorage.getItem("defaultLanguage") || "java";
+    setPreferences((prev) => ({ ...prev, language: storedLanguage }));
+    setValue(CODE_SNIPPETS[storedLanguage] || "");
+  }, [setValue]);
+  // Update refs whenever state changes
+  useEffect(() => {
+    valueRef.current = value;
+  }, [value]);
 
+  useEffect(() => {
+    preferencesRef.current = preferences;
+  }, [preferences]);
+
+  useEffect(() => {
+    questionIdRef.current = questionId;
+    contestIdRef.current = contestId;
+  }, [questionId, contestId]);
+
+  // Load saved code and preferences on component mount
+  useEffect(() => {
+    const key = `code-${questionId}-${contestId || ""}`;
+    const savedData = localStorage.getItem(key);
+    
+    if (savedData) {
+      try {
+        const { code, language } = JSON.parse(savedData);
+        console.log('code: ', code);
+        setPreferences((prev) => ({ ...prev, language }));
+        setValue(code);
+        localStorage.setItem("defaultLanguage", language);
+      } catch (error) {
+        console.error("Error parsing saved code:", error);
+        const defaultLanguage =
+          localStorage.getItem("defaultLanguage") || "java";
+        setPreferences((prev) => ({ ...prev, language: defaultLanguage }));
+        setValue(CODE_SNIPPETS[defaultLanguage] || "");
+      }
+    } else {
+      const defaultLanguage = localStorage.getItem("defaultLanguage") || "java";
+      setPreferences((prev) => ({ ...prev, language: defaultLanguage }));
+      setValue(CODE_SNIPPETS[defaultLanguage] || "");
+    }
+  }, [setValue, questionId, contestId]);
+
+  // Debounce save to localStorage on code or language change
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      const key = `code-${questionId}-${contestId || ""}`;
+      const dataToSave = {
+        code: value,
+        language: preferences.language,
+      };
+      localStorage.setItem(key, JSON.stringify(dataToSave));
+    }, 1000);
+
+    return () => clearTimeout(timeoutId);
+  }, [value, preferences.language, questionId, contestId]);
+
+  // Save code before page unload
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      const key = `code-${questionIdRef.current}-${contestIdRef.current || ""}`;
+      const dataToSave = {
+        code: valueRef.current,
+        language: preferencesRef.current.language,
+      };
+      localStorage.setItem(key, JSON.stringify(dataToSave));
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, []);
   // Fetch question-solved data
   useEffect(() => {
     if (studentId && questionId) {
@@ -94,11 +170,7 @@ const CodeWorkspace = ({
   }, [dispatch, studentId, questionId, contestId]);
 
   // Initialize language preferences
-  useEffect(() => {
-    const storedLanguage = localStorage.getItem("defaultLanguage") || "java";
-    setPreferences((prev) => ({ ...prev, language: storedLanguage }));
-    setValue(CODE_SNIPPETS[storedLanguage] || "");
-  }, [setValue]);
+
 
   // solved in contest
 
@@ -218,7 +290,7 @@ const CodeWorkspace = ({
         >
           <MonacoEditor
             options={{
-              minimap: { enabled: preferences.showSnippets },
+              // minimap: { enabled: preferences.showSnippets },
               fontSize: fontSize,
               wordWrap: "on",
               lineNumbers: preferences.showLineNumbers ? "on" : "off",
