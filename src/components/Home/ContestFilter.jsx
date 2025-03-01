@@ -1,53 +1,74 @@
 import React from "react";
-import { HStack, Button, Tooltip, IconButton } from "@chakra-ui/react";
+import {
+  HStack,
+  Button,
+  Tooltip,
+  IconButton,
+  Wrap,
+  WrapItem,
+  Flex,
+  useBreakpointValue,
+  Text,
+} from "@chakra-ui/react";
 import { MdEventAvailable, MdFilterListOff, MdAddCircle } from "react-icons/md";
 import { CalendarIcon, RepeatIcon } from "@chakra-ui/icons";
 import { FaList } from "react-icons/fa";
-import Ability from "../../Permissions/Ability";
 
 const ContestFilter = ({ filter, setFilter, onCreateContest }) => {
+  const buttonSize = useBreakpointValue({ base: "xs", md: "sm" });
+  const showText = useBreakpointValue({ base: false, md: true });
+
+  const filters = [
+    {
+      value: "active",
+      label: "Active Contests",
+      icon: <MdEventAvailable />,
+      color: "teal",
+    },
+    {
+      value: "upcoming",
+      label: "Upcoming Contests",
+      icon: <CalendarIcon />,
+      color: "yellow",
+    },
+    {
+      value: "past",
+      label: "Past Contests",
+      icon: <RepeatIcon />,
+      color: "red",
+    },
+    {
+      value: "all",
+      label: "All Contests",
+      icon: <FaList />,
+      color: "blue",
+    },
+  ];
+
   return (
-    <HStack justify="space-between" mb={6} spacing={4}>
+    <Flex direction="column" align="center" justify="center" mb={6} w="full">
+      {/* Header */}
+
       {/* Contest Filters */}
-      <HStack spacing={4}>
-        <Tooltip label="Active Contests" aria-label="Active Contests">
-          <Button
-            leftIcon={<MdEventAvailable />}
-            colorScheme={filter === "active" ? "teal" : "gray"}
-            onClick={() => setFilter("active")}
-          >
-            Active
-          </Button>
-        </Tooltip>
-        <Tooltip label="Upcoming Contests" aria-label="Upcoming Contests">
-          <Button
-            leftIcon={<CalendarIcon />}
-            colorScheme={filter === "upcoming" ? "yellow" : "gray"}
-            onClick={() => setFilter("upcoming")}
-          >
-            Upcoming
-          </Button>
-        </Tooltip>
-        <Tooltip label="Past Contests" aria-label="Past Contests">
-          <Button
-            leftIcon={<RepeatIcon />}
-            colorScheme={filter === "past" ? "red" : "gray"}
-            onClick={() => setFilter("past")}
-          >
-            Past
-          </Button>
-        </Tooltip>
-        <Tooltip label="All Contests" aria-label="All Contests">
-          <Button
-            leftIcon={<FaList />}
-            colorScheme={filter === "all" ? "blue" : "gray"}
-            onClick={() => setFilter("all")}
-          >
-            All
-          </Button>
-        </Tooltip>
-      </HStack>
-    </HStack>
+      <Wrap spacing={{ base: 2, md: 4 }} justify="center" flex="1">
+        {filters.map(({ value, label, icon, color }) => (
+          <WrapItem key={value}>
+            <Tooltip label={label} aria-label={label}>
+              <Button
+                leftIcon={icon}
+                colorScheme={filter === value ? color : "gray"}
+                onClick={() => setFilter(value)}
+                size={buttonSize}
+                px={{ base: 2, md: 4 }}
+                borderRadius="md"
+              >
+                {label.split(" ")[0]} {/* Show shortened label */}
+              </Button>
+            </Tooltip>
+          </WrapItem>
+        ))}
+      </Wrap>
+    </Flex>
   );
 };
 

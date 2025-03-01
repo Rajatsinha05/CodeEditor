@@ -108,8 +108,7 @@ const CodeEditor = ({ problemId }) => {
   };
 
   const reload = () => {
-    
-   setResetKey((prev) => prev + 1);
+    setResetKey((prev) => prev + 1);
   };
   return (
     <Box

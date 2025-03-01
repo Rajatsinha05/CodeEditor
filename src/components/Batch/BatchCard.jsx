@@ -103,9 +103,22 @@ const BatchCard = ({ batch, isLoading }) => {
       position="relative"
     >
       <Flex justify="space-between" align="center" mb={4}>
-        <Flex align="center">
-          <FiBriefcase size="20px" style={{ marginRight: "8px" }} />
-          <Heading size="md" color={textColor} isTruncated>
+        <Flex
+          align="center"
+          minWidth={0} // Critical for truncation in flex containers
+          overflow="hidden" // Explicit overflow control
+        >
+          <FiBriefcase
+            size="20px"
+            style={{ marginRight: "8px", flexShrink: 0 }}
+          />
+          <Heading
+            size="md"
+            color={textColor}
+            isTruncated
+            flex="1" // Allow heading to take available space
+            whiteSpace="nowrap" // Force single line
+          >
             {batch.name}
           </Heading>
         </Flex>

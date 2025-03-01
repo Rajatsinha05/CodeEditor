@@ -12,16 +12,17 @@ import { getContestById } from "../redux/contestSlice";
 import { fetchSolvedQuestionsByContestId } from "../redux/ContestQuestionSolvedSplice";
 
 // Components
-import CustomCreativeSpinner from "../components/Spinner/CustomCreativeSpinner";
 import ContestHeader from "../components/ContestDetails/ContestHeader";
 import ContestDetailsSection from "../components/ContestDetails/ContestDetailsSection";
 import ContestQuestions from "../components/ContestDetails/ContestQuestions";
 import StudentRankings from "../components/ContestDetails/StudentRankings";
 import EnrolledStudents from "../components/ContestDetails/EnrolledStudents";
+import ContestAttemptingDetails from "../components/ContestDetails/ContestAttemptingDetails ";
+// import ContestDetailsSkeleton from "./ContestDetailsSkeleton"; // Import the skeleton component
 
 // Utils
 import { showToast } from "../utils/toastUtils";
-import ContestAttemptingDetails from "../components/ContestDetails/ContestAttemptingDetails ";
+import ContestDetailsSkeleton from "../components/ContestDetails/ContestDetailsSkeleton";
 
 const ContestDetails = () => {
   const { id } = useParams();
@@ -45,8 +46,6 @@ const ContestDetails = () => {
         attemptsLoading: store.contestAttempt.loading.fetchAll,
       },
     }));
-
-  console.log("user", user);
 
   // Fetch contest-related data
   useEffect(() => {
@@ -117,7 +116,8 @@ const ContestDetails = () => {
   }, [showSpinner, loadingStates]);
 
   if (isLoading) {
-    return <CustomCreativeSpinner />;
+    // Use the skeleton component h
+    return <ContestDetailsSkeleton />;
   }
 
   return (
@@ -149,11 +149,6 @@ const ContestDetails = () => {
           <ContestAttemptingDetails contestAttempts={contestAttempts} />
           <EnrolledStudents contest={contest} colorMode={colorMode} />
         </>
-      )}
-      {currentAttempt?.endTime == null && (
-        <Button mt={4} colorScheme="teal" onClick={handleSubmitContest}>
-          Submit Contest
-        </Button>
       )}
     </Box>
   );

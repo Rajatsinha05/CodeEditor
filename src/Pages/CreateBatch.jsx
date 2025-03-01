@@ -15,9 +15,14 @@ import ReactSelect from "react-select";
 import { useDispatch, useSelector } from "react-redux";
 import { saveBatch, updateBatch } from "../redux/Batch/batchSlice";
 import { Languages, modules } from "../components/data/Modules";
+import { getBranch } from "../components/data/branch";
+import Ability from "../Permissions/Ability";
 
 const CreateBatchForm = ({ batch = null, onClose }) => {
-  console.log("batch: ", batch);
+  const branch = getBranch().map((branch) => ({
+    value: branch,
+    label: branch,
+  }));
   const dispatch = useDispatch();
   const toast = useToast();
   const { colorMode } = useColorMode();
@@ -173,6 +178,12 @@ const CreateBatchForm = ({ batch = null, onClose }) => {
       label: `${adjustedHour}:00 ${isPM ? "PM" : "AM"}`,
     };
   });
+  const handleBranchSelect = (selectedOption) => {
+    setFormData((prev) => ({
+      ...prev,
+      branchCode: selectedOption.value,
+    }));
+  };
 
   return (
     <Box
@@ -220,6 +231,20 @@ const CreateBatchForm = ({ batch = null, onClose }) => {
               value={timeOptions.find((time) => time.value === formData.time)}
               placeholder="Select time"
             />
+          </FormControl>
+          <FormControl>
+            <Ability roles={["SUPERADMIN"]}>
+              <FormControl>
+                <FormLabel fontWeight="bold">Branch</FormLabel>
+                <ReactSelect
+                  options={branch}
+                  styles={customSelectStyles}
+                  onChange={handleBranchSelect}
+                  value={branch.find((b) => b.value === formData.branchCode)}
+                  placeholder="Branch Code"
+                />
+              </FormControl>
+            </Ability>
           </FormControl>
 
           {finalTitle && (

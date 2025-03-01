@@ -18,6 +18,7 @@ import {
   Spinner,
   Alert,
   AlertIcon,
+  Box,
 } from "@chakra-ui/react";
 import { CalendarIcon, InfoOutlineIcon } from "@chakra-ui/icons";
 import { FaFlagCheckered } from "react-icons/fa";
@@ -72,7 +73,13 @@ const StartContestModal = ({ isOpen, onClose, contest, user }) => {
           <Text fontSize="2xl" fontWeight="bold" mb={2}>
             {contest.title}
           </Text>
-          <Text fontSize="md">{contest.description}</Text>
+          {/* <Box
+            fontSize="md"
+            dangerouslySetInnerHTML={{
+              __html: contest.description,
+            }}
+          /> */}
+
           <Divider my={4} />
           <HStack mb={4}>
             <Icon as={InfoOutlineIcon} w={5} h={5} color="blue.500" />

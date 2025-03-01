@@ -1,7 +1,7 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import Cookies from "js-cookie";
 import axiosInstance from "../config/axiosConfig";
-import {jwtDecode} from "jwt-decode"; // Fixed import
+import { jwtDecode } from "jwt-decode"; // Fixed import
 import { stringToObject } from "../utils/objectConveter"; // Assuming you have this utility
 
 // Helper to create async thunks
@@ -13,7 +13,6 @@ const createAsyncThunkHelper = (name, apiCall, transformResponse) =>
         ? transformResponse(response.data)
         : response.data;
     } catch (error) {
-      
       return rejectWithValue(error.response?.data || "An error occurred.");
     }
   });
@@ -30,6 +29,7 @@ export const login = createAsyncThunkHelper(
     const { token, user: userDetailsToken } = data;
     Cookies.set("token", token, { expires: 7 });
     Cookies.set("userToken", userDetailsToken, { expires: 7 });
+    window.location.reload();
     return { ...data, user: stringToObject(jwtDecode(userDetailsToken).sub) };
   }
 );
@@ -53,9 +53,8 @@ export const updateStudent = createAsyncThunkHelper(
   ({ id, studentData }) => axiosInstance.put(`/students/${id}`, studentData)
 );
 
-export const deleteStudent = createAsyncThunkHelper(
-  "api/deleteStudent",
-  (id) => axiosInstance.delete(`/students/${id}`)
+export const deleteStudent = createAsyncThunkHelper("api/deleteStudent", (id) =>
+  axiosInstance.delete(`/students/${id}`)
 );
 
 export const createStudentsFromFile = createAsyncThunkHelper(
