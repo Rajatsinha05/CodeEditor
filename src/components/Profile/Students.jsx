@@ -30,6 +30,7 @@ import {
   FormLabel,
   useToast,
   useColorModeValue,
+  Stack,
 } from "@chakra-ui/react";
 import { FaEllipsisV, FaTrash, FaEdit } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
@@ -160,14 +161,14 @@ const Students = () => {
       bg={bgColor}
       color={textColor}
       boxShadow="lg"
+      overflowX="auto" // Enable horizontal scrolling for the entire box
     >
       {/* Filters and search */}
-      <Flex mb={4} gap={4} alignItems="center">
+      <Stack direction={{ base: "column", md: "row" }} spacing={4} mb={4}>
         <Input
           placeholder="Search by name or email"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          width="30%"
           bg={tableBgColor}
           borderRadius="md"
           boxShadow="sm"
@@ -176,7 +177,6 @@ const Students = () => {
           placeholder="Filter by course"
           value={courseFilter}
           onChange={(e) => setCourseFilter(e.target.value)}
-          width="20%"
           bg={tableBgColor}
           borderRadius="md"
           boxShadow="sm"
@@ -193,7 +193,6 @@ const Students = () => {
             placeholder="Filter by branch"
             value={branchFilter}
             onChange={(e) => setBranchFilter(e.target.value)}
-            width="20%"
             bg={tableBgColor}
             borderRadius="md"
             boxShadow="sm"
@@ -205,10 +204,10 @@ const Students = () => {
             ))}
           </Select>
         </Ability>
-      </Flex>
+      </Stack>
 
       {/* Table displaying students */}
-      <TableContainer>
+      <TableContainer overflowX="scroll">
         <Table variant="striped" colorScheme={tableColorScheme}>
           <Thead>
             <Tr>
@@ -257,16 +256,21 @@ const Students = () => {
           </Tbody>
         </Table>
       </TableContainer>
-
       {/* Update Modal */}
       {isModalOpen && (
-        <Modal isOpen={isModalOpen} onClose={handleModalClose}>
+        <Modal isOpen={isModalOpen} onClose={handleModalClose} isCentered>
           <ModalOverlay />
-          <ModalContent>
+          <ModalContent maxW="md">
+            {" "}
+            {/* Adjust maxW as needed */}
             <ModalHeader>Update Student</ModalHeader>
             <ModalCloseButton />
-            <ModalBody>
-              <FormControl isRequired>
+            <ModalBody overflowY="auto">
+              {" "}
+              {/* Make modal body scrollable */}
+              <FormControl isRequired mb={4}>
+                {" "}
+                {/* Add margin bottom for spacing */}
                 <FormLabel>Name</FormLabel>
                 <Input
                   value={selectedStudent?.name || ""}
@@ -278,7 +282,7 @@ const Students = () => {
                   }
                 />
               </FormControl>
-              <FormControl mt={4} isRequired>
+              <FormControl isRequired mb={4}>
                 <FormLabel>Email</FormLabel>
                 <Input
                   value={selectedStudent?.email || ""}
@@ -290,7 +294,7 @@ const Students = () => {
                   }
                 />
               </FormControl>
-              <FormControl mt={4} isRequired>
+              <FormControl isRequired mb={4}>
                 <FormLabel>Course</FormLabel>
                 <Select
                   value={selectedStudent?.course || ""}
@@ -308,7 +312,7 @@ const Students = () => {
                   ))}
                 </Select>
               </FormControl>
-              <FormControl mt={4} isRequired>
+              <FormControl isRequired mb={4}>
                 <FormLabel>Branch Code</FormLabel>
                 <Select
                   value={selectedStudent?.branchCode || ""}

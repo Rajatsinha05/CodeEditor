@@ -39,7 +39,7 @@ function Portfolio() {
       dispatch(fetchStudentDetailsById(studentId));
     }
   };
-  // console.log(new Date().getFullYear())
+  // 
 
   useEffect(() => {
     refreshStudentData();

@@ -140,7 +140,7 @@ const AddQuestions = ({ isOpen, onClose, initialData, isEditing }) => {
   const handleSubmit = useCallback(
     async (e) => {
       e.preventDefault();
-      console.log("form", formData, examples);
+      
 
       // Clean input and expectedOutput fields by removing trailing spaces
       const cleanedFormData = {
@@ -154,7 +154,7 @@ const AddQuestions = ({ isOpen, onClose, initialData, isEditing }) => {
           .map((line) => line.trimEnd()) // Remove trailing spaces from each line
           .join("\n"),
       };
-      console.log("cleanedFormData", cleanedFormData);
+      
 
       // Add new example if fields are non-empty
       if (
@@ -179,7 +179,7 @@ const AddQuestions = ({ isOpen, onClose, initialData, isEditing }) => {
           `Failed to ${isEditing ? "Update" : "Add"} Question`,
           "error"
         );
-        console.log("formData", cleanedFormData);
+        
         return;
       }
 

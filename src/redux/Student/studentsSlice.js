@@ -78,7 +78,7 @@ export const createStudent = createAsyncThunk(
     try {
       const studentWithId = { ...student };
       const response = await axiosInstance.post("/students", studentWithId);
-      console.log("response: ", response);
+      
       return response.data;
     } catch (error) {
       return rejectWithValue(

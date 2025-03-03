@@ -1,5 +1,13 @@
-import React, { useState } from "react";
-import { Mail, Lock, User, Code, BookOpen, CheckCircle, Hash } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import {
+  Mail,
+  Lock,
+  User,
+  Code,
+  BookOpen,
+  CheckCircle,
+  Hash,
+} from "lucide-react";
 import { getBranch } from "../components/data/branch";
 import { getCourse } from "../components/data/course";
 import axiosInstance from "../config/axiosConfig";
@@ -40,6 +48,24 @@ function Register() {
     }
   };
 
+  const [resendTimer, setResendTimer] = useState(0);
+  const [canResend, setCanResend] = useState(true);
+  const [timerId, setTimerId] = useState(null);
+
+  // Add cleanup effect for timer
+  useEffect(() => {
+    return () => {
+      if (timerId) clearInterval(timerId);
+    };
+  }, [timerId]);
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, "0")}:${secs
+      .toString()
+      .padStart(2, "0")}`;
+  };
   const validateField = (name, value) => {
     switch (name) {
       case "name":
@@ -114,6 +140,21 @@ function Register() {
         position: "top-center",
       });
       setStep(2);
+      if (timerId) clearInterval(timerId);
+
+      // Start new timer
+      setResendTimer(120);
+      const id = setInterval(() => {
+        setResendTimer((prev) => {
+          if (prev <= 1) {
+            clearInterval(id);
+            setCanResend(true);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      setTimerId(id);
     } catch (error) {
       toast({
         title: "OTP Generation Failed",
@@ -124,6 +165,7 @@ function Register() {
         position: "top-center",
       });
       vibrate();
+      setCanResend(true);
     }
   };
 
@@ -142,7 +184,7 @@ function Register() {
   const navigate = useNavigate();
 
   const CreateStudent = async () => {
-    console.log("formData: ", formData);
+    
 
     try {
       await dispatch(createStudent(formData)).unwrap();
@@ -163,7 +205,7 @@ function Register() {
         isClosable: true,
         position: "top-center",
       });
-      console.error("Error:", error);
+      
     }
   };
 
@@ -389,6 +431,22 @@ function Register() {
           >
             {step === 1 ? "Continue" : "Verify & Register"}
           </button>
+          {step == 2 && (
+            <button
+              type="button"
+              onClick={generateOTP}
+              disabled={!canResend}
+              className={`w-full text-sm mt-4 ${
+                !canResend
+                  ? "text-gray-400 cursor-not-allowed"
+                  : "text-red-500 hover:underline"
+              }`}
+            >
+              {resendTimer > 0
+                ? `Resend OTP in ${formatTime(resendTimer)}`
+                : "Resend OTP"}
+            </button>
+          )}
         </form>
       </div>
     </div>

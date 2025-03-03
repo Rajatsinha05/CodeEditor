@@ -18,8 +18,8 @@ import { useSelector } from "react-redux";
 import axiosInstance from "../../config/axiosConfig";
 
 const ModifyAndDownloadZip = ({ fileName, testDetail }) => {
-  console.log("testDetail: ", testDetail);
-  console.log(testDetail?.endTime);
+  
+  
 
   const { user } = useSelector((store) => store.data);
   const [isLoading, setIsLoading] = useState(false);

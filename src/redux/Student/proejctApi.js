@@ -34,13 +34,13 @@ export const fetchProjectById = createAsyncThunk(
 export const createProject = createAsyncThunk(
   "projects/createProject",
   async (project, { rejectWithValue }) => {
-    console.log("project: ", project);
+    
     try {
       const response = await axiosInstance.post("/api/v1/projects", project); // Full API endpoint
-      console.log("response: ", response);
+      
       return response.data;
     } catch (error) {
-      console.log("error: ", error);
+      
       return rejectWithValue(
         error.response?.data || "Failed to create project."
       );

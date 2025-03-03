@@ -23,7 +23,8 @@ import {
 // import { getCodeRecord, saveCodeRecord, deleteCodeRecord } from "../../db.";
 import { FiSettings } from "react-icons/fi";
 import { FaClock, FaSync, FaHistory } from "react-icons/fa";
-const MonacoEditor = React.lazy(() => import("@monaco-editor/react"));
+// const MonacoEditor = React.lazy(() => import("@monaco-editor/react"));
+import MonacoEditor from "@monaco-editor/react";
 import TimerDisplay from "../Result/TimerDisplay";
 import Output from "../Result/Output";
 import TestResultsDrawer from "../Result/TestResultsDrawer";
@@ -117,7 +118,6 @@ const CodeWorkspace = ({
           setValue(CODE_SNIPPETS[defaultLanguage] || "");
         }
       } catch (error) {
-        console.error("Error loading from IndexedDB:", error);
         // Fallback to localStorage
         const defaultLanguage =
           localStorage.getItem("defaultLanguage") || "java";
@@ -140,7 +140,6 @@ const CodeWorkspace = ({
           lastSaved: new Date().toISOString(),
         });
       } catch (error) {
-        console.error("Error saving to IndexedDB:", error);
         // Fallback to localStorage
         localStorage.setItem(
           `code-${questionId}-${contestId || ""}`,
@@ -164,7 +163,6 @@ const CodeWorkspace = ({
           lastSaved: new Date().toISOString(),
         });
       } catch (error) {
-        console.error("Final save failed:", error);
         // Emergency localStorage fallback
         localStorage.setItem(
           `code-${questionIdRef.current}-${contestIdRef.current || ""}`,
@@ -187,12 +185,12 @@ const CodeWorkspace = ({
   //   if (savedData) {
   //     try {
   //       const { code, language } = JSON.parse(savedData);
-  //       console.log('code: ', code);
+  //
   //       setPreferences((prev) => ({ ...prev, language }));
   //       setValue(code);
   //       localStorage.setItem("defaultLanguage", language);
   //     } catch (error) {
-  //       console.error("Error parsing saved code:", error);
+  //
   //       const defaultLanguage =
   //         localStorage.getItem("defaultLanguage") || "java";
   //       setPreferences((prev) => ({ ...prev, language: defaultLanguage }));

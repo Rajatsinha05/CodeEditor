@@ -36,13 +36,13 @@ export const fetchEducationById = createAsyncThunk(
 export const createEducation = createAsyncThunk(
   "education/createEducation",
   async (education, { rejectWithValue }) => {
-    console.log("education: ", education);
+    
     try {
       const response = await axiosInstance.post("/api/v1/education", education);
-      console.log("response: ", response);
+      
       return response.data;
     } catch (error) {
-      console.log("error: ", error);
+      
       return rejectWithValue(
         error.response?.data || "Failed to create education record."
       );

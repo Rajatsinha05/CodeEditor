@@ -52,7 +52,7 @@ const AssignProject = () => {
   const textColor = useColorModeValue("gray.800", "whiteAlpha.900");
   const toast = useToast();
   const { batchId } = useParams();
-  console.log("batchId: ", batchId);
+  
   useEffect(() => {
     const query = new URLSearchParams(window.location.search);
     const moduleName = query.get("module");
@@ -112,7 +112,7 @@ const AssignProject = () => {
   );
 
   return (
-    <Box maxW="1200px" mx="auto" px={6} py={6}>
+    <Box maxW="1200px" mx="auto" px={6} py={6} mt={5}>
       {loading
         ? skeletonLoader
         : testDetails.map((test) => (
@@ -124,10 +124,12 @@ const AssignProject = () => {
                 REACT: <FaReact color="#61DBFB" />,
                 NODE: <FaNodeJs color="#3C873A" />,
                 JAVASCRIPT: <FaJs color="#F7DF1E" />,
+
               }}
               borderColor={borderColor}
               hoverBorderColor={hoverBorderColor}
               textColor={textColor}
+              mt={4}
             />
           ))}
       <Modal isOpen={isModalOpen} onClose={() => setModalOpen(false)}>

@@ -75,7 +75,7 @@ const Output = ({
 
   const handleEndContest = () => {
     if (!attemptId) {
-      console.error("Attempt ID is missing.");
+      
       showToast(
         toast,
         "Unable to end the contest. Attempt ID is missing.",
@@ -84,17 +84,17 @@ const Output = ({
       return;
     }
 
-    console.log("Attempting to end contest with attemptId:", attemptId);
+    
 
     // Dispatching the action to end the contest attempt
     dispatch(endContestAttempt({ attemptId }))
       .unwrap()
       .then((data) => {
-        console.log("Contest ended successfully:", data);
+        
         showToast(toast, "Submitted Successfully", "success");
       })
       .catch((error) => {
-        console.error("Error ending contest:", error);
+        
         showToast(toast, error || "Failed to end the contest.", "error");
       });
   };

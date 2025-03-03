@@ -83,7 +83,7 @@ const ContestCard = ({ contest, onStartClick }) => {
   };
   const handleEdit = (e) => {
     e.preventDefault(); // Prevent page reload
-    console.log("Edit clicked");
+    // 
     navigate(`/admin/update-contest/${contest.id}`);
   };
   const truncateDescription = (description) => {

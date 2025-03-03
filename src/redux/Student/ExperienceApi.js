@@ -36,17 +36,17 @@ export const fetchExperienceById = createAsyncThunk(
 export const createExperience = createAsyncThunk(
   "experience/createExperience",
   async (experience, { rejectWithValue }) => {
-    console.log("experience: ", experience);
+    
     try {
       const response = await axiosInstance.post(
         "/api/v1/experiences",
         experience
       );
-      console.log("response: ", response);
+      
 
       return response.data;
     } catch (error) {
-      console.log("error: ", error);
+      
       return rejectWithValue(error || "Failed to create experience record.");
     }
   }
@@ -56,7 +56,7 @@ export const createExperience = createAsyncThunk(
 export const updateExperience = createAsyncThunk(
   "experience/updateExperience",
   async ({ id, updates }, { rejectWithValue }) => {
-    console.log("id, updates: ", id, updates);
+    
     try {
       const response = await axiosInstance.put(
         `/api/v1/experiences/${id}`,

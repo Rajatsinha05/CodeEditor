@@ -7,7 +7,7 @@ import ActivityGraph from "./ActivityGraph";
 
 const StudentStats = () => {
   const { user } = useSelector((store) => store.data);
-  console.log("user: ", user);
+  
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -17,7 +17,7 @@ const StudentStats = () => {
   }, [dispatch, user?.id]);
 
   const { studentRecords } = useSelector((store) => store.questionSolved);
-  console.log("studentRecords: ", studentRecords);
+  
 
   const groupedRecords = useMemo(() => {
     if (!studentRecords || studentRecords.length === 0) return [];

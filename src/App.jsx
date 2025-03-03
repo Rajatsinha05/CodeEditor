@@ -12,22 +12,43 @@ import Navbar from "./components/Navbar";
 import AllRoutes from "./Routes/AllRoutes";
 import "react-quill/dist/quill.snow.css";
 import { trackPageView } from "../analytics";
+import { initOneSignal } from "./notification/ongSingal";
+import {
+  NotificationPermissionModal,
+  onMessageListener,
+  requestForToken,
+} from "./notification/request";
 
 function App() {
   const location = useLocation();
+  const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
 
   useEffect(() => {
-    trackPageView(location.pathname); // Track each page visit
+    trackPageView(location.pathname);
   }, [location]);
 
-  const { isLogin, user } = useSelector((store) => store.data);
+  useEffect(() => {
+    const checkNotificationPermission = async () => {
+      const permission = Notification.permission;
+      if (permission === "default") {
+        setIsNotificationModalOpen(true);
+      } else if (permission === "granted") {
+        await requestForToken();
+      }
+    };
+
+    checkNotificationPermission();
+
+    onMessageListener()
+      .then((payload) => {
+        alert(`New notification: ${payload.notification.title}`);
+      })
+      .catch((err) => console.log("Failed to receive notification:", err));
+  }, []);
+
+  const { isLogin } = useSelector((store) => store.data);
   const { colorMode } = useColorMode();
 
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-
-  const handleDrawerClose = () => setIsDrawerOpen(false);
-
-  // Dynamic styles based on color mode
   const styles = {
     hoverBg: useColorModeValue("red.400", "teal.400"),
     bgColor: useColorModeValue("gray.50", "gray.900"),
@@ -36,7 +57,6 @@ function App() {
     hoverColor: useColorModeValue("white", "white"),
   };
 
-  // Hide Navbar on specific routes
   const hideNavbar =
     location.pathname.startsWith("/portfolio/") ||
     location.pathname.startsWith("/register");
@@ -44,10 +64,14 @@ function App() {
 
   return (
     <>
-      {/* Conditionally render Navbar */}
       {!hideNavbar && <Navbar />}
-
       <AllRoutes />
+
+      {/* Notification Permission Modal */}
+      <NotificationPermissionModal
+        isOpen={isNotificationModalOpen}
+        onClose={() => setIsNotificationModalOpen(false)}
+      />
 
       {/* Conditional Login Modal */}
       {!isLogin && !isRegisterRoute && (

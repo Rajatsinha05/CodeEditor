@@ -87,6 +87,9 @@ const AssignProjectCard = ({
             "transform 0.3s ease-in-out, border-color 0.2s ease-in-out",
         }}
         position="relative"
+        mt={
+          5
+        }
       >
         <Flex justify="space-between" align="center" mb={4}>
           <Flex align="center">

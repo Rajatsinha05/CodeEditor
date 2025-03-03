@@ -83,11 +83,11 @@ const studentData = {
 
 function Resume() {
   const { studentId } = useParams();
-  console.log("studentId: ", studentId);
+  
 
   const dispatch = useDispatch();
   const { student } = useSelector((store) => store.student);
-  console.log("student: ", student);
+  
 
   const refreshStudentData = () => {
     if (studentId) {

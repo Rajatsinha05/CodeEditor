@@ -5,12 +5,7 @@ import axiosInstance from "../config/axiosConfig";
 export const fetchSolvedQuestionsByContestStudentAndQuestion = createAsyncThunk(
   "solvedQuestions/fetchByContestStudentAndQuestion",
   async ({ contestId, studentId, questionId }, { rejectWithValue }) => {
-    console.log(
-      " contestId, studentId, questionId: ",
-      contestId,
-      studentId,
-      questionId
-    );
+ 
     try {
       const response = await axiosInstance.get(
         `/api/solved-questions/contest/${contestId}/student/${studentId}/question/${questionId}`

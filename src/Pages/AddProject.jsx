@@ -12,6 +12,7 @@ import {
   useToast,
   useColorModeValue,
   Text,
+  Textarea,
 } from "@chakra-ui/react";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
@@ -234,7 +235,7 @@ const AddProject = ({ project = null }) => {
 
           <FormControl id="description" isRequired>
             <FormLabel fontWeight="semibold">Description</FormLabel>
-            <ReactQuill
+            {/* <ReactQuill
               value={formData.description}
               onChange={handleDescriptionChange}
               theme="snow"
@@ -245,6 +246,18 @@ const AddProject = ({ project = null }) => {
                 borderRadius: "5px",
                 minHeight: "150px",
               }}
+            /> */}
+            <Textarea
+              value={formData.description}
+              onChange={(e) =>
+                setFormData({ ...formData, description: e.target.value })
+              }
+              bg={bgColor}
+              color={textColor}
+              border={`1px solid ${borderColor}`}
+              borderRadius="5px"
+              minHeight="150px"
+              placeholder="Enter project description..."
             />
           </FormControl>
 

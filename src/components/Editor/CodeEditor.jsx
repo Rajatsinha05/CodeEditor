@@ -1,11 +1,4 @@
-import React, {
-  useRef,
-  useState,
-  useEffect,
-  useMemo,
-  lazy,
-  Suspense,
-} from "react";
+import React, { useRef, useState, useEffect, useMemo } from "react";
 import { Box, useToast, useColorModeValue, Flex } from "@chakra-ui/react";
 import { BsThreeDotsVertical } from "react-icons/bs";
 
@@ -16,9 +9,9 @@ import CameraDisplay from "./CameraDisplay";
 import { getQuestionById } from "../../redux/Question/questionApi";
 import { showToast } from "../../utils/toastUtils";
 import ProblemDetails from "./ProblemDetails";
-
-// const CodeWorkspace = lazy(() => import("./CodeWorkspace"));
 import CodeWorkspace from "./CodeWorkspace";
+import * as monaco from "monaco-editor";
+
 const CodeEditor = ({ problemId }) => {
   const editorRef = useRef();
   const [value, setValue] = useState(CODE_SNIPPETS["java"]);
@@ -53,15 +46,13 @@ const CodeEditor = ({ problemId }) => {
     }
   }, [dispatch, problemId, shouldFetchQuestion]);
 
-  // Lazy load monaco-editor
+  // Initialize monaco-editor instance
   useEffect(() => {
-    import("monaco-editor").then((monaco) => {
-      setMonacoInstance(monaco);
-    });
+    setMonacoInstance(monaco);
   }, []);
 
   const onMount = (editor) => {
-    if (!monacoInstance) return;
+    // if (!monacoInstance) return;
     editorRef.current = editor;
     editor.focus();
 
@@ -110,6 +101,7 @@ const CodeEditor = ({ problemId }) => {
   const reload = () => {
     setResetKey((prev) => prev + 1);
   };
+
   return (
     <Box
       p={6}
